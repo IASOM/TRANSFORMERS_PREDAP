@@ -323,4 +323,20 @@ if __name__ == "__main__":
 
     # MODEL TRAINING --------------------------------------------------------------
 
+    # Create the custom learning rate schedule
+    LR_init=LEARNING_RATE
+    LR_min=LR_init*10
+    LR_max=LR_init*10*10
+    scheduler = CustomCosineDecay(initial_lr=LR_init, max_lr=LR_max, min_lr=LR_min, warmup_steps=EPOCHS/5, total_steps=EPOCHS)
 
+    callbacks = [
+        tf.keras.callbacks.LearningRateScheduler(
+            scheduler),
+        tf.keras.callbacks.EarlyStopping(
+            patience=EARLY_STOP_PATIENCE,
+            monitor='val_loss',
+            mode='min',
+            restore_best_weights=True)]
+
+
+    model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam())
