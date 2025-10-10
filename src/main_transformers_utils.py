@@ -13,6 +13,9 @@ from tensorflow import keras
 import pickle
 from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Input, Lambda
+
+import data_preparation
 
 # plot example 10 diags -------------------------
 def plot_example(df,title):
@@ -129,10 +132,14 @@ def plot_evaluations(mse_list, mae_list, loss_list):
     plt.show()
 
 def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
+
+    
+    d_model = max(head_size * num_heads, 8)
+    x = layers.Dense(d_model, activation="relu")(inputs)
     # Normalization and Attention
     x = layers.LayerNormalization(epsilon=1e-6)(inputs)                  # to imputs to stabilize training
     x = layers.MultiHeadAttention(
-        key_dim=head_size, num_heads=num_heads, dropout=dropout)(x, x)   # self attention to normalized input 
+        key_dim=head_size, num_heads=num_heads, dropout=dropout)(x,x)   # self attention to normalized input 
     x = layers.Dropout(dropout)(x) # (dropout to reduce overfitting)
     res = x + inputs               # attention output added to original inputs
 
@@ -141,11 +148,15 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
     x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation="tanh")(x) # point-wise convol.: Expands feature dim to ff_dim using tanh activ
     x = layers.Dropout(dropout)(x)                                         # dropout again
     x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)          # reduces feature dim back to match input size
-    return x + res
+    x = x + res
+    
+    return x
 
 def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, dropout=0, mlp_dropout=0, n_pred=1):
     inputs = keras.Input(shape=input_shape) #defines input tensor
-    x = inputs 
+    
+    x = inputs                            #initial input
+    #
     for _ in range(num_transformer_blocks): #apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, dropout) #uses previous defined trans_encoder layer
 
@@ -222,9 +233,134 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
         print(f"Current memory usage: {memory_info['current'] / (1024**2)} MB")
         print(f"Peak memory usage: {memory_info['peak'] / (1024**2)} MB")
 
+
+
+def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves):
+    """
+    Plots actual vs. predicted values with dates as x-labels, showing only 15 evenly spaced date labels.
+    Also highlights COVID-19 pandemic waves with a red background.
+
+    Args:
+        Y_test (array): Actual target values.
+        predictions (array): Predicted values from the model.
+        date_list (list): List of datetime values for the x-axis.
+        df_waves (DataFrame): Contains pandemic waves' start and end dates.
+    """
+    # Convert timestamps to string format (YYYY-MM-DD)
+    date_labels = [date.strftime('%Y-%m-%d') for date in date_list]
+
+    # Select 15 evenly spaced indices for x-axis labels
+    num_labels = 15
+    indices = np.linspace(0, len(date_list) - 1, num_labels, dtype=int)
+
+    plt.figure(figsize=(20, 5))
+
+    # Highlight pandemic waves with a red background
+    for i, row in df_waves.iterrows():
+        plt.axvspan(row["Inici"], row["Final"], color="red", alpha=0.2)
+
+    # Plot actual and predicted values
+    plt.plot(date_list, Y_test, label="Actual Values (Y-test)", marker='o', linestyle='-', alpha=0.7)
+    plt.plot(date_list, predictions, label="Predicted Values", marker='x', linestyle='--', alpha=0.7)
+
+    plt.xlabel("Date")
+    plt.ylabel("Target Value (J00)")
+    plt.title("Predictions vs. Actual Values (J00 - Y-test) with Pandemic Waves")
+    plt.ylim(0, 1)
+    plt.legend()
+
+    # Apply only 15 labels to the x-axis
+    plt.xticks([date_list[i] for i in indices], [date_labels[i] for i in indices], rotation=45)
+
+    plt.grid()
+    plt.show()
+    
+def evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=10):
+    """
+    Evaluate the model using a sliding window approach.
+
+    Args:
+        model: Trained Keras model.
+        X_test: Test input data (shape: (samples, lookback, 1)).
+        Y_test: True future values (shape: (samples, n_pred)).
+        sliding_window: Number of test samples to slide over.
+    
+    Returns:
+        Plots the MSE, MAE, and Loss over time.
+    """
+
+    mse_list = []
+    mae_list = []
+    loss_list = []
+
+    num_samples = len(X_test) - sliding_window + 1  # Number of sliding steps
+
+    for i in range(num_samples):
+        X_window = X_test[i : i + sliding_window]  # Get sliding window input
+        Y_window_true = Y_test[i : i + sliding_window]  # True values
+
+        # Predict using the model
+        Y_window_pred = model.predict(X_window, verbose=0)
+
+        # Compute metrics
+        mse = mean_squared_error(Y_window_true, Y_window_pred)
+        mae = mean_absolute_error(Y_window_true, Y_window_pred)
+        loss = np.mean(np.abs(Y_window_true - Y_window_pred))  # Approximate loss (MAE)
+
+        # Store metrics
+        mse_list.append(mse)
+        mae_list.append(mae)
+        loss_list.append(loss)
+    
+    # Ensure date_list length matches metric lists
+    trimmed_dates = date_list[-len(mse_list):]  # Take only the last elements
+
+    plt.figure(figsize=(12, 10))
+
+    # Plot MSE
+    ax1 = plt.subplot(3, 1, 1)
+    for i, row in df_waves.iterrows():
+        ax1.axvspan(row["Inici"], row["Final"], color="red", alpha=0.2)
+    ax1.plot(trimmed_dates, mse_list, label="MSE", color="blue")
+    ax1.set_xlabel("Data")
+    ax1.set_ylabel("MSE")
+    ax1.set_title("Mean Squared Error (MSE) Over Time")
+    ax1.legend()
+    ax1.tick_params(axis="x", rotation=45)
+    ax1.set_ylim(0, 1)
+
+    # Plot MAE
+    ax2 = plt.subplot(3, 1, 2)
+    for i, row in df_waves.iterrows():
+        ax2.axvspan(row["Inici"], row["Final"], color="red", alpha=0.2)
+    ax2.plot(trimmed_dates, mae_list, label="MAE", color="orange")
+    ax2.set_xlabel("Data")
+    ax2.set_ylabel("MAE")
+    ax2.set_title("Mean Absolute Error (MAE) Over Time")
+    ax2.legend()
+    ax2.tick_params(axis="x", rotation=45)
+    ax2.set_ylim(0, 1)
+
+    # Plot Loss
+    ax3 = plt.subplot(3, 1, 3)
+    for i, row in df_waves.iterrows():
+        ax3.axvspan(row["Inici"], row["Final"], color="red", alpha=0.2)
+    ax3.plot(trimmed_dates, loss_list, label="Loss", color="red")
+    ax3.set_xlabel("Data")
+    ax3.set_ylabel("Loss")
+    ax3.set_title("Loss Over Time")
+    ax3.legend()
+    ax3.tick_params(axis="x", rotation=45)
+    ax3.set_ylim(0, 0.2)
+
+    plt.tight_layout()
+
+    plt.savefig("evaluation_metrics_over_time.png")  # Save the figure
+    plt.show()
+
 if __name__ == "__main__":
     # Set default values ...............................................................
-    FORECAST=7      # number of future time steps the model will predict (predict horizon)
+    FORECAST=7     # number of future time steps the model will predict (predict horizon)
     LOOKBACK=7     # how many past time steps the model uses as input  (input seq length)
 
     #Transformer model .................................................................
@@ -250,7 +386,7 @@ if __name__ == "__main__":
 
 
     # RAW DATA --------------------------------------------------------------
-    data_path = "C:/Users/34648/OneDrive - Generalitat de Catalunya/Escriptori/waikato/input data/longitudinalitat_DIAGNOSTICS_GROUPED.csv"
+    data_path = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
     df = pd.read_csv(data_path, index_col=0)
     df['COV-19'] = df["B34"]+df["U07"]   # join cov19 codes
     df = df.drop(['B34', 'U07'], axis=1)
@@ -288,7 +424,7 @@ if __name__ == "__main__":
 
 
     start_time = time.perf_counter()
-    input_directory = f'C:/Users/34648/OneDrive - Generalitat de Catalunya/Escriptori/waikato/diagnostic_data' # define data dir
+    input_directory = f"J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv" # define data dir
     batchSize=16               # how many samples processing in parallel during training
     shuffle=False              # randomize order of training data??
 
@@ -298,7 +434,7 @@ if __name__ == "__main__":
     csvFile = f'{input_directory}/{code}_train_example.csv'
     #
     # prepare X and Y arrays
-    X, Y = data_preparation.prepare_data(f'{input_directory}/{code}_train_example.csv', LOOKBACK, FORECAST, debug=True, univariate =True)
+    X, Y = data_preparation.prepare_data(input_directory, code, LOOKBACK, FORECAST, debug=True, univariate=True)
 
     finish_preparing = time.perf_counter()
     time_data_preparation = finish_preparing - start_time
@@ -340,3 +476,116 @@ if __name__ == "__main__":
 
 
     model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam())
+
+    # train model
+    MODEL_NAME = f'models/{code}_example_transformer_{FORECAST}fh_{FF_DIM}ff_{LOOKBACK}lb_{LEARNING_RATE}initlr.keras'
+    callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=EARLY_STOP_PATIENCE, restore_best_weights=True)]
+    train_given_model_and_data(model, X, Y, model_name=MODEL_NAME, epochs=EPOCHS, save_model=True, save_memory=False, callbacks=callbacks)
+
+    LOOKBACK_LIST = [7]#[1,7,14,30,60]
+    FORECAST_LIST = [7]#[1,7,14,30,60]
+
+    # train different models for different lookback and forecast horizons
+    for lb in LOOKBACK_LIST:
+
+        csvFile = f'{input_directory}/{code}_train_example.csv'
+
+        for fh in FORECAST_LIST:
+
+            # prepare X and Y arrays
+            X, Y = data_preparation.prepare_data(input_directory, code, lb, fh, debug=True, univariate =True)
+            
+            start_time = time.perf_counter()
+            # declare model
+            model = build_model(
+                (lb,1),
+                head_size=HEAD_SIZE,
+                num_heads=NUM_HEADS,
+                ff_dim=FF_DIM,
+                num_transformer_blocks=NUM_TRANSFORMER_BLOCKS,
+                mlp_units=[MLP_UNITS],
+                mlp_dropout=MLP_DROPOUT,
+                dropout=DROPOUT,
+                n_pred=fh#+1
+            )
+            
+            # Create the custom learning rate schedule
+            scheduler = CustomCosineDecay(initial_lr=LR_init, max_lr=LR_max, min_lr=LR_min, warmup_steps=EPOCHS/5, total_steps=EPOCHS)
+
+            callbacks = [
+                tf.keras.callbacks.LearningRateScheduler(scheduler),
+                tf.keras.callbacks.EarlyStopping(
+                    patience=EARLY_STOP_PATIENCE,
+                    monitor='val_loss',
+                    mode='min',
+                    restore_best_weights=True)]
+
+
+            model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam())
+            
+            # train model
+            MODEL_NAME = f'models/{code}_example_transformer_{fh}fh_{FF_DIM}ff_{lb}lb_{LEARNING_RATE}initlr.keras'
+            callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=EARLY_STOP_PATIENCE, restore_best_weights=True)]
+            train_given_model_and_data(model, X, Y, model_name=MODEL_NAME, epochs=EPOCHS, save_model=True, save_memory=False, callbacks=callbacks)
+
+            finish_preparing = time.perf_counter()
+            time_data_preparation = finish_preparing - start_time
+            print("finished modelling, time spent:",time_data_preparation)
+
+
+    # EXPLORE AND TEST MODELS --------------------------------------------------------------
+    MODEL_NAME = f'models/{code}_example_transformer_{FORECAST}fh_{FF_DIM}ff_{LOOKBACK}lb_{LEARNING_RATE}initlr.keras'
+    print(MODEL_NAME)
+
+    # MODEL EVALUATION 
+    start_time = time.perf_counter()
+    input_directory = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+
+    csvFile = f'{input_directory}/{code}_test_example.csv'
+
+    # prepare X and Y arrays
+    X_test, Y_test = data_preparation.prepare_data(input_directory, code, LOOKBACK, FORECAST, debug=True, univariate=True)
+    date_list = data_preparation.extract_dates(input_directory, code, LOOKBACK, FORECAST)
+
+    finish_preparing = time.perf_counter()
+    time_data_preparation = finish_preparing - start_time
+    print("finished preparing data, time spent:",time_data_preparation)
+    print("finished preparing timesteps, time spent:",len(date_list))
+
+    MODEL_FOLDER = 'models'
+    print("Files in model folder:", os.listdir(MODEL_FOLDER))
+
+    model = tf.keras.models.load_model(MODEL_NAME, compile=True)
+    # Print model architecture
+    model.summary()
+
+    waves = {
+    "Primera Onada": ("2020-03", "2020-06"),
+    "Segona Onada": ("2020-10", "2020-12"),
+    "Tercera Onada": ("2021-01", "2021-03"),
+    "Quarta Onada": ("2021-04", "2021-06"),
+    "Cinquena Onada": ("2021-07", "2021-09")
+    }
+
+    # Convertir a DataFrame per facilitar la representació
+    df_waves = pd.DataFrame(waves).T.reset_index()
+    df_waves.columns = ["Onada", "Inici", "Final"]
+    df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
+    df_waves["Final"] = pd.to_datetime(df_waves["Final"])
+
+    # Assuming X_test and Y_test are prepared
+    loss, mae, mse = model.evaluate(X_test, Y_test)
+
+    print(f"Test Loss: {loss}")
+    print(f"Test MAE: {mae}")   # Mean Absolute Error
+    print(f"Test MSE: {mse}")   # Mean Squared Error
+
+    # Get predictions
+    predictions = model.predict(X_test)
+    print("Predicted values:", predictions.shape)
+
+
+    # Call the function with formatted dates
+    plot_predictions_with_waves(Y_test, predictions, date_list, df_waves)
+
+    evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=FORECAST)
