@@ -266,7 +266,7 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves):
     plt.xlabel("Date")
     plt.ylabel("Target Value (J00)")
     plt.title("Predictions vs. Actual Values (J00 - Y-test) with Pandemic Waves")
-    plt.ylim(0, 1)
+    #plt.ylim(0, 1)
     plt.legend()
 
     # Apply only 15 labels to the x-axis
@@ -327,7 +327,7 @@ def evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=10
     ax1.set_title("Mean Squared Error (MSE) Over Time")
     ax1.legend()
     ax1.tick_params(axis="x", rotation=45)
-    ax1.set_ylim(0, 1)
+    #ax1.set_ylim(0, 1)
 
     # Plot MAE
     ax2 = plt.subplot(3, 1, 2)
@@ -339,7 +339,7 @@ def evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=10
     ax2.set_title("Mean Absolute Error (MAE) Over Time")
     ax2.legend()
     ax2.tick_params(axis="x", rotation=45)
-    ax2.set_ylim(0, 1)
+    #ax2.set_ylim(0, 1)
 
     # Plot Loss
     ax3 = plt.subplot(3, 1, 3)
@@ -351,7 +351,7 @@ def evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=10
     ax3.set_title("Loss Over Time")
     ax3.legend()
     ax3.tick_params(axis="x", rotation=45)
-    ax3.set_ylim(0, 0.2)
+    #ax3.set_ylim(0, 1)
 
     plt.tight_layout()
 
@@ -482,8 +482,8 @@ if __name__ == "__main__":
     callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=EARLY_STOP_PATIENCE, restore_best_weights=True)]
     train_given_model_and_data(model, X, Y, model_name=MODEL_NAME, epochs=EPOCHS, save_model=True, save_memory=False, callbacks=callbacks)
 
-    LOOKBACK_LIST = [7]#[1,7,14,30,60]
-    FORECAST_LIST = [7]#[1,7,14,30,60]
+    LOOKBACK_LIST = [1,7,14,30,60, 182,365]
+    FORECAST_LIST = [1,7,14,30,60, 182,365]
 
     # train different models for different lookback and forecast horizons
     for lb in LOOKBACK_LIST:
