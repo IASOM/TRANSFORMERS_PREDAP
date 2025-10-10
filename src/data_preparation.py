@@ -25,6 +25,16 @@ def prepare_data(csv_file,code, lookback, forecast, debug=False, univariate=True
     if 'timestamp' in df.columns:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
     
+
+    df[code] = pd.to_numeric(df[code], errors='coerce')
+    df = df.dropna(subset=[code]).reset_index(drop=True)
+
+    # Min-max scale ONLY the target column (univariate)
+    cmin, cmax = df[code].min(), df[code].max()
+    if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
+        df[code] = 0.0
+    else:
+        df[code] = (df[code] - cmin) / (cmax - cmin)
         
     if univariate:
         # univariate scenario ...................................................
