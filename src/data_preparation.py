@@ -11,31 +11,63 @@ import time
 from dateutil.easter import easter
 
 
-def prepare_data(csv_file,code, lookback, forecast, debug=False, univariate=True):
-    # Load CSV
-    df = pd.read_csv(csv_file)
+# Define function for train-test split
+def split_train_test(df, split_ratio=0.8):
+    """
+    Splits a dataframe into train and test sets using the given split ratio.
+
+    Parameters:
+    df (pd.DataFrame): The input dataframe to split.
+    split_ratio (float): The fraction of data to be used for training (default is 0.8).
+
+    Returns:
+    train_df (pd.DataFrame): Training dataset.
+    test_df (pd.DataFrame): Testing dataset.
+    """
+    split_idx = int(len(df) * split_ratio)  # Compute split index
+    train_df = df.iloc[:split_idx].reset_index(drop=True)
+    test_df = df.iloc[split_idx:].reset_index(drop=True)
+    
+    return train_df, test_df
+
+def normalize_dataframe(df, date_cutoff = '2010-01-01'):
     # Keep only rows STRICTLY after 2010-01-01 using the 'timestamp' column
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp('2010-01-01')
+    cutoff = pd.Timestamp(date_cutoff)
     df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
     
     # Convert timestamp to datetime (optional)
     if 'timestamp' in df.columns:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
     
+    for code in df.columns:
+        if code != 'timestamp':
+            df[code] = pd.to_numeric(df[code], errors='coerce')
+            df = df.dropna(subset=[code]).reset_index(drop=True)
 
-    df[code] = pd.to_numeric(df[code], errors='coerce')
-    df = df.dropna(subset=[code]).reset_index(drop=True)
+            # Min-max scale ONLY the target column (univariate)
+            cmin, cmax = df[code].min(), df[code].max()
+            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
+                df[code] = 0.0
+            else:
+                df[code] = (df[code] - cmin) / (cmax - cmin)
 
-    # Min-max scale ONLY the target column (univariate)
-    cmin, cmax = df[code].min(), df[code].max()
-    if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
-        df[code] = 0.0
+    return df
+
+def prepare_data(csv_file,code, lookback, forecast,train = True, debug=False, univariate=True):
+    # Load CSV
+    df = pd.read_csv(csv_file)
+
+    df = normalize_dataframe(df)
+    train_df, test_df = split_train_test(df)
+    
+    if train:
+        df = train_df
     else:
-        df[code] = (df[code] - cmin) / (cmax - cmin)
-        
+        df = test_df
+
     if univariate:
         # univariate scenario ...................................................
         # Only use the target column as input (Univariate Forecasting)
@@ -52,8 +84,10 @@ def prepare_data(csv_file,code, lookback, forecast, debug=False, univariate=True
     else: 
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
-        feature_cols = df.columns[1:-1]  # Ignore timestamp, exclude target
-        target_col = df.columns[-1]  # Target is the last column
+        idx_code = df.columns.get_loc(code)
+        feature_cols = df.columns
+        feature_cols = feature_cols.drop(columns = code)  # Ignore timestamp, exclude target
+        target_col = df.columns[idx_code]  # Target is the last column
     
         # Convert DataFrame to numpy arrays
         X_raw = df[feature_cols].values  # Shape: (200, 3)
@@ -74,7 +108,7 @@ def prepare_data(csv_file,code, lookback, forecast, debug=False, univariate=True
     return X, Y
 
 
-def extract_dates(csv_file,code, lookback, forecast):
+def extract_dates(csv_file,code,lookback, forecast, train = True):
     """
     Extracts the 'date' column from the CSV file to align with the test dataset for plotting.
 
@@ -96,6 +130,11 @@ def extract_dates(csv_file,code, lookback, forecast):
     df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
     # Convert to datetime format
     df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df_train, df_test = split_train_test(df)
+    if train:
+        df = df_train
+    else:
+        df = df_test
 
     # Align dates with the first prediction in each sequence
     date_list = df['timestamp'].iloc[lookback : len(df) - forecast + 1].reset_index(drop=True)
@@ -117,7 +156,27 @@ def prepare_time_series_features(df, categorical_vars):
     """
 
     # Ensure 'timestamp' column is in datetime format
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    cutoff = pd.Timestamp('2010-01-01')
+    df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
+    
+    # Convert timestamp to datetime (optional)
+    if 'timestamp' in df.columns:
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        
+    for code in df.columns:
+        if code != 'timestamp':
+            df[code] = pd.to_numeric(df[code], errors='coerce')
+            df = df.dropna(subset=[code]).reset_index(drop=True)
+
+            # Min-max scale ONLY the target column (univariate)
+            cmin, cmax = df[code].min(), df[code].max()
+            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
+                df[code] = 0.0
+            else:
+                df[code] = (df[code] - cmin) / (cmax - cmin)
+
 
     # Define fixed public holidays
     fixed_holidays = {
@@ -151,6 +210,9 @@ def prepare_time_series_features(df, categorical_vars):
             public_holidays.append((holiday_date, holiday_name))
 
     public_holidays_df = pd.DataFrame(public_holidays, columns=["timestamp", "Holiday"])
+
+    # Ensure same datetime type
+    public_holidays_df['timestamp'] = pd.to_datetime(public_holidays_df['timestamp'])
 
     # Generate date range
     date_range = pd.date_range(start=df['timestamp'].min(), end=df['timestamp'].max(), freq='D')

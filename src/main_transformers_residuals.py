@@ -17,11 +17,12 @@ from tensorflow.keras.layers import LSTM, Dense, TimeDistributed
 from tensorflow.keras.layers import Dropout
 from tensorflow import keras
 from tensorflow.keras import layers
+from sklearn.preprocessing import MinMaxScaler
 import math
 import pickle
 
 # Define function for train-test split
-def split_train_test(df, split_ratio=0.8):
+def split_train_test(df, split_ratio=0.8, init_date = '2010-01-01'):
     """
     Splits a dataframe into train and test sets using the given split ratio.
 
@@ -33,6 +34,29 @@ def split_train_test(df, split_ratio=0.8):
     train_df (pd.DataFrame): Training dataset.
     test_df (pd.DataFrame): Testing dataset.
     """
+    # Keep only rows STRICTLY after 2010-01-01 using the 'timestamp' column
+    if 'timestamp' not in df.columns:
+        raise KeyError("Expected a 'timestamp' column in the CSV.")
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    cutoff = pd.Timestamp(init_date)
+    df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
+    
+    # Convert timestamp to datetime (optional)
+    if 'timestamp' in df.columns:
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+    
+    for code in df.columns:
+        if code != 'timestamp':
+            df[code] = pd.to_numeric(df[code], errors='coerce')
+            df = df.dropna(subset=[code]).reset_index(drop=True)
+
+            # Min-max scale ONLY the target column (univariate)
+            cmin, cmax = df[code].min(), df[code].max()
+            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
+                df[code] = 0.0
+            else:
+                df[code] = (df[code] - cmin) / (cmax - cmin)
+
     split_idx = int(len(df) * split_ratio)  # Compute split index
     train_df = df.iloc[:split_idx].reset_index(drop=True)
     test_df = df.iloc[split_idx:].reset_index(drop=True)
@@ -157,7 +181,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
         cosine_decay = 0.5 * (1 + math.cos(math.pi * step_after_warmup / decay_steps))
         decayed = (self.max_lr - self.min_lr) * cosine_decay + self.min_lr
         return decayed
-    
+
 
 if __name__ == "__main__":
     code = "T14"
@@ -171,12 +195,11 @@ if __name__ == "__main__":
     start_time = time.perf_counter()
     input_directory =  "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
 
-    
     # prepare X and Y arrays
-    X_test, Y_test = data_preparation.prepare_data(input_directory, code,lookback, forecast, debug=True, univariate =True)
+    X_test, Y_test = data_preparation.prepare_data(input_directory, code,lookback, forecast, train = False, debug=True, univariate =True)
     date_list_test = data_preparation.extract_dates(input_directory,code, lookback, forecast)
 
-    X_train, Y_train = data_preparation.prepare_data(input_directory,code, lookback, forecast, debug=True, univariate =True)
+    X_train, Y_train = data_preparation.prepare_data(input_directory,code, lookback, forecast, train = True, debug=True, univariate =True)
     date_list_train = data_preparation.extract_dates(input_directory,code, lookback, forecast)
 
     finish_preparing = time.perf_counter()
@@ -186,20 +209,19 @@ if __name__ == "__main__":
     print("finished preparing timesteps train, time spent:",len(date_list_train))
 
 
-    model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr'
+    model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
     print(model_name)
     base_path = "models"
 
     # Get available folders
-    available_folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
-    print("Available model folders:", available_folders)
-
+    #available_folders = [f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
+    #print("Available model folders:", available_folders)
+    available_models = os.listdir(base_path)
     # Automatically select the correct one
-    for folder in available_folders:
-        if model_name in folder:  # Check the pattern
-            full_path = os.path.join(base_path, folder)
-            print(f"✅ Using detected model folder: {folder}")
-            break
+    #for folder in available_models:
+    if model_name in available_models:  # Check the pattern
+        full_path = os.path.join(base_path, model_name)
+        print(f"✅ Using detected model folder: {model_name}")
     else:
         print("❌ No matching folder found!")
         full_path = None
@@ -232,6 +254,8 @@ if __name__ == "__main__":
 
     print("Residuals shape train:", Y_train_residual.shape)
     print("Residuals shape test:", Y_test_residual.shape)
+
+    
 
     train_split, test_split = split_train_test(pd.read_csv(input_directory))
     df_processed = learn_covariates(train_split)

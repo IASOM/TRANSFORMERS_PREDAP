@@ -14,6 +14,8 @@ import pickle
 from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Input, Lambda
+import re
+import os
 
 import data_preparation
 
@@ -275,7 +277,7 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves):
     plt.grid()
     plt.show()
     
-def evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=10):
+def evaluate_model(model,model_name, X_test, Y_test, date_list, df_waves, sliding_window=10):
     """
     Evaluate the model using a sliding window approach.
 
@@ -355,8 +357,72 @@ def evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=10
 
     plt.tight_layout()
 
-    plt.savefig("evaluation_metrics_over_time.png")  # Save the figure
+    plt.savefig(f"plots/evaluation_metrics_over_time_{model_name}.png")  # Save the figure
     plt.show()
+
+def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt = False):
+    """
+    Plot model results comparing true vs predicted values.
+    
+    Parameters:
+    -----------
+    y_test_inverse : np.ndarray
+        True values (inverse transformed)
+    yhat_inverse : np.ndarray
+        Predicted values (inverse transformed)
+    model_name : str
+        Name of the model for the plot title
+    col_idx : int, optional
+        Column index to plot (defaults to global col_idx)
+        
+    Example:
+    --------
+    >>> plt_model(y_true, y_pred, "LSTM", col_idx=0)
+    """
+    try:
+        # Use global col_idx if not provided
+        if col_idx is None:
+            col_idx = globals().get('col_idx', 0)
+            
+        fig, ax = plt.subplots(figsize=(20, 10))
+        ax.plot(pd.DataFrame(y_test_inverse)[[col_idx]], label='True Values')
+        ax.plot(pd.DataFrame(yhat_inverse)[[col_idx]], label='Predicted Values')
+        ax.set_xlabel('Date', fontweight='bold', fontsize=12)
+        ax.set_ylabel('Value', fontweight='bold', fontsize=12)
+        ax.set_title(f'Real vs. Predicted Values // MODEL: {model_name}')
+        ax.legend()
+        fig.tight_layout()
+        fig.savefig(f"plots/model_results_{model_name}.png")
+        if show_plt:
+            plt.show()
+
+    except Exception as e:
+        print(f"Error plotting model results: {str(e)}")
+
+def extract_model_params(model_name):
+    """
+    Extract lookback and forecast parameters from model filename.
+    
+    Expected format: {code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{lr}initlr.keras
+    
+    Args:
+        model_name (str): Model filename
+        
+    Returns:
+        tuple: (lookback, forecast) or (None, None) if not found
+    """
+    # Pattern to match the model name format
+    pattern = r'(\d+)fh_\d+ff_(\d+)lb_'
+    
+    match = re.search(pattern, model_name)
+    if match:
+        forecast = int(match.group(1))  # First group is forecast
+        lookback = int(match.group(2))  # Second group is lookback
+        return lookback, forecast
+    else:
+        print(f"Could not extract parameters from: {model_name}")
+        return None, None
+
 
 if __name__ == "__main__":
     # Set default values ...............................................................
@@ -408,7 +474,7 @@ if __name__ == "__main__":
 
     code = "T14"
 
-    # Create a new DataFrame with timestamp and target columns
+    '''# Create a new DataFrame with timestamp and target columns
     transformed_df = df[["date", code]].rename(columns={"date": "timestamp", code: code})
     transformed_df["timestamp"] = pd.to_datetime(transformed_df["timestamp"])
     transformed_df.reset_index(drop=True, inplace=True)
@@ -420,7 +486,7 @@ if __name__ == "__main__":
     # Apply function to split data
     train_df, test_df = split_train_test(transformed_df)
     print(train_df.info())
-    print(test_df.info())
+    print(test_df.info())'''
 
 
     start_time = time.perf_counter()
@@ -482,8 +548,8 @@ if __name__ == "__main__":
     callbacks = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=EARLY_STOP_PATIENCE, restore_best_weights=True)]
     train_given_model_and_data(model, X, Y, model_name=MODEL_NAME, epochs=EPOCHS, save_model=True, save_memory=False, callbacks=callbacks)
 
-    LOOKBACK_LIST = [1,7,14,30,60, 182,365]
-    FORECAST_LIST = [1,7,14,30,60, 182,365]
+    LOOKBACK_LIST = [7]#[1,7,14,30,60, 182,365]
+    FORECAST_LIST = [7]#[1,7,14,30,60, 182,365]
 
     # train different models for different lookback and forecast horizons
     for lb in LOOKBACK_LIST:
@@ -554,38 +620,47 @@ if __name__ == "__main__":
 
     MODEL_FOLDER = 'models'
     print("Files in model folder:", os.listdir(MODEL_FOLDER))
+    trained_models = [f for f in os.listdir(MODEL_FOLDER) if f.endswith('.keras')]
+    print("Trained models:", trained_models)
 
-    model = tf.keras.models.load_model(MODEL_NAME, compile=True)
-    # Print model architecture
-    model.summary()
+    for model_name in trained_models:
+        model_path = os.path.join(MODEL_FOLDER, model_name)
+        model = tf.keras.models.load_model(model_path, compile=True)
+        # Print model architecture
+        model.summary()
 
-    waves = {
-    "Primera Onada": ("2020-03", "2020-06"),
-    "Segona Onada": ("2020-10", "2020-12"),
-    "Tercera Onada": ("2021-01", "2021-03"),
-    "Quarta Onada": ("2021-04", "2021-06"),
-    "Cinquena Onada": ("2021-07", "2021-09")
-    }
+        waves = {
+        "Primera Onada": ("2020-03", "2020-06"),
+        "Segona Onada": ("2020-10", "2020-12"),
+        "Tercera Onada": ("2021-01", "2021-03"),
+        "Quarta Onada": ("2021-04", "2021-06"),
+        "Cinquena Onada": ("2021-07", "2021-09")
+        }
 
-    # Convertir a DataFrame per facilitar la representació
-    df_waves = pd.DataFrame(waves).T.reset_index()
-    df_waves.columns = ["Onada", "Inici", "Final"]
-    df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
-    df_waves["Final"] = pd.to_datetime(df_waves["Final"])
+        # Convertir a DataFrame per facilitar la representació
+        df_waves = pd.DataFrame(waves).T.reset_index()
+        df_waves.columns = ["Onada", "Inici", "Final"]
+        df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
+        df_waves["Final"] = pd.to_datetime(df_waves["Final"])
 
-    # Assuming X_test and Y_test are prepared
-    loss, mae, mse = model.evaluate(X_test, Y_test)
+        lookback, forecast = extract_model_params(model_name)
+        X_test, Y_test = data_preparation.prepare_data(input_directory, code, lookback, forecast,train = False, debug=True, univariate=True)
+        date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast)
+        # Assuming X_test and Y_test are prepared
+        loss, mae, mse = model.evaluate(X_test, Y_test)
 
-    print(f"Test Loss: {loss}")
-    print(f"Test MAE: {mae}")   # Mean Absolute Error
-    print(f"Test MSE: {mse}")   # Mean Squared Error
+        print(f"Test Loss: {loss}")
+        print(f"Test MAE: {mae}")   # Mean Absolute Error
+        print(f"Test MSE: {mse}")   # Mean Squared Error
 
-    # Get predictions
-    predictions = model.predict(X_test)
-    print("Predicted values:", predictions.shape)
+        # Get predictions
+        predictions = model.predict(X_test)
+        print("Predicted values:", predictions.shape)
 
+        plt_model(Y_test, predictions, model_name=MODEL_NAME, col_idx=0, show_plt=True)
+        # Call the function with formatted dates
+        plot_predictions_with_waves(Y_test, predictions, date_list, df_waves)
 
-    # Call the function with formatted dates
-    plot_predictions_with_waves(Y_test, predictions, date_list, df_waves)
+        #evaluate_model(model,MODEL_NAME, X_test, Y_test, date_list, df_waves, sliding_window=FORECAST)
 
-    evaluate_model(model, X_test, Y_test, date_list, df_waves, sliding_window=FORECAST)
+        
