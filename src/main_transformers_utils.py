@@ -1,4 +1,19 @@
 
+"""
+Main Transformers Utils - Refactored to use Univariate Transformer Module
+=========================================================================
+
+This script has been refactored to use functions from the univariate_transformer
+module instead of having duplicate implementations. All core functions like
+build_model, train_given_model_and_data, transformer_encoder, etc. are now
+imported from the modular structure.
+
+The remaining functions in this file are either:
+- Utility functions specific to this script
+- Modified versions needed for compatibility
+- Functions not yet moved to the modular structure
+"""
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -19,34 +34,25 @@ import os
 
 import data_preparation
 
-# plot example 10 diags -------------------------
-def plot_example(df,title):
-    # PLOT RAW DATA (example 10 diags)
-    dff = df
-    dff["date"] = dff.index
-    dff = dff[['J00','COV-19','date']]
-    sns.set_theme(rc={'figure.figsize':(20,8)})
-    sns.lineplot(data=dff.replace('nan', float('nan')).melt(id_vars=['date']),x='date', y='value', hue='variable').set(title=title)
+# Import functions from univariate_transformer module
+from univariate_transformer import (
+    build_model,
+    transformer_encoder, 
+    CustomCosineDecay,
+    train_given_model_and_data,
+    evaluate_model_sliding_window,
+    plt_model,
+    plot_predictions_with_waves,
+    plot_example,
+    extract_model_params,
+    setup_gpu_memory,
+    create_model_directories,
+    create_pandemic_waves_df,
+    load_and_preprocess_data,
+    default_config
+)
 
-
-# Define function for train-test split
-def split_train_test(df, split_ratio=0.8):
-    """
-    Splits a dataframe into train and test sets using the given split ratio.
-
-    Parameters:
-    df (pd.DataFrame): The input dataframe to split.
-    split_ratio (float): The fraction of data to be used for training (default is 0.8).
-
-    Returns:
-    train_df (pd.DataFrame): Training dataset.
-    test_df (pd.DataFrame): Testing dataset.
-    """
-    split_idx = int(len(df) * split_ratio)  # Compute split index
-    train_df = df.iloc[:split_idx].reset_index(drop=True)
-    test_df = df.iloc[split_idx:].reset_index(drop=True)
-    
-    return train_df, test_df
+# plot_example function is now imported from univariate_transformer module
 
 
 def evaluate_model(model, X_test, Y_test, sliding_window=10, plt_results=True):
@@ -133,149 +139,17 @@ def plot_evaluations(mse_list, mae_list, loss_list):
     plt.tight_layout()
     plt.show()
 
-def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
+# transformer_encoder function is now imported from univariate_transformer module
 
-    
-    d_model = max(head_size * num_heads, 8)
-    x = layers.Dense(d_model, activation="relu")(inputs)
-    # Normalization and Attention
-    x = layers.LayerNormalization(epsilon=1e-6)(inputs)                  # to imputs to stabilize training
-    x = layers.MultiHeadAttention(
-        key_dim=head_size, num_heads=num_heads, dropout=dropout)(x,x)   # self attention to normalized input 
-    x = layers.Dropout(dropout)(x) # (dropout to reduce overfitting)
-    res = x + inputs               # attention output added to original inputs
+# build_model function is now imported from univariate_transformer module
 
-    # Feed Forward Part
-    x = layers.LayerNormalization(epsilon=1e-6)(res)                       # again after resid connection
-    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation="tanh")(x) # point-wise convol.: Expands feature dim to ff_dim using tanh activ
-    x = layers.Dropout(dropout)(x)                                         # dropout again
-    x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)          # reduces feature dim back to match input size
-    x = x + res
-    
-    return x
+# CustomCosineDecay class is now imported from univariate_transformer module
 
-def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, dropout=0, mlp_dropout=0, n_pred=1):
-    inputs = keras.Input(shape=input_shape) #defines input tensor
-    
-    x = inputs                            #initial input
-    #
-    for _ in range(num_transformer_blocks): #apply num_transformer_blocks transformer encoder layers seq.
-        x = transformer_encoder(x, head_size, num_heads, ff_dim, dropout) #uses previous defined trans_encoder layer
-
-    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # reduces seq dimension (timesteps) averaging for each fature channel
-    for dim in mlp_units:                                              # multi layer perceptron (dropout to avoid overfitting)
-        x = layers.Dense(dim, activation="tanh")(x)
-        x = layers.Dropout(mlp_dropout)(x)
-    outputs = layers.Dense(n_pred)(x)
-    return keras.Model(inputs, outputs)
-
-# defaults to 50 epochs total and 20 warmup steps
-class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(self, initial_lr=1e-4, max_lr=1e-3, min_lr=1e-5, warmup_steps=20, total_steps=50):
-        self.initial_lr = initial_lr  # Starting learning rate (0.01)
-        self.max_lr = max_lr          # Maximum learning rate (0.1)
-        self.min_lr = min_lr          # Final learning rate (0.0001)
-        self.warmup_steps = warmup_steps  # Number of warmup steps to reach max_lr
-        self.total_steps = total_steps    # Total number of steps (decay after warmup)
-
-    def __call__(self, step):
-        # Warm-up phase: linearly increase to max_lr
-        if step < self.warmup_steps:
-            return self.initial_lr + (self.max_lr - self.initial_lr) * (step / self.warmup_steps)
-
-        # Cosine decay phase after warmup
-        decay_steps = self.total_steps - self.warmup_steps
-        step_after_warmup = step - self.warmup_steps
-        cosine_decay = 0.5 * (1 + math.cos(math.pi * step_after_warmup / decay_steps))
-        decayed = (self.max_lr - self.min_lr) * cosine_decay + self.min_lr
-        return decayed
-
-def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, epochs=100, save_history=False, save_model=True, save_memory=True, shuffle=False, callbacks=None):
-    if save_memory: #configure GPU memory growth
-        # prepare for measuring memory
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        if gpus:
-            try:
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-            except RuntimeError as e:
-                print(e)
-    if callbacks is None: # define callbacks (If no callbacks are provided, it automatically enables Early Stopping)
-        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, restore_best_weights=True)
-        callbacks = [early_stop]
-
-    if not os.path.exists(f'{model_name}'): #check if model exist and run if not
-        history = model.fit(x=X, 
-                            y=Y, 
-                            batch_size=batch_size,  # batch gradient descent (batch size 1024)
-                            epochs=epochs, 
-                            shuffle=shuffle,        # Allows shuffling
-                            validation_split=0.3,   # 30% data for validation
-                            callbacks=callbacks)
-    else:
-        print(f"model {model_name} already exists")
-        return
-
-    if model_name is None:
-        model_name = "testing"
-
-    if save_history: # save training history
-        with open(f'{model_name}_history.pkl', 'wb') as file_pi:
-            pickle.dump(history.history, file_pi)
-    
-    if save_model and epochs > 1: # save model
-        model.save(model_name)
-        
-    if save_memory: # log memory usage (optional)
-        # save memory usave
-        # Get memory information
-        memory_info = tf.config.experimental.get_memory_info('GPU:0')
-        with open('memory.csv', 'a') as resultcsv:
-            resultcsv.write(f"{model_name},{memory_info['peak']},train\n")
-        print(f"Current memory usage: {memory_info['current'] / (1024**2)} MB")
-        print(f"Peak memory usage: {memory_info['peak'] / (1024**2)} MB")
+# train_given_model_and_data function is now imported from univariate_transformer module
 
 
 
-def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves):
-    """
-    Plots actual vs. predicted values with dates as x-labels, showing only 15 evenly spaced date labels.
-    Also highlights COVID-19 pandemic waves with a red background.
-
-    Args:
-        Y_test (array): Actual target values.
-        predictions (array): Predicted values from the model.
-        date_list (list): List of datetime values for the x-axis.
-        df_waves (DataFrame): Contains pandemic waves' start and end dates.
-    """
-    # Convert timestamps to string format (YYYY-MM-DD)
-    date_labels = [date.strftime('%Y-%m-%d') for date in date_list]
-
-    # Select 15 evenly spaced indices for x-axis labels
-    num_labels = 15
-    indices = np.linspace(0, len(date_list) - 1, num_labels, dtype=int)
-
-    plt.figure(figsize=(20, 5))
-
-    # Highlight pandemic waves with a red background
-    for i, row in df_waves.iterrows():
-        plt.axvspan(row["Inici"], row["Final"], color="red", alpha=0.2)
-
-    # Plot actual and predicted values
-    plt.plot(date_list, Y_test, label="Actual Values (Y-test)", marker='o', linestyle='-', alpha=0.7)
-    plt.plot(date_list, predictions, label="Predicted Values", marker='x', linestyle='--', alpha=0.7)
-
-    plt.xlabel("Date")
-    plt.ylabel("Target Value (J00)")
-    plt.title("Predictions vs. Actual Values (J00 - Y-test) with Pandemic Waves")
-    #plt.ylim(0, 1)
-    plt.legend()
-
-    # Apply only 15 labels to the x-axis
-    plt.xticks([date_list[i] for i in indices], [date_labels[i] for i in indices], rotation=45)
-
-    plt.grid()
-    plt.show()
+# plot_predictions_with_waves function is now imported from univariate_transformer module
     
 def evaluate_model(model,model_name, X_test, Y_test, date_list, df_waves, sliding_window=10):
     """
@@ -360,96 +234,40 @@ def evaluate_model(model,model_name, X_test, Y_test, date_list, df_waves, slidin
     plt.savefig(f"plots/evaluation_metrics_over_time_{model_name}.png")  # Save the figure
     plt.show()
 
-def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt = False):
-    """
-    Plot model results comparing true vs predicted values.
-    
-    Parameters:
-    -----------
-    y_test_inverse : np.ndarray
-        True values (inverse transformed)
-    yhat_inverse : np.ndarray
-        Predicted values (inverse transformed)
-    model_name : str
-        Name of the model for the plot title
-    col_idx : int, optional
-        Column index to plot (defaults to global col_idx)
-        
-    Example:
-    --------
-    >>> plt_model(y_true, y_pred, "LSTM", col_idx=0)
-    """
-    try:
-        # Use global col_idx if not provided
-        if col_idx is None:
-            col_idx = globals().get('col_idx', 0)
-            
-        fig, ax = plt.subplots(figsize=(20, 10))
-        ax.plot(pd.DataFrame(y_test_inverse)[[col_idx]], label='True Values')
-        ax.plot(pd.DataFrame(yhat_inverse)[[col_idx]], label='Predicted Values')
-        ax.set_xlabel('Date', fontweight='bold', fontsize=12)
-        ax.set_ylabel('Value', fontweight='bold', fontsize=12)
-        ax.set_title(f'Real vs. Predicted Values // MODEL: {model_name}')
-        ax.legend()
-        fig.tight_layout()
-        fig.savefig(f"plots/model_results_{model_name}.png")
-        if show_plt:
-            plt.show()
+# plt_model function is now imported from univariate_transformer module
 
-    except Exception as e:
-        print(f"Error plotting model results: {str(e)}")
-
-def extract_model_params(model_name):
-    """
-    Extract lookback and forecast parameters from model filename.
-    
-    Expected format: {code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{lr}initlr.keras
-    
-    Args:
-        model_name (str): Model filename
-        
-    Returns:
-        tuple: (lookback, forecast) or (None, None) if not found
-    """
-    # Pattern to match the model name format
-    pattern = r'(\d+)fh_\d+ff_(\d+)lb_'
-    
-    match = re.search(pattern, model_name)
-    if match:
-        forecast = int(match.group(1))  # First group is forecast
-        lookback = int(match.group(2))  # Second group is lookback
-        return lookback, forecast
-    else:
-        print(f"Could not extract parameters from: {model_name}")
-        return None, None
+# extract_model_params function is now imported from univariate_transformer module
 
 
 if __name__ == "__main__":
-    # Set default values ...............................................................
-    FORECAST=7     # number of future time steps the model will predict (predict horizon)
-    LOOKBACK=7     # how many past time steps the model uses as input  (input seq length)
-
-    #Transformer model .................................................................
-    HEAD_SIZE=2              # dimensions of each attention head(If you have num_heads=2, 
-                            #     attention 2 * head_size = 4 dimensions.)
-    NUM_HEADS=2              # number attention head (More headsimprove ability to focus 
-                            #     on different aspects but increase computational cost.)
-    NUM_TRANSFORMER_BLOCKS=2 # n transformer layers (More blocks can improve the model's 
-                            #     capacity but may lead to overfitting.)
-    FF_DIM=8                 # dimensionality feed-forward layer  (more increases capacity but adds cost)
-
-    # Multi-Layer Perceptron (MLP) Parameters ...........................................
-    MLP_UNITS=32     # n neurons fully connected feed forward network (MLP)
-    MLP_DROPOUT=0.25 # dropout rate MLP layers to prevent overfitting (% neurons randomly dropper durinhg training)
-
-    # General Regularization Parameters .................................................
-    DROPOUT=0.5
-
-    # Optimization and Training Parameters ..............................................
-    LEARNING_RATE = 0.001  # step size for gradient updates during training.( more speeds up but cause instabiliy)
-    EPOCHS=100             # max number of times to train
-    EARLY_STOP_PATIENCE=15 # if not improvement
-
+    # Use configuration from univariate_transformer module
+    config = default_config
+    
+    # Set default values from configuration
+    FORECAST = config.FORECAST
+    LOOKBACK = config.LOOKBACK
+    
+    # Transformer model parameters
+    HEAD_SIZE = config.HEAD_SIZE
+    NUM_HEADS = config.NUM_HEADS
+    NUM_TRANSFORMER_BLOCKS = config.NUM_TRANSFORMER_BLOCKS
+    FF_DIM = config.FF_DIM
+    
+    # Multi-Layer Perceptron (MLP) Parameters
+    MLP_UNITS = config.MLP_UNITS
+    MLP_DROPOUT = config.MLP_DROPOUT
+    
+    # General Regularization Parameters
+    DROPOUT = config.DROPOUT
+    
+    # Optimization and Training Parameters
+    LEARNING_RATE = config.LEARNING_RATE
+    EPOCHS = config.EPOCHS
+    EARLY_STOP_PATIENCE = config.EARLY_STOP_PATIENCE
+    
+    # Setup GPU memory and create directories
+    setup_gpu_memory()
+    create_model_directories()
 
     # RAW DATA --------------------------------------------------------------
     data_path = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
@@ -629,19 +447,8 @@ if __name__ == "__main__":
         # Print model architecture
         model.summary()
 
-        waves = {
-        "Primera Onada": ("2020-03", "2020-06"),
-        "Segona Onada": ("2020-10", "2020-12"),
-        "Tercera Onada": ("2021-01", "2021-03"),
-        "Quarta Onada": ("2021-04", "2021-06"),
-        "Cinquena Onada": ("2021-07", "2021-09")
-        }
-
-        # Convertir a DataFrame per facilitar la representació
-        df_waves = pd.DataFrame(waves).T.reset_index()
-        df_waves.columns = ["Onada", "Inici", "Final"]
-        df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
-        df_waves["Final"] = pd.to_datetime(df_waves["Final"])
+        # Create pandemic waves DataFrame using imported function
+        df_waves = create_pandemic_waves_df()
 
         lookback, forecast = extract_model_params(model_name)
         X_test, Y_test = data_preparation.prepare_data(input_directory, code, lookback, forecast,train = False, debug=True, univariate=True)
@@ -657,10 +464,11 @@ if __name__ == "__main__":
         predictions = model.predict(X_test)
         print("Predicted values:", predictions.shape)
 
-        plt_model(Y_test, predictions, model_name=MODEL_NAME, col_idx=0, show_plt=True)
+        plt_model(Y_test, predictions, model_name=model_name, col_idx=0, show_plt=True)
         # Call the function with formatted dates
         plot_predictions_with_waves(Y_test, predictions, date_list, df_waves)
 
-        #evaluate_model(model,MODEL_NAME, X_test, Y_test, date_list, df_waves, sliding_window=FORECAST)
+        # Use the imported sliding window evaluation function
+        evaluate_model_sliding_window(model, model_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
 
         

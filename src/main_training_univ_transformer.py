@@ -144,8 +144,8 @@ def main():
     print("HYPERPARAMETER SWEEP")
     print("="*50)
     
-    LOOKBACK_LIST = [7]  # [1,7,14,30,60,182,365]
-    FORECAST_LIST = [7]  # [1,7,14,30,60,182,365]
+    LOOKBACK_LIST = [1,7,14,30,60,182,365]
+    FORECAST_LIST = [1,7,14,30,60,182,365]
 
     # Train different models for different lookback and forecast horizons
     for lb in LOOKBACK_LIST:
@@ -240,7 +240,7 @@ def main():
         X_test, Y_test = data_preparation.prepare_data(
             input_directory, code, lookback, forecast, train=False, debug=True, univariate=True
         )
-        date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast)
+        date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False)
         
         # Evaluate model
         loss, mae, mse = model.evaluate(X_test, Y_test, verbose=0)
