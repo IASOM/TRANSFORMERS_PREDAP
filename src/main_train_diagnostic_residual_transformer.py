@@ -1,9 +1,10 @@
 """
-Main Training and Evaluation Script for Residual Multivariate Transformers
+Main Training and Evaluation Script for Residual Multivariate diagnostic variables Transformers
 ==========================================================================
 
-This script orchestrates the entire residual multivariate transformer training and 
-evaluation pipeline, including loading base models, computing residuals, training 
+This script orchestrates the residual multivariate transformer training and 
+evaluation pipeline by using the features extracted in the LMLR and G-causal phase.
+This pipeline includes loading base models, computing residuals, training 
 residual correction models, and evaluating results.
 """
 
@@ -14,6 +15,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 
 # Add the src directory to path for module imports
@@ -21,9 +23,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.dirname(current_dir) if os.path.basename(current_dir) != 'src' else current_dir
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
-
 import data_preparation
 import evaluation_plot_utils
+
 
 # Import from residual_multivariate_transformers module
 from residual_multivariate_transformers import (
@@ -41,7 +43,7 @@ from residual_multivariate_transformers import (
     # Utilities
     split_train_test, learn_covariates, prepare_residual_data,
     create_pandemic_waves_df, load_and_preprocess_data,
-    extract_model_params_from_filename, filter_diagnostics_covariates,
+    extract_model_params_from_filename, filter_diagnostics_covariates, prepare_base_model_data, load_base_model_transformer,
     
     # Visualization
     plot_residuals_analysis, plot_stepwise_errors_comparison,
@@ -50,7 +52,7 @@ from residual_multivariate_transformers import (
 )
 
 
-def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic_covariates_path = "../BEST_features_NOSMOOTH.xlsx"):
+def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14", diagnostic_covariates_path = "../BEST_features_NOSMOOTH.xlsx", corrected_forecast_values = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -64,7 +66,7 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     
     # Model naming
     base_model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
-    residual_model_name = f'{code}_SEASONAL_RESIDUALS_LEARNING_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
+    residual_model_name = f'{code}_DIAGNOSTIC_RESIDUALS_LEARNING_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
     
     print("="*60)
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE")
@@ -84,49 +86,25 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     print("PHASE 1: LOADING BASE MODEL AND COMPUTING RESIDUALS")
     print("="*50)
     
-    start_time = time.perf_counter()
+    
     input_directory = DEFAULT_DATA_PATH
     
     # Load and prepare data for the base model
     print("Preparing data for base model...")
+    
+    Y_train, Y_test, X_train, X_test, date_list_train, date_list_test = prepare_base_model_data(
+        input_directory, code, lookback, forecast
+    )
 
-    X_test, Y_test = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, 
-        train=False, debug=True, univariate=True
-    )
-    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False)
-    
-    X_train, Y_train = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, 
-        train=True, debug=True, univariate=True
-    )
-    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=True)
-    
-    finish_preparing = time.perf_counter()
-    time_data_preparation = finish_preparing - start_time
-    print(f"Data preparation time: {time_data_preparation:.2f} seconds")
-    print(f"Test timesteps: {len(date_list_test)}")
-    print(f"Train timesteps: {len(date_list_train)}")
-    
-    # Load the base transformer model
-    base_path = DEFAULT_MODEL_DIR
-    available_models = os.listdir(base_path) if os.path.exists(base_path) else []
-    
-    if base_model_name in available_models:
-        full_path = os.path.join(base_path, base_model_name)
-        print(f"✅ Found base model: {base_model_name}")
+    if corrected_forecast_values is None:
+        predictions_train, predictions_test = load_base_model_transformer(
+           X_train, X_test, DEFAULT_MODEL_DIR, base_model_name, base_model_name
+        )
     else:
-        print(f"❌ Base model not found: {base_model_name}")
-        print(f"Available models: {available_models}")
-        return
+        predictions_train = corrected_forecast_values
+        predictions_test = corrected_forecast_values    
+
     
-    # Load the base model
-    model = load_trained_model(full_path)
-    
-    # Get predictions from the base transformer model
-    print("\nGenerating predictions from base model...")
-    predictions_test = model.predict(X_test, verbose=1)
-    predictions_train = model.predict(X_train, verbose=1)
     
     print(f"Base model predictions - Test: {predictions_test.shape}, Train: {predictions_train.shape}")
     print(f"Actual values - Test: {Y_test.shape}, Train: {Y_train.shape}")
@@ -148,7 +126,7 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     train_split = filter_diagnostics_covariates(train_split, diagnostic_covariates_list)
     test_split = filter_diagnostics_covariates(test_split, diagnostic_covariates_list)
     # Learn covariates from training data
-    df_processed = learn_covariates(train_split)
+    df_processed = train_split
     
     # Generate rolling sequences with covariates for training
     print("Generating rolling sequences with covariates for training...")
@@ -191,8 +169,7 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     
     # Prepare test data with covariates
     print("Preparing test data with covariates...")
-    categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation"]
-    df_test_processed = data_preparation.prepare_time_series_features(test_split, categorical_vars)
+    df_test_processed = test_split
     
     # Generate rolling sequences for test data
     X_test_covs = data_preparation.generate_rolling_sequences_covariates(
@@ -275,7 +252,6 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     print("="*50)
     
     # Calculate metrics
-    from sklearn.metrics import mean_squared_error, mean_absolute_error
     
     # Original model metrics
     original_mae = mean_absolute_error(Y_test_to_plot, predictions_to_plot)
@@ -324,10 +300,12 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
     print("="*50)
 
+    return corrected_forecast
+
 
 if __name__ == "__main__":
     # Run the main training and evaluation pipeline
-    main_train_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
+    corrected_forecast = main_train_diagnostic_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
     
     # Optional: View all previous results (uncomment to use)
     # print("\n" + "="*60)

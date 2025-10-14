@@ -12,8 +12,12 @@ import numpy as np
 import sys
 import os
 
-# Add parent directory to path to access evaluation_plot_utils module
-sys.path.append('..')
+# Add the src directory to path for module imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(os.path.dirname(current_dir)) if 'residual_multivariate_transformers' in current_dir else os.path.dirname(current_dir)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
 try:
     import evaluation_plot_utils
 except ImportError:
