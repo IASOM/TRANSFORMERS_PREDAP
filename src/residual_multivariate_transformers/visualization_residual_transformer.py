@@ -23,7 +23,7 @@ except ImportError:
 from .config_residual_transformer import PANDEMIC_WAVES
 
 
-def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix=""):
+def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix="", show_plt=False, model_name = "Model"):
     """
     Plot analysis comparing original predictions, corrected predictions, and actual values.
     
@@ -100,10 +100,13 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     axes[1, 1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.show()
+    os.makedirs("plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"plots_residual_transformers/residuals_analysis_{model_name}.png")
+    if show_plt:
+        plt.show()
 
 
-def plot_stepwise_errors_comparison(Y_test, original_predictions, corrected_predictions, title_prefix=""):
+def plot_stepwise_errors_comparison(Y_test, original_predictions, corrected_predictions, title_prefix="", model_name = "Model"):
     """
     Plot stepwise errors for original and corrected predictions.
     
@@ -123,13 +126,13 @@ def plot_stepwise_errors_comparison(Y_test, original_predictions, corrected_pred
         return
     
     print(f"{title_prefix} - Original Predictions Stepwise Errors:")
-    evaluation_plot_utils.plot_stepwise_errors(Y_test, original_predictions)
+    evaluation_plot_utils.plot_stepwise_errors(Y_test, original_predictions, model_name = model_name)
     
     print(f"{title_prefix} - Corrected Predictions Stepwise Errors:")
-    evaluation_plot_utils.plot_stepwise_errors(Y_test, corrected_predictions)
+    evaluation_plot_utils.plot_stepwise_errors(Y_test, corrected_predictions, model_name = model_name)
 
 
-def plot_predictions_with_pandemic_waves(Y_test, predictions, date_list, df_waves=None, title="Predictions with Pandemic Waves"):
+def plot_predictions_with_pandemic_waves(Y_test, predictions, date_list, df_waves=None, title="Predictions with Pandemic Waves", model_name = "Model"):
     """
     Plot predictions overlaid with pandemic wave periods.
     
@@ -211,7 +214,7 @@ def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves=No
     )
 
 
-def evaluate_error_significance_pandemic_waves(Y_test, predictions, date_list, df_waves=None):
+def evaluate_error_significance_pandemic_waves(Y_test, predictions, date_list, df_waves=None, model_name = "Model"):
     """
     Evaluate error significance during pandemic waves.
     
@@ -268,7 +271,7 @@ def create_pandemic_waves_df():
     return df_waves
 
 
-def plot_training_history(history, model_name="Model"):
+def plot_training_history(history, model_name="Model", show_plt=False):
     """
     Plot training history (loss and metrics over epochs).
     
@@ -315,10 +318,13 @@ def plot_training_history(history, model_name="Model"):
     axes[1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.show()
+    os.makedirs("plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"plots_residual_transformers/training_history_{model_name}.png")
+    if show_plt:
+        plt.show()
 
 
-def plot_model_comparison(models_results, metric='mae', title="Model Comparison"):
+def plot_model_comparison(models_results, metric='mae', title="Model Comparison", model_name = "Model", plt_show=False):
     """
     Plot comparison of multiple models' performance.
     
@@ -348,4 +354,7 @@ def plot_model_comparison(models_results, metric='mae', title="Model Comparison"
     
     plt.tight_layout()
     plt.grid(True, alpha=0.3)
-    plt.show()
+    os.makedirs("plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
+    if plt_show:
+        plt.show()

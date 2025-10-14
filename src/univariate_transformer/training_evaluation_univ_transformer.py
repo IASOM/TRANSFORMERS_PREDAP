@@ -76,7 +76,7 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
         print(f"Peak memory usage: {memory_info['peak'] / (1024**2)} MB")
 
 
-def evaluate_model_sliding_window(model, model_name, X_test, Y_test, date_list, df_waves, sliding_window=10):
+def evaluate_model_sliding_window(model, model_name, X_test, Y_test, date_list, df_waves, sliding_window=10, show_plt=True):
     """
     Evaluate the model using a sliding window approach with pandemic wave visualization.
 
@@ -158,8 +158,9 @@ def evaluate_model_sliding_window(model, model_name, X_test, Y_test, date_list, 
     plt.tight_layout()
     
     os.makedirs("plots", exist_ok=True)
-    plt.savefig(f"plots/evaluation_metrics_over_time_{model_name}.png")  # Save the figure
-    plt.show()
+    plt.savefig(f"plots/evaluation_metrics_over_time_{model_name}.png")  
+    if show_plt:
+        plt.show()
 
     return mse_list, mae_list, loss_list
 
@@ -208,7 +209,7 @@ def evaluate_model_basic(model, X_test, Y_test, sliding_window=10, plt_results=T
     return mse_list, mae_list, loss_list
 
 
-def plot_evaluations(mse_list, mae_list, loss_list):
+def plot_evaluations(mse_list, mae_list, loss_list, show_plt=True):
     """
     Plot MSE, MAE, and Loss over time (basic version without dates).
 
@@ -246,4 +247,5 @@ def plot_evaluations(mse_list, mae_list, loss_list):
     plt.legend()
 
     plt.tight_layout()
-    plt.show()
+    if show_plt:
+        plt.show()

@@ -17,7 +17,8 @@ from univariate_transformer import (
     train_given_model_and_data,
     evaluate_model_sliding_window,
     plt_model,  plot_predictions_with_waves, plot_example,
-    extract_model_params, load_and_evaluate_models, setup_gpu_memory,create_model_directories, create_pandemic_waves_df, load_and_preprocess_data
+    extract_model_params, load_and_evaluate_models, setup_gpu_memory,create_model_directories, create_pandemic_waves_df, load_and_preprocess_data,
+    default_config, create_config
 )
     
 
@@ -28,49 +29,58 @@ sys.path.append('..')  # Add parent directory to path
 import data_preparation
 
 
-def main():
+def main_univ_transformer():
     """Main function that orchestrates the training and evaluation pipeline."""
     
-    # Set default values
-    FORECAST = 7      # number of future time steps the model will predict (predict horizon)
-    LOOKBACK = 7      # how many past time steps the model uses as input  (input seq length)
+    # Use provided config or default configuration
+    if config is None:
+        config = default_config
+    
+    # Print configuration for transparency
+    config.print_config()
+    
+    # Extract configuration values for easier access
+    FORECAST = config.FORECAST
+    LOOKBACK = config.LOOKBACK
+    LOOKBACK_LIST = config.LOOKBACK_LIST
+    FORECAST_LIST = config.FORECAST_LIST
 
-    # Transformer model parameters
-    HEAD_SIZE = 2              # dimensions of each attention head
-    NUM_HEADS = 2              # number attention heads
-    NUM_TRANSFORMER_BLOCKS = 2 # number of transformer layers
-    FF_DIM = 8                 # dimensionality feed-forward layer
+    HEAD_SIZE = config.HEAD_SIZE
+    NUM_HEADS = config.NUM_HEADS
+    NUM_TRANSFORMER_BLOCKS = config.NUM_TRANSFORMER_BLOCKS
+    FF_DIM = config.FF_DIM
+    MLP_UNITS = config.MLP_UNITS
+    MLP_DROPOUT = config.MLP_DROPOUT
+    DROPOUT = config.DROPOUT
+    LEARNING_RATE = config.LEARNING_RATE
+    EPOCHS = config.EPOCHS
+    EARLY_STOP_PATIENCE = config.EARLY_STOP_PATIENCE
+    BATCH_SIZE = config.BATCH_SIZE
+    SHUFFLE = config.SHUFFLE_DATA
 
-    # Multi-Layer Perceptron (MLP) Parameters
-    MLP_UNITS = 32     # number of neurons in fully connected feed forward network (MLP)
-    MLP_DROPOUT = 0.25 # dropout rate for MLP layers to prevent overfitting
-
-    # General Regularization Parameters
-    DROPOUT = 0.5
-
-    # Optimization and Training Parameters
-    LEARNING_RATE = 0.001  # step size for gradient updates during training
-    EPOCHS = 100           # max number of training epochs
-    EARLY_STOP_PATIENCE = 15  # early stopping patience
+    DATA_PATH = config.DATA_PATH
+    TARGET_CODE = config.TARGET_CODE
+    MODEL_DIR = config.MODEL_DIR
+    PLOTS_DIR = config.PLOTS_DIR
 
     # Setup
     setup_gpu_memory()
     create_model_directories()
 
-    # Load and preprocess data
-    data_path = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
-    df = load_and_preprocess_data(data_path, target_code="T14")
+    # Load and preprocess data using configuration
+    
+    df = load_and_preprocess_data(DATA_PATH, target_code=TARGET_CODE)
     
     print("Loaded data shape:", df.shape)
     print("Date range:", df.index.min(), "to", df.index.max())
 
     # Plot example data
-    plot_example(df, "RAW DATA (example 10 diags) COVID")
+    plot_example(df, f"RAW DATA (example 10 diags) - {TARGET_CODE}")
 
-    code = "T14"
-    input_directory = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
-    batch_size = 16
-    shuffle = False
+    code = TARGET_CODE
+    input_directory = DATA_PATH
+    batch_size = BATCH_SIZE
+    shuffle = SHUFFLE   
 
     # TRAINING PHASE
     print("\n" + "="*50)
@@ -101,17 +111,9 @@ def main():
 
     model.summary()
 
-    # Create learning rate scheduler
-    LR_init = LEARNING_RATE
-    LR_min = LR_init * 10
-    LR_max = LR_init * 10 * 10
-    scheduler = CustomCosineDecay(
-        initial_lr=LR_init, 
-        max_lr=LR_max, 
-        min_lr=LR_min, 
-        warmup_steps=EPOCHS/5, 
-        total_steps=EPOCHS
-    )
+    # Create learning rate scheduler using configuration
+    lr_params = config.get_lr_schedule_params()
+    scheduler = CustomCosineDecay(**lr_params)
 
     # Setup callbacks
     callbacks = [
@@ -144,9 +146,7 @@ def main():
     print("HYPERPARAMETER SWEEP")
     print("="*50)
     
-    LOOKBACK_LIST = [1,7,14,30,60,182,365]
-    FORECAST_LIST = [1,7,14,30,60,182,365]
-
+   
     # Train different models for different lookback and forecast horizons
     for lb in LOOKBACK_LIST:
         if lb <= 1:  # Skip problematic sequence lengths
@@ -173,11 +173,9 @@ def main():
                 n_pred=fh
             )
             
-            # Setup scheduler and callbacks
-            scheduler = CustomCosineDecay(
-                initial_lr=LR_init, max_lr=LR_max, min_lr=LR_min, 
-                warmup_steps=EPOCHS/5, total_steps=EPOCHS
-            )
+            # Setup scheduler and callbacks using configuration
+            lr_params = config.get_lr_schedule_params()
+            scheduler = CustomCosineDecay(**lr_params)
             
             callbacks = [
                 tf.keras.callbacks.LearningRateScheduler(scheduler),
@@ -212,8 +210,8 @@ def main():
     print("EVALUATION PHASE")
     print("="*50)
     
-    # Evaluate all trained models
-    MODEL_FOLDER = 'models'
+    # Evaluate all trained models using configuration
+    MODEL_FOLDER = config.MODEL_DIR
     print("Files in model folder:", os.listdir(MODEL_FOLDER))
     
     trained_models = [f for f in os.listdir(MODEL_FOLDER) if f.endswith('.keras')]
@@ -255,7 +253,7 @@ def main():
         plt_model(Y_test, predictions, model_name=model_display_name, col_idx=0, show_plt=False)
         
         # Plot predictions with pandemic waves
-        plot_predictions_with_waves(Y_test, predictions, date_list, df_waves)
+        plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_display_name)
         
         # Sliding window evaluation (optional)
         # evaluate_model_sliding_window(model, model_display_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
@@ -266,4 +264,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # Option 1: Use default configuration
+    main_univ_transformer()
