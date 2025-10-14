@@ -15,6 +15,7 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 
+
 # Add parent directory to path to access required modules
 sys.path.append('..')
 import data_preparation
@@ -31,7 +32,7 @@ from residual_multivariate_transformers import (
     
     # Training and Evaluation
     train_given_model_and_data, setup_gpu_memory, create_model_directories,
-    evaluate_model, load_trained_model,
+    evaluate_model, load_trained_model, save_performance_results, load_performance_results, compare_model_performance,
     
     # Utilities
     split_train_test, learn_covariates, prepare_residual_data,
@@ -45,13 +46,13 @@ from residual_multivariate_transformers import (
 )
 
 
-def main():
+def main_train_residual_transformer(forecast, lookback, code = "T14"):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
-    code = "T14"
-    forecast = DEFAULT_FORECAST
-    lookback = DEFAULT_LOOKBACK
+    code = code
+    forecast = forecast
+    lookback = lookback
     ff_dim = 8
     learning_rate = DEFAULT_LEARNING_RATE
     
@@ -82,6 +83,7 @@ def main():
     
     # Load and prepare data for the base model
     print("Preparing data for base model...")
+
     X_test, Y_test = data_preparation.prepare_data(
         input_directory, code, lookback, forecast, 
         train=False, debug=True, univariate=True
@@ -136,7 +138,7 @@ def main():
     print("="*50)
     
     # Load and split the original data for covariate extraction
-    train_split, test_split = split_train_test(pd.read_csv(input_directory))
+    train_split, test_split = split_train_test(pd.read_csv(input_directory), split_ratio=0.8, init_date='2010-01-01')
     
     # Learn covariates from training data
     df_processed = learn_covariates(train_split)
@@ -214,11 +216,11 @@ def main():
     
     # Plot stepwise errors comparison
     print("Plotting stepwise errors comparison...")
-    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast, "Residual Correction")
+    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast, "Residual Correction", model_name = residual_model_name)
     
     # Plot residuals analysis
     print("Plotting residuals analysis...")
-    plot_residuals_analysis(predictions_test, corrected_forecast, Y_test, "Residual Correction")
+    plot_residuals_analysis(predictions_test, corrected_forecast, Y_test, "Residual Correction", model_name = residual_model_name)
     
     # Create pandemic waves DataFrame
     df_waves = create_pandemic_waves_df()
@@ -231,21 +233,21 @@ def main():
     # Plot predictions with pandemic waves
     print("Plotting predictions with pandemic waves...")
     plot_predictions_with_pandemic_waves(
-        Y_test_to_plot, predictions_to_plot, date_list_test, df_waves
+        Y_test_to_plot, predictions_to_plot, date_list_test, df_waves, model_name = residual_model_name
     )
     
     plot_predictions_with_pandemic_waves(
-        Y_test_to_plot, corrected_to_plot, date_list_test, df_waves
+        Y_test_to_plot, corrected_to_plot, date_list_test, df_waves, model_name = residual_model_name
     )
     
     # Plot errors over time with waves
     print("Plotting errors over time with pandemic waves...")
     plot_errors_over_time_with_waves(
-        Y_test_to_plot, predictions_to_plot, date_list_test, df_waves
+        Y_test_to_plot, predictions_to_plot, date_list_test, df_waves, model_name = residual_model_name
     )
     
     plot_errors_over_time_with_waves(
-        Y_test_to_plot, corrected_to_plot, date_list_test, df_waves
+        Y_test_to_plot, corrected_to_plot, date_list_test, df_waves, model_name = residual_model_name
     )
     
     # Evaluate error significance during pandemic waves
@@ -295,10 +297,34 @@ def main():
     print(f"  MSE:  {((original_mse - corrected_mse) / original_mse * 100):+.2f}%")
     print(f"  RMSE: {((original_rmse - corrected_rmse) / original_rmse * 100):+.2f}%")
     
+    # Save performance results to JSON
+    save_performance_results(
+        model_name=residual_model_name,
+        original_mae=original_mae,
+        original_mse=original_mse, 
+        original_rmse=original_rmse,
+        corrected_mae=corrected_mae,
+        corrected_mse=corrected_mse,
+        corrected_rmse=corrected_rmse,
+        forecast=forecast,
+        lookback=lookback,
+        code=code
+    )
+
+    compare_model_performance()
+    
     print("\n" + "="*50)
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
     print("="*50)
 
 
 if __name__ == "__main__":
-    main()
+    # Run the main training and evaluation pipeline
+    main_train_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
+    
+    # Optional: View all previous results (uncomment to use)
+    # print("\n" + "="*60)
+    # print("VIEWING ALL PERFORMANCE RESULTS")
+    # print("="*60)
+    # load_performance_results()
+    # compare_model_performance(metric="MAE")

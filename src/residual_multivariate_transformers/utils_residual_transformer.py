@@ -23,7 +23,7 @@ from .config_residual_transformer import (
 )
 
 
-def split_train_test(df, split_ratio=None, init_date=None):
+def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     """
     Splits a dataframe into train and test sets using the given split ratio.
     

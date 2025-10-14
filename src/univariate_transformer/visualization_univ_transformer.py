@@ -11,7 +11,7 @@ import seaborn as sns
 import os
 
 
-def plot_example(df, title):
+def plot_example(df, title, plt_show=False):
     """
     Plot example of 10 diagnoses from raw data.
     
@@ -26,7 +26,10 @@ def plot_example(df, title):
     sns.set_theme(rc={'figure.figsize': (20, 8)})
     sns.lineplot(data=dff.replace('nan', float('nan')).melt(id_vars=['date']), 
                  x='date', y='value', hue='variable').set(title=title)
-
+    os.makedirs("plots", exist_ok=True)
+    plt.savefig("plots/raw_data_example.png")
+    if plt_show:
+        plt.show()
 
 def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt=False):
     """
@@ -72,7 +75,7 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt=F
         print(f"Error plotting model results: {str(e)}")
 
 
-def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves):
+def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_name, show_plt=False):
     """
     Plot actual vs. predicted values with dates as x-labels, showing only 15 evenly spaced date labels.
     Also highlights COVID-19 pandemic waves with a red background.
@@ -109,10 +112,13 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves):
     plt.xticks([date_list[i] for i in indices], [date_labels[i] for i in indices], rotation=45)
 
     plt.grid()
-    plt.show()
+    os.makedirs("plots", exist_ok=True)
+    plt.savefig(f"plots/predictions_with_waves_{model_name}.png")
+    if show_plt:
+        plt.show()
 
 
-def plot_training_history(history, model_name, save_plot=True):
+def plot_training_history(history, model_name, save_plot=True, show_plt=False):
     """
     Plot training history including loss and metrics.
     
@@ -166,11 +172,11 @@ def plot_training_history(history, model_name, save_plot=True):
     if save_plot:
         os.makedirs("plots", exist_ok=True)
         plt.savefig(f"plots/training_history_{model_name}.png")
-    
-    plt.show()
+    if show_plt:
+        plt.show()
 
 
-def plot_model_comparison(models_results, metric='mae'):
+def plot_model_comparison(models_results, metric='mae', show_plt=False):
     """
     Compare multiple models' performance.
     
@@ -194,10 +200,13 @@ def plot_model_comparison(models_results, metric='mae'):
                 f'{value:.4f}', ha='center', va='bottom')
     
     plt.tight_layout()
-    plt.show()
+    os.makedirs("plots", exist_ok=True)
+    plt.savefig(f"plots/model_comparison_{metric}.png")
+    if show_plt:
+        plt.show()
 
 
-def plot_residuals_analysis(y_true, y_pred, model_name):
+def plot_residuals_analysis(y_true, y_pred, model_name, show_plt=False):
     """
     Plot residuals analysis including residual distribution and Q-Q plot.
     
@@ -240,4 +249,5 @@ def plot_residuals_analysis(y_true, y_pred, model_name):
     
     os.makedirs("plots", exist_ok=True)
     plt.savefig(f"plots/residuals_analysis_{model_name}.png")
-    plt.show()
+    if show_plt:
+        plt.show()

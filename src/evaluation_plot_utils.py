@@ -15,7 +15,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from scipy.stats import ttest_ind, mannwhitneyu
 
 
-def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, waves=True):
+def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, waves=True, plt_show=False, model_name = "Model"):
     """
     Plots actual vs. predicted values with dates as x-labels, showing only 15 evenly spaced date labels.
     Optionally highlights COVID-19 pandemic waves with a red background.
@@ -46,7 +46,10 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, waves=
     plt.ylim(0, 1)
     plt.xticks([date_list[i] for i in indices], [date_labels[i] for i in indices], rotation=45)
     plt.grid()
-    plt.show()
+    os.makedirs("plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"plots_residual_transformers/predictions_with_waves_{model_name}.png")
+    if plt_show:
+        plt.show()
 	
 def crps(y_true, y_pred):
     """
@@ -94,7 +97,7 @@ def mean_absolute_percentage_error(y_true, y_pred, epsilon=1e-8, warn_threshold=
     # Compute MAPE only on valid values
     return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
 
-def plot_stepwise_errors(Y_test, predictions):
+def plot_stepwise_errors(Y_test, predictions, model_name = "Model", plt_show = False):
     """
     Computes and plots MSE, MAE, Bias, CRPS, Pinball Loss, and MAPE for each prediction step.
 
@@ -157,9 +160,12 @@ def plot_stepwise_errors(Y_test, predictions):
     plt.legend()
     plt.grid()
     plt.xticks(step_range)
-    plt.show()
+    os.makedirs("plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"plots_residual_transformers/stepwise_errors_{model_name}.png")
+    if plt_show:
+        plt.show()
 	
-def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves, waves=True, ylim=None):
+def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves, waves=True, ylim=None, model_name = "Model", plt_show=False):
     """
     Plots four separate graphs for MSE & MAE, Bias, CRPS, and Pinball Loss over time.
     Optionally highlights COVID-19 pandemic waves with a red background.
@@ -207,7 +213,7 @@ def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves, w
     num_labels = 15
     indices = np.linspace(0, len(date_list) - 1, num_labels, dtype=int)
 
-    def plot_metric(values, title, ylabel, marker, linestyle, color, ylim_range=None):
+    def plot_metric(values, title, ylabel, marker, linestyle, color, ylim_range=None, model_name="Model", plt_show=False):
         plt.figure(figsize=(15, 3))
         if waves:
             for _, row in df_waves.iterrows():
@@ -223,19 +229,21 @@ def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves, w
         # Apply y-limit if provided
         if ylim_range is not None:
             plt.ylim(ylim_range)
-
-        plt.show()
+        os.makedirs("plots_residual_transformers", exist_ok=True)
+        plt.savefig(f"plots_residual_transformers/{title.replace(' ', '_').lower()}_over_time_{model_name}.png")
+        if plt_show:
+            plt.show()
 
     # Default ylim handling: If not provided, use None
     if ylim is None:
         ylim = [None] * 5  # No y-limits applied
 
     # Plot each metric with optional y-limit
-    plot_metric(mse_values, "MSE", "Error Value", 'o', '-', 'blue', ylim[0])
-    plot_metric(mae_values, "MAE", "Error Value", 'x', '--', 'red', ylim[1])
-    plot_metric(bias_values, "Bias", "Bias", 's', '-', 'purple', ylim[2])
-    plot_metric(crps_values, "CRPS", "CRPS", '^', '--', 'green', ylim[3])
-    plot_metric(pinball_values, "Pinball Loss", "Pinball Loss", 'd', ':', 'orange', ylim[4])
+    plot_metric(mse_values, "MSE", "Error Value", 'o', '-', 'blue', ylim[0], model_name=model_name)
+    plot_metric(mae_values, "MAE", "Error Value", 'x', '--', 'red', ylim[1], model_name=model_name)
+    plot_metric(bias_values, "Bias", "Bias", 's', '-', 'purple', ylim[2], model_name=model_name)
+    plot_metric(crps_values, "CRPS", "CRPS", '^', '--', 'green', ylim[3], model_name=model_name)
+    plot_metric(pinball_values, "Pinball Loss", "Pinball Loss", 'd', ':', 'orange', ylim[4], model_name=model_name)
 
 
 

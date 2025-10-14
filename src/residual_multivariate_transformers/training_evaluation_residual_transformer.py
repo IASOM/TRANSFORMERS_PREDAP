@@ -14,6 +14,9 @@ from .config_residual_transformer import (
     DEFAULT_SAVE_PARAMS, 
     MEMORY_LOG_FILE
 )
+import datetime
+import json
+import pandas as pd
 
 
 def setup_gpu_memory():
@@ -273,3 +276,203 @@ def get_callbacks(patience=None, monitor='val_loss', mode='min',
         callbacks.extend(additional_callbacks)
     
     return callbacks
+
+
+def save_performance_results(model_name, original_mae, original_mse, original_rmse,
+                           corrected_mae, corrected_mse, corrected_rmse,
+                           forecast, lookback, code, output_dir="results"):
+    """
+    Save performance comparison results to a JSON file.
+    
+    Parameters:
+    -----------
+    model_name : str
+        Name of the residual model being evaluated
+    original_mae, original_mse, original_rmse : float
+        Performance metrics for the original base model
+    corrected_mae, corrected_mse, corrected_rmse : float
+        Performance metrics for the residual-corrected model
+    forecast : int
+        Forecast horizon used
+    lookback : int
+        Lookback window used
+    code : str
+        Target diagnostic code
+    output_dir : str
+        Directory to save the results file
+    
+    Returns:
+    --------
+    str
+        Path to the saved JSON file
+    """
+    
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"Created directory: {output_dir}")
+    
+    # Calculate improvements
+    mae_improvement = ((original_mae - corrected_mae) / original_mae * 100) if original_mae != 0 else 0
+    mse_improvement = ((original_mse - corrected_mse) / original_mse * 100) if original_mse != 0 else 0
+    rmse_improvement = ((original_rmse - corrected_rmse) / original_rmse * 100) if original_rmse != 0 else 0
+    
+    # Create results dictionary
+    results = {
+        "model_info": {
+            "residual_model_name": model_name,
+            "target_code": code,
+            "forecast_horizon": forecast,
+            "lookback_window": lookback,
+            "evaluation_timestamp": datetime.now().isoformat(),
+            "model_type": "Residual Multivariate Transformer"
+        },
+        "original_model_performance": {
+            "MAE": round(original_mae, 6),
+            "MSE": round(original_mse, 6),
+            "RMSE": round(original_rmse, 6)
+        },
+        "corrected_model_performance": {
+            "MAE": round(corrected_mae, 6),
+            "MSE": round(corrected_mse, 6),
+            "RMSE": round(corrected_rmse, 6)
+        },
+        "improvements": {
+            "MAE_improvement_percent": round(mae_improvement, 2),
+            "MSE_improvement_percent": round(mse_improvement, 2),
+            "RMSE_improvement_percent": round(rmse_improvement, 2),
+            "overall_assessment": "positive" if mae_improvement > 0 else "negative"
+        },
+        "summary": {
+            "best_metric": "MAE" if abs(mae_improvement) >= max(abs(mse_improvement), abs(rmse_improvement)) else 
+                         "MSE" if abs(mse_improvement) >= abs(rmse_improvement) else "RMSE",
+            "best_improvement": max(mae_improvement, mse_improvement, rmse_improvement),
+            "average_improvement": round((mae_improvement + mse_improvement + rmse_improvement) / 3, 2)
+        }
+    }
+    
+    # Generate filename based on model name and timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    clean_model_name = model_name.replace('.keras', '').replace('/', '_').replace('\\', '_')
+    filename = f"performance_{clean_model_name}_{timestamp}.json"
+    filepath = os.path.join(output_dir, filename)
+    
+    # Save to JSON file
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=4, ensure_ascii=False)
+    
+    print(f"\n📊 Performance results saved to: {filepath}")
+    
+    return filepath
+
+
+def load_performance_results(results_dir="results"):
+    """
+    Load and display all performance results from JSON files.
+    
+    Parameters:
+    -----------
+    results_dir : str
+        Directory containing the performance JSON files
+        
+    Returns:
+    --------
+    list
+        List of loaded performance dictionaries
+    """
+    if not os.path.exists(results_dir):
+        print(f"Results directory '{results_dir}' not found.")
+        return []
+    
+    json_files = [f for f in os.listdir(results_dir) if f.endswith('.json') and f.startswith('performance_')]
+    
+    if not json_files:
+        print(f"No performance JSON files found in '{results_dir}'.")
+        return []
+    
+    results = []
+    print(f"\n📊 Found {len(json_files)} performance result(s):")
+    print("="*80)
+    
+    for json_file in sorted(json_files):
+        filepath = os.path.join(results_dir, json_file)
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                result = json.load(f)
+            results.append(result)
+            
+            # Display summary
+            model_info = result['model_info']
+            improvements = result['improvements']
+            
+            print(f"\n🔍 {model_info['residual_model_name']}")
+            print(f"   Target: {model_info['target_code']} | "
+                  f"Forecast: {model_info['forecast_horizon']} | "
+                  f"Lookback: {model_info['lookback_window']}")
+            print(f"   Evaluated: {model_info['evaluation_timestamp'][:19]}")
+            print(f"   Improvements: MAE {improvements['MAE_improvement_percent']:+.2f}% | "
+                  f"MSE {improvements['MSE_improvement_percent']:+.2f}% | "
+                  f"RMSE {improvements['RMSE_improvement_percent']:+.2f}%")
+            print(f"   Overall: {improvements['overall_assessment'].upper()} "
+                  f"(Avg: {improvements['MAE_improvement_percent']:+.2f}%)")
+            
+        except Exception as e:
+            print(f"❌ Error loading {json_file}: {e}")
+    
+    print("="*80)
+    return results
+
+
+def compare_model_performance(results_dir="results", metric="MAE"):
+    """
+    Compare performance of multiple models and rank them.
+    
+    Parameters:
+    -----------
+    results_dir : str
+        Directory containing performance JSON files
+    metric : str
+        Metric to use for comparison ('MAE', 'MSE', 'RMSE')
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Comparison table sorted by improvement
+    """
+    results = load_performance_results(results_dir)
+    
+    if not results:
+        return None
+    
+    # Create comparison data
+    comparison_data = []
+    for result in results:
+        model_info = result['model_info']
+        improvements = result['improvements']
+        
+        comparison_data.append({
+            'Model': model_info['residual_model_name'],
+            'Target': model_info['target_code'],
+            'Forecast': model_info['forecast_horizon'],
+            'Lookback': model_info['lookback_window'],
+            'MAE_Improvement_%': improvements['MAE_improvement_percent'],
+            'MSE_Improvement_%': improvements['MSE_improvement_percent'],
+            'RMSE_Improvement_%': improvements['RMSE_improvement_percent'],
+            'Average_Improvement_%': (
+                improvements['MAE_improvement_percent'] + 
+                improvements['MSE_improvement_percent'] + 
+                improvements['RMSE_improvement_percent']
+            ) / 3,
+            'Evaluation_Date': model_info['evaluation_timestamp'][:10]
+        })
+    
+    # Create DataFrame and sort by selected metric
+    df = pd.DataFrame(comparison_data)
+    sort_column = f'{metric}_Improvement_%'
+    df_sorted = df.sort_values(sort_column, ascending=False)
+    
+    print(f"\n🏆 MODEL PERFORMANCE RANKING (by {metric} improvement):")
+    print("="*100)
+    print(df_sorted.to_string(index=False))
+    
+    return df_sorted
