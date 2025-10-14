@@ -17,7 +17,7 @@ from univariate_transformer import (
     train_given_model_and_data,
     evaluate_model_sliding_window,
     plt_model,  plot_predictions_with_waves, plot_example,
-    extract_model_params, load_and_evaluate_models, setup_gpu_memory,create_model_directories, create_pandemic_waves_df, load_and_preprocess_data,
+    extract_model_params, load_and_evaluate_models, setup_gpu_memory,create_model_directories, create_pandemic_waves_df, load_and_preprocess_data, evaluate_univ_transformer,
     default_config, create_config
 )
     
@@ -25,11 +25,17 @@ from univariate_transformer import (
 
 # Import data preparation module
 import sys
-sys.path.append('..')  # Add parent directory to path
+import os
+# Add the src directory to path for module imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir) if os.path.basename(current_dir) != 'src' else current_dir
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
 import data_preparation
 
 
-def main_univ_transformer():
+def main_univ_transformer(lookback, forecast, code, config = None, evaluate_model = False):
     """Main function that orchestrates the training and evaluation pipeline."""
     
     # Use provided config or default configuration
@@ -40,8 +46,8 @@ def main_univ_transformer():
     config.print_config()
     
     # Extract configuration values for easier access
-    FORECAST = config.FORECAST
-    LOOKBACK = config.LOOKBACK
+    FORECAST = forecast
+    LOOKBACK = lookback
     LOOKBACK_LIST = config.LOOKBACK_LIST
     FORECAST_LIST = config.FORECAST_LIST
 
@@ -60,7 +66,7 @@ def main_univ_transformer():
 
     DATA_PATH = config.DATA_PATH
     TARGET_CODE = config.TARGET_CODE
-    MODEL_DIR = config.MODEL_DIR
+    MODEL_FOLDER = config.MODEL_DIR
     PLOTS_DIR = config.PLOTS_DIR
 
     # Setup
@@ -141,77 +147,13 @@ def main_univ_transformer():
         callbacks=callbacks
     )
 
-    # HYPERPARAMETER SWEEP
-    print("\n" + "="*50)
-    print("HYPERPARAMETER SWEEP")
-    print("="*50)
-    
-   
-    # Train different models for different lookback and forecast horizons
-    for lb in LOOKBACK_LIST:
-        if lb <= 1:  # Skip problematic sequence lengths
-            continue
-            
-        for fh in FORECAST_LIST:
-            print(f"\nTraining model: lookback={lb}, forecast={fh}")
-            
-            # Prepare data
-            X, Y = data_preparation.prepare_data(input_directory, code, lb, fh, debug=True, univariate=True)
-            
-            start_time = time.perf_counter()
-            
-            # Build model
-            model = build_model(
-                (lb, 1),
-                head_size=HEAD_SIZE,
-                num_heads=NUM_HEADS,
-                ff_dim=FF_DIM,
-                num_transformer_blocks=NUM_TRANSFORMER_BLOCKS,
-                mlp_units=[MLP_UNITS],
-                mlp_dropout=MLP_DROPOUT,
-                dropout=DROPOUT,
-                n_pred=fh
-            )
-            
-            # Setup scheduler and callbacks using configuration
-            lr_params = config.get_lr_schedule_params()
-            scheduler = CustomCosineDecay(**lr_params)
-            
-            callbacks = [
-                tf.keras.callbacks.LearningRateScheduler(scheduler),
-                tf.keras.callbacks.EarlyStopping(
-                    patience=EARLY_STOP_PATIENCE,
-                    monitor='val_loss',
-                    mode='min',
-                    restore_best_weights=True
-                )
-            ]
-
-            model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam())
-            
-            # Train model
-            MODEL_NAME = f'models/{code}_example_transformer_{fh}fh_{FF_DIM}ff_{lb}lb_{LEARNING_RATE}initlr.keras'
-            train_given_model_and_data(
-                model, X, Y, 
-                batch_size=batch_size,
-                model_name=MODEL_NAME, 
-                epochs=EPOCHS, 
-                save_model=True, 
-                save_memory=False, 
-                callbacks=callbacks
-            )
-
-            finish_time = time.perf_counter()
-            training_time = finish_time - start_time
-            print(f"Model training time: {training_time:.2f} seconds")
-
     # EVALUATION PHASE
     print("\n" + "="*50)
     print("EVALUATION PHASE")
     print("="*50)
     
     # Evaluate all trained models using configuration
-    MODEL_FOLDER = config.MODEL_DIR
+    
     print("Files in model folder:", os.listdir(MODEL_FOLDER))
     
     trained_models = [f for f in os.listdir(MODEL_FOLDER) if f.endswith('.keras')]
@@ -220,44 +162,9 @@ def main_univ_transformer():
     # Create pandemic waves DataFrame
     df_waves = create_pandemic_waves_df()
 
-    for model_name in trained_models:
-        print(f"\n--- Evaluating model: {model_name} ---")
+    if evaluate_model:
+        evaluate_univ_transformer(MODEL_NAME, input_directory, code, MODEL_FOLDER=MODEL_FOLDER, df_waves=df_waves)
         
-        # Extract parameters from filename
-        lookback, forecast = extract_model_params(model_name)
-        
-        if lookback is None or forecast is None:
-            print(f"Skipping {model_name} - could not extract parameters")
-            continue
-            
-        # Load model
-        model_path = os.path.join(MODEL_FOLDER, model_name)
-        model = tf.keras.models.load_model(model_path, compile=True)
-        
-        # Prepare test data
-        X_test, Y_test = data_preparation.prepare_data(
-            input_directory, code, lookback, forecast, train=False, debug=True, univariate=True
-        )
-        date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False)
-        
-        # Evaluate model
-        loss, mae, mse = model.evaluate(X_test, Y_test, verbose=0)
-        print(f"Test Results - Loss: {loss:.4f}, MAE: {mae:.4f}, MSE: {mse:.4f}")
-        
-        # Get predictions
-        predictions = model.predict(X_test, verbose=0)
-        print("Predicted values shape:", predictions.shape)
-
-        # Generate plots
-        model_display_name = model_name.replace('.keras', '')
-        plt_model(Y_test, predictions, model_name=model_display_name, col_idx=0, show_plt=False)
-        
-        # Plot predictions with pandemic waves
-        plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_display_name)
-        
-        # Sliding window evaluation (optional)
-        # evaluate_model_sliding_window(model, model_display_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
-
     print("\n" + "="*50)
     print("EVALUATION COMPLETE")
     print("="*50)
@@ -265,4 +172,4 @@ def main_univ_transformer():
 
 if __name__ == "__main__":
     # Option 1: Use default configuration
-    main_univ_transformer()
+    main_univ_transformer(lookback=default_config.LOOKBACK, forecast=default_config.FORECAST, code=default_config.TARGET_CODE)

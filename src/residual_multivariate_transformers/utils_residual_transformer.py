@@ -10,9 +10,16 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+import time
 
-# Add parent directory to path to access data_preparation module
-sys.path.append('..')
+from residual_multivariate_transformers.training_evaluation_residual_transformer import load_trained_model
+
+# Add the src directory to path for module imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(os.path.dirname(current_dir)) if 'residual_multivariate_transformers' in current_dir else os.path.dirname(current_dir)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
 import data_preparation
 
 from .config_residual_transformer import (
@@ -90,6 +97,40 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     
     return train_df, test_df
 
+def filter_diagnostics_covariates(df, diag_codes):
+    """
+    Filters the DataFrame to keep only the specified diagnostic codes.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        The input dataframe containing multiple codes
+    diag_codes : list
+        List of diagnostic codes to retain
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Filtered DataFrame with only the specified diagnostic codes and timestamp
+    """
+    if 'timestamp' not in df.columns:
+        raise KeyError("Expected a 'timestamp' column in the DataFrame.")
+    
+    # Ensure diag_codes is a list
+    if isinstance(diag_codes, str):
+        diag_codes = [diag_codes]
+    
+    # Filter columns
+    cols_to_keep = ['timestamp'] + [code for code in diag_codes if code in df.columns]
+    
+    if len(cols_to_keep) <= 1:
+        raise ValueError("No valid diagnostic codes found in the DataFrame.")
+    
+    filtered_df = df[cols_to_keep].copy()
+    
+    print(f"Filtered DataFrame to keep columns: {cols_to_keep}")
+    
+    return filtered_df
 
 def learn_covariates(train_split, categorical_vars=None):
     """
@@ -303,3 +344,119 @@ def extract_model_params_from_filename(model_filename):
     else:
         print(f"Warning: Could not extract parameters from filename: {model_filename}")
         return None
+    
+def prepare_base_model_data(input_directory, code, lookback, forecast, univariate=True):
+    """
+    Prepare training and testing data for the base transformer model.
+    
+    This function loads and prepares univariate time series data for both training and testing.
+    It uses the data_preparation module to create input sequences with the specified lookback
+    and forecast windows. The function also extracts corresponding date lists for both datasets.
+    
+    Parameters:
+    -----------
+    input_directory : str
+        Path to the directory containing the input data files
+    code : str
+        Station or location code identifier for the data
+    lookback : int
+        Number of past time steps to use as input (lookback window)
+    forecast : int
+        Number of future time steps to predict (forecast horizon)
+        
+    Returns:
+    --------
+    tuple
+        A tuple containing (Y_train, Y_test, X_train, X_test, date_list_train, date_list_test):
+        - Y_train : np.ndarray, shape (n_train_samples, forecast)
+            Training target values
+        - Y_test : np.ndarray, shape (n_test_samples, forecast)  
+            Testing target values
+        - X_train : np.ndarray, shape (n_train_samples, lookback, n_features)
+            Training input sequences with univariate features
+        - X_test : np.ndarray, shape (n_test_samples, lookback, n_features)
+            Testing input sequences with univariate features
+        - date_list_train : list
+            List of datetime objects corresponding to training samples
+        - date_list_test : list  
+            List of datetime objects corresponding to testing samples
+            
+    Notes:
+    ------
+    - The function uses univariate=True in data_preparation.prepare_data(), which affects
+      the number of features in the output arrays
+    - Feature count depends on the data_preparation module's univariate processing logic
+    - If experiencing shape mismatches, verify that the same univariate setting is used
+      during training and inference
+    """
+    start_time = time.perf_counter()
+    X_test, Y_test = data_preparation.prepare_data(
+        input_directory, code, lookback, forecast, 
+        train=False, debug=True, univariate=univariate
+    )
+    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False)
+    
+    X_train, Y_train = data_preparation.prepare_data(
+        input_directory, code, lookback, forecast, 
+        train=True, debug=True, univariate=univariate
+    )
+    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=True)
+    
+    finish_preparing = time.perf_counter()
+    time_data_preparation = finish_preparing - start_time
+    print(f"Data preparation time: {time_data_preparation:.2f} seconds")
+    print(f"Test timesteps: {len(date_list_test)}")
+    print(f"Train timesteps: {len(date_list_train)}")
+    
+    
+
+    return Y_train, Y_test, X_train, X_test, date_list_train, date_list_test
+
+def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
+    """
+    Load a trained base transformer model from the specified path.
+    
+    Parameters:
+    -----------
+    base_path : str
+        Directory path where the model is stored
+    base_model_name : str
+        Filename of the model to load
+    X_train : np.ndarray
+        Training input data for prediction
+    X_test : np.ndarray
+        Testing input data for prediction
+        
+    Returns:
+    --------
+    predictions_train : np.ndarray
+        Predictions on the training data
+    predictions_test : np.ndarray
+        Predictions on the testing data
+        
+    Raises:
+    -------
+    FileNotFoundError
+        If the model file does not exist
+    """
+   # Load the base transformer model
+    
+    available_models = os.listdir(base_path) if os.path.exists(base_path) else []
+    
+    if base_model_name in available_models:
+        full_path = os.path.join(base_path, base_model_name)
+        print(f"✅ Found base model: {base_model_name}")
+    else:
+        print(f"❌ Base model not found: {base_model_name}")
+        print(f"Available models: {available_models}")
+        return
+    
+    # Load the base model
+    model = load_trained_model(full_path)
+    
+    # Get predictions from the base transformer model
+    print("\nGenerating predictions from base model...")
+    predictions_test = model.predict(X_test, verbose=1)
+    predictions_train = model.predict(X_train, verbose=1)
+    
+    return predictions_train, predictions_test

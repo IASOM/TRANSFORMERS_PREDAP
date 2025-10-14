@@ -14,7 +14,7 @@ from .config_residual_transformer import (
     DEFAULT_SAVE_PARAMS, 
     MEMORY_LOG_FILE
 )
-import datetime
+from datetime import datetime
 import json
 import pandas as pd
 

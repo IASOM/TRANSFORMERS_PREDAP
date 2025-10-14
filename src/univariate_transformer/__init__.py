@@ -39,7 +39,7 @@ from .model_architecture_univ_transformer import build_model, transformer_encode
 from .training_evaluation_univ_transformer import train_given_model_and_data, evaluate_model_sliding_window
 from .visualization_univ_transformer import plt_model, plot_predictions_with_waves, plot_example
 from .utils_univ_transformer import extract_model_params, load_and_evaluate_models, setup_gpu_memory, create_model_directories, create_pandemic_waves_df, load_and_preprocess_data
-
+from .evaluation_univ_transformer import evaluate_univ_transformer
 __version__ = "1.0.0"
 __author__ = "TRANSFORMERS_PREDAP Team"
 
@@ -69,5 +69,8 @@ __all__ = [
     'setup_gpu_memory',
     'create_model_directories',
     'create_pandemic_waves_df',
-    'load_and_preprocess_data'
+    'load_and_preprocess_data',
+
+    # Evaluation
+    'evaluate_univ_transformer'
 ]
