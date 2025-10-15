@@ -26,13 +26,15 @@ for lb in LOOKBACK_LIST:
         lookback = lb
         forecast = fh
         code = CODE
-        main_training_univ_transformer.main_univ_transformer(lookback=lookback, forecast=forecast, code=code)
+        main_training_univ_transformer.main_univ_transformer(forecast=forecast,lookback=lookback, code=code)
         print(f"\n\nRunning for Lookback: {lookback}, Forecast: {forecast}, Code: {code}\n")
-        corrected_forecast_values = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(lookback=lookback, forecast=forecast, code=code)
-        corrected_forecast_values = main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(lookback=lookback, forecast=forecast, code=code, corrected_forecast_values=corrected_forecast_values)
+        # RESIDUAL DIAGNOSTICS TRANSFORMER
+        predictions_train_corrected, predictions_test_corrected = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(lookback=lookback, forecast=forecast, code=code, predictions_train_corrected=None, predictions_test_corrected=None)
 
-# RESIDUAL DIAGNOSTICS TRANSFORMER
+        # RESIDUAL SEASONAL TRANSFORMER
+        predictions_train_corrected, predictions_test_corrected = main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(lookback=lookback, forecast=forecast, code=code, predictions_train_corrected=predictions_train_corrected, predictions_test_corrected=predictions_test_corrected)
 
 
 
-# RESIDUAL SEASONAL TRANSFORMER 
+
+
