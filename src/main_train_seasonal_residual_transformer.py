@@ -49,7 +49,7 @@ from residual_multivariate_transformers import (
     evaluate_error_significance_pandemic_waves
 )
 
-def main_train_seasonal_residual_transformer(lookback, forecast, code, diagnostic_covariates_path, corrected_forecast_values=None):
+def main_train_seasonal_residual_transformer(lookback, forecast, code, predictions_train_corrected = None, predictions_test_corrected = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -58,8 +58,6 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, diagnosti
     lookback = lookback
     ff_dim = 8
     learning_rate = DEFAULT_LEARNING_RATE
-    diagnostic_covariates_path = diagnostic_covariates_path
-    diagnostic_covariates_list = pd.read_excel(diagnostic_covariates_path)['predictors'][forecast].split(",")
     
     # Model naming
     base_model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
@@ -93,14 +91,14 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, diagnosti
         input_directory, code, lookback, forecast
     )
     
-    if corrected_forecast_values is None:
+    if predictions_train_corrected is None:
         predictions_train, predictions_test = load_base_model_transformer(
            X_train, X_test, DEFAULT_MODEL_DIR, base_model_name, base_model_name
         )
     else:
-        predictions_train = corrected_forecast_values
-        predictions_test = corrected_forecast_values    
-    
+        predictions_train = predictions_train_corrected
+        predictions_test = predictions_test_corrected
+
     print(f"Base model predictions - Test: {predictions_test.shape}, Train: {predictions_train.shape}")
     print(f"Actual values - Test: {Y_test.shape}, Train: {Y_train.shape}")
     
@@ -156,6 +154,12 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, diagnosti
         callbacks=None
     )
     
+    predicted_residuals_train = residual_model.predict(X_train_covs, verbose=1)
+    predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
+    
+    predictions_train_corrected = predictions_train + predicted_residuals_train
+    
+
     # PHASE 4: EVALUATE RESIDUAL CORRECTION MODEL
     print("\n" + "="*50)
     print("PHASE 4: EVALUATING RESIDUAL CORRECTION MODEL")
@@ -295,9 +299,10 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, diagnosti
     print("\n" + "="*50)
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
     print("="*50)
-    return corrected_forecast
+    predictions_test_corrected = corrected_forecast
+    return predictions_train_corrected, predictions_test_corrected
 
 
 if __name__ == "__main__":
     # Run the main training and evaluation pipeline
-    corrected_forecast = main_train_seasonal_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
+    predictions_train_corrected, predictions_test_corrected = main_train_seasonal_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")

@@ -52,7 +52,7 @@ from residual_multivariate_transformers import (
 )
 
 
-def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14", diagnostic_covariates_path = "../BEST_features_NOSMOOTH.xlsx", corrected_forecast_values = None):
+def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14", diagnostic_covariates_path = "BEST_features_NOSMOOTH.xlsx", predictions_train_corrected = None, predictions_test_corrected = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -62,7 +62,8 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     ff_dim = 8
     learning_rate = DEFAULT_LEARNING_RATE
     diagnostic_covariates_path = diagnostic_covariates_path
-    diagnostic_covariates_list = pd.read_excel(diagnostic_covariates_path)['predictors'][forecast].split(",")
+    diagnostic_covariates_df = pd.read_excel(diagnostic_covariates_path, engine='openpyxl')
+    diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] == forecast]['predictors'])[0].split(',')
     
     # Model naming
     base_model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
@@ -96,13 +97,13 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
         input_directory, code, lookback, forecast
     )
 
-    if corrected_forecast_values is None:
+    if predictions_train_corrected is None:
         predictions_train, predictions_test = load_base_model_transformer(
-           X_train, X_test, DEFAULT_MODEL_DIR, base_model_name, base_model_name
+           X_train, X_test, DEFAULT_MODEL_DIR, base_model_name
         )
     else:
-        predictions_train = corrected_forecast_values
-        predictions_test = corrected_forecast_values    
+        predictions_train = predictions_train_corrected
+        predictions_test = predictions_test_corrected
 
     
     
@@ -129,10 +130,11 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     df_processed = train_split
     
     # Generate rolling sequences with covariates for training
-    print("Generating rolling sequences with covariates for training...")
-    X_train_covs = data_preparation.generate_rolling_sequences_covariates(
+    print("Generating sequences with diagnostics covariates for training...")
+    '''X_train_covs = data_preparation.generate_rolling_sequences_covariates(
         df_processed, lookback, forecast, predictions_train
-    )
+    )'''
+    X_train_covs, _ = data_preparation.prepare_data(input_directory, code, lookback, forecast,relevant_feature_cols=diagnostic_covariates_list, train = True, univariate = False)
     
     print(f"Training covariates shape: {X_train_covs.shape}")
     print(f"Expected shape: (num_samples, {lookback}, num_features)")
@@ -161,6 +163,11 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
         save_memory=False,
         callbacks=None
     )
+
+    predicted_residuals_train = residual_model.predict(X_train_covs, verbose=1)
+    predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
+    
+    predictions_train_corrected = predictions_train + predicted_residuals_train
     
     # PHASE 4: EVALUATE RESIDUAL CORRECTION MODEL
     print("\n" + "="*50)
@@ -172,9 +179,12 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     df_test_processed = test_split
     
     # Generate rolling sequences for test data
-    X_test_covs = data_preparation.generate_rolling_sequences_covariates(
+    '''X_test_covs = data_preparation.generate_rolling_sequences_covariates(
         df_test_processed, lookback, forecast, predictions_test
-    )
+    )'''
+    
+
+    X_test_covs, _ = data_preparation.prepare_data(input_directory, code, lookback, forecast, relevant_feature_cols=diagnostic_covariates_list, train = False, univariate = False)
     
     print(f"Test covariates shape: {X_test_covs.shape}")
     
@@ -299,13 +309,14 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     print("\n" + "="*50)
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
     print("="*50)
+    predictions_test_corrected = corrected_forecast 
 
-    return corrected_forecast
+    return predictions_train_corrected, predictions_test_corrected
 
 
 if __name__ == "__main__":
     # Run the main training and evaluation pipeline
-    corrected_forecast = main_train_diagnostic_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
+    predictions_train_corrected, predictions_test_corrected = main_train_diagnostic_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
     
     # Optional: View all previous results (uncomment to use)
     # print("\n" + "="*60)

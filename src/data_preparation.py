@@ -56,7 +56,7 @@ def normalize_dataframe(df, date_cutoff = '2010-01-01'):
 
     return df
 
-def prepare_data(csv_file,code, lookback, forecast,train = True, debug=False, univariate=True):
+def prepare_data(csv_file,code, lookback, forecast, relevant_feature_cols = None,train = True, debug=False, univariate=True):
     # Load CSV
     df = pd.read_csv(csv_file)
 
@@ -85,12 +85,16 @@ def prepare_data(csv_file,code, lookback, forecast,train = True, debug=False, un
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
         idx_code = df.columns.get_loc(code)
-        feature_cols = df.columns
-        feature_cols = feature_cols.drop(columns = code)  # Ignore timestamp, exclude target
+        df_features = df.drop(columns = [code, 'timestamp'])
+
+         # Ignore timestamp, exclude target
         target_col = df.columns[idx_code]  # Target is the last column
     
         # Convert DataFrame to numpy arrays
-        X_raw = df[feature_cols].values  # Shape: (200, 3)
+        if relevant_feature_cols is not None:
+            X_raw = df[relevant_feature_cols].values  # Shape: (200, 3)
+        else:
+            X_raw = df_features.values  # Shape: (200, 3)
         Y_raw = df[target_col].values    # Shape: (200,)
 
     # Generate rolling sequences
