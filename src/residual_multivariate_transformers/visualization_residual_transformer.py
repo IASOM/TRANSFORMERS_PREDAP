@@ -109,6 +109,8 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     if show_plt:
         plt.show()
 
+    plt.close()
+
 
 def plot_stepwise_errors_comparison(Y_test, original_predictions, corrected_predictions, title_prefix="", model_name = "Model"):
     """
@@ -326,6 +328,7 @@ def plot_training_history(history, model_name="Model", show_plt=False):
     plt.savefig(f"plots_residual_transformers/training_history_{model_name}.png")
     if show_plt:
         plt.show()
+    plt.close()
 
 
 def plot_model_comparison(models_results, metric='mae', title="Model Comparison", model_name = "Model", plt_show=False):
@@ -362,3 +365,4 @@ def plot_model_comparison(models_results, metric='mae', title="Model Comparison"
     plt.savefig(f"plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
     if plt_show:
         plt.show()
+    plt.close()

@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 
 # Add the src directory to path for module imports
@@ -118,12 +119,16 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     train_split, test_split = split_train_test(pd.read_csv(input_directory), split_ratio=0.8, init_date='2010-01-01')
     
     # Learn covariates from training data
-    df_processed = learn_covariates(train_split)
+    #df_processed = learn_covariates(train_split)
     
+    categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation"]
+    df_train_processed = data_preparation.prepare_time_series_features(train_split, categorical_vars)
+    
+
     # Generate rolling sequences with covariates for training
     print("Generating rolling sequences with covariates for training...")
     X_train_covs = data_preparation.generate_rolling_sequences_covariates(
-        df_processed, lookback, forecast, predictions_train
+        df_train_processed, lookback, forecast, predictions_train
     )
     
     print(f"Training covariates shape: {X_train_covs.shape}")
@@ -251,8 +256,6 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     print("="*50)
     
     # Calculate metrics
-    from sklearn.metrics import mean_squared_error, mean_absolute_error
-    
     # Original model metrics
     original_mae = mean_absolute_error(Y_test_to_plot, predictions_to_plot)
     original_mse = mean_squared_error(Y_test_to_plot, predictions_to_plot)

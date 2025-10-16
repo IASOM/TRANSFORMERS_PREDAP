@@ -112,7 +112,7 @@ def prepare_data(csv_file,code, lookback, forecast, relevant_feature_cols = None
     return X, Y
 
 
-def extract_dates(csv_file,code,lookback, forecast, train = True):
+def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = '2010-01-01'):
     """
     Extracts the 'date' column from the CSV file to align with the test dataset for plotting.
 
@@ -130,7 +130,7 @@ def extract_dates(csv_file,code,lookback, forecast, train = True):
     if 'timestamp' not in df.columns:
         raise ValueError("The dataset must contain a 'timestamp' column for plotting.")
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp('2010-01-01')
+    cutoff = pd.Timestamp(cutoff_date)
     df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
     # Convert to datetime format
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -146,7 +146,7 @@ def extract_dates(csv_file,code,lookback, forecast, train = True):
     return date_list.tolist()
 
 
-def prepare_time_series_features(df, categorical_vars):
+def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01'):
     """
     Prepares a time series dataset by adding date-related features (holidays, school vacations, etc.)
     and dummifying categorical variables.
@@ -162,7 +162,7 @@ def prepare_time_series_features(df, categorical_vars):
     # Ensure 'timestamp' column is in datetime format
     
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp('2010-01-01')
+    cutoff = pd.Timestamp(cutoff_date)
     df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
     
     # Convert timestamp to datetime (optional)
@@ -291,7 +291,7 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
     X_raw = df_processed[feature_cols].values  # Convert DataFrame to NumPy array
 
     # Generate rolling sequences
-    X = [X_raw[i + lookback : i + lookback + forecast] for i in range(len(X_raw) - lookback - forecast + 1)]
+    X = [X_raw[i : i + lookback ] for i in range(len(X_raw) - lookback - forecast + 1)]
     
     # Convert to NumPy array
     X_train_covs = np.array(X)
@@ -301,8 +301,10 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
     # If predictions are provided, concatenate as an extra feature
     if predictions_train is not None:
         # Ensure predictions are correctly shaped
-        predictions_train = predictions_train.reshape(X_train_covs.shape[0], X_train_covs.shape[1], 1)
-        X_train_covs = np.concatenate([X_train_covs, predictions_train], axis=-1)  # Add as extra feature
+        predictions_train = predictions_train.reshape(X_train_covs.shape[0],1, forecast)
+        
+        repeated_predictions_train = np.repeat(predictions_train, lookback, axis=1)  # Repeat to match lookback length
+        X_train_covs = np.concatenate([X_train_covs, repeated_predictions_train], axis=-1)  # Add as extra feature
 
         print(f"Processed covariate Shapes + predictions: X={X_train_covs.shape}")
 
