@@ -30,6 +30,7 @@ def plot_example(df, title, plt_show=False):
     plt.savefig("plots/raw_data_example.png")
     if plt_show:
         plt.show()
+    plt.close()
 
 def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt=False):
     """
@@ -70,6 +71,7 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt=F
         fig.savefig(f"plots/model_results_{model_name}.png")
         if show_plt:
             plt.show()
+        plt.close()
 
     except Exception as e:
         print(f"Error plotting model results: {str(e)}")
@@ -116,6 +118,7 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_
     plt.savefig(f"plots/predictions_with_waves_{model_name}.png")
     if show_plt:
         plt.show()
+    plt.close()
 
 
 def plot_training_history(history, model_name, save_plot=True, show_plt=False):
@@ -174,6 +177,7 @@ def plot_training_history(history, model_name, save_plot=True, show_plt=False):
         plt.savefig(f"plots/training_history_{model_name}.png")
     if show_plt:
         plt.show()
+    plt.close()
 
 
 def plot_model_comparison(models_results, metric='mae', show_plt=False):
@@ -204,6 +208,7 @@ def plot_model_comparison(models_results, metric='mae', show_plt=False):
     plt.savefig(f"plots/model_comparison_{metric}.png")
     if show_plt:
         plt.show()
+    plt.close()
 
 
 def plot_residuals_analysis(y_true, y_pred, model_name, show_plt=False):
@@ -251,3 +256,4 @@ def plot_residuals_analysis(y_true, y_pred, model_name, show_plt=False):
     plt.savefig(f"plots/residuals_analysis_{model_name}.png")
     if show_plt:
         plt.show()
+    plt.close()

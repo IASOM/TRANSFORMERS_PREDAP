@@ -50,6 +50,7 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, waves=
     plt.savefig(f"plots_residual_transformers/predictions_with_waves_{model_name}.png")
     if plt_show:
         plt.show()
+    plt.close()
 	
 def crps(y_true, y_pred):
     """
@@ -164,6 +165,7 @@ def plot_stepwise_errors(Y_test, predictions, model_name = "Model", plt_show = F
     plt.savefig(f"plots_residual_transformers/stepwise_errors_{model_name}.png")
     if plt_show:
         plt.show()
+    plt.close()
 	
 def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves, waves=True, ylim=None, model_name = "Model", plt_show=False):
     """
@@ -233,6 +235,7 @@ def plot_errors_over_time_with_waves(Y_test, predictions, date_list, df_waves, w
         plt.savefig(f"plots_residual_transformers/{title.replace(' ', '_').lower()}_over_time_{model_name}.png")
         if plt_show:
             plt.show()
+        plt.close()
 
     # Default ylim handling: If not provided, use None
     if ylim is None:

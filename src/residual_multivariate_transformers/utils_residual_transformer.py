@@ -132,7 +132,7 @@ def filter_diagnostics_covariates(df, diag_codes):
     
     return filtered_df
 
-def learn_covariates(train_split, categorical_vars=None):
+def learn_covariates(df_split, categorical_vars=None):
     """
     Process time series data to extract and prepare covariates.
     
@@ -154,7 +154,7 @@ def learn_covariates(train_split, categorical_vars=None):
     
     print(f"Learning covariates with variables: {categorical_vars}")
     
-    df = train_split.copy()
+    df = df_split.copy()
 
     # Call the function from data_preparation module
     df_processed = data_preparation.prepare_time_series_features(df, categorical_vars)
