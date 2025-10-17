@@ -112,8 +112,13 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
         dropout=transformer_params['dropout']
     )
 
+    # GlobalAveragePooling1D Layer
+    x = layers.GlobalAveragePooling1D()(x) # May be changed to Flatten() if needed
     # Output Layer
-    outputs = layers.TimeDistributed(layers.Dense(1))(x)
+    outputs = layers.Dense(forecast)(x)
+
+    # Reshape Outputs
+    outputs = layers.Reshape((forecast, 1))(outputs)
 
     # Build Model
     model = keras.Model(inputs=input_layer, outputs=outputs)

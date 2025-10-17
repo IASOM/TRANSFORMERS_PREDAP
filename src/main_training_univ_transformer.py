@@ -161,13 +161,15 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
 
     # Create pandemic waves DataFrame
     df_waves = create_pandemic_waves_df()
-
+    loss, mae, mse = None, None, None
     if evaluate_model:
-        evaluate_univ_transformer(MODEL_NAME, input_directory, code, MODEL_FOLDER=MODEL_FOLDER, df_waves=df_waves)
+        loss, mae, mse = evaluate_univ_transformer(MODEL_NAME, input_directory, code, MODEL_FOLDER=MODEL_FOLDER, df_waves=df_waves)
         
     print("\n" + "="*50)
     print("EVALUATION COMPLETE")
     print("="*50)
+
+    return model, MODEL_NAME, loss, mae, mse
 
 
 if __name__ == "__main__":

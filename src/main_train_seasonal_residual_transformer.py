@@ -303,7 +303,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
     print("="*50)
     predictions_test_corrected = corrected_forecast
-    return predictions_train_corrected, predictions_test_corrected
+    return predictions_train_corrected, predictions_test_corrected, residual_model, residual_model_name, corrected_mae, corrected_mse, corrected_rmse
 
 
 if __name__ == "__main__":

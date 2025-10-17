@@ -56,7 +56,7 @@ class TransformerConfig:
         self.SHUFFLE_DATA = False      # whether to shuffle training data
         
         # Hyperparameter Search Lists
-        self.LOOKBACK_LIST = [1, 7, 14, 30, 60, 182, 365]
+        self.LOOKBACK_LIST = [14, 30, 60, 182, 365]
         self.FORECAST_LIST = [7, 14, 30, 60, 182, 365]
         self.HEAD_SIZE_LIST = [2, 4, 8]
         self.NUM_HEADS_LIST = [1, 2, 4]

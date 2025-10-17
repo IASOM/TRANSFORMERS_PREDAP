@@ -147,8 +147,8 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     # Define Hybrid LSTM + Transformer Model for residuals
     print("Building residual correction model...")
     residual_model = hybrid_lstm_transformer_model(
-        (lookback, X_train_covs.shape[2]), 
-        forecast
+        input_shape=(lookback, X_train_covs.shape[2]), 
+        forecast=forecast
     )
     residual_model.summary()
     
@@ -311,12 +311,12 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     print("="*50)
     predictions_test_corrected = corrected_forecast 
 
-    return predictions_train_corrected, predictions_test_corrected
+    return predictions_train_corrected, predictions_test_corrected, residual_model, residual_model_name, corrected_mae, corrected_mse, corrected_rmse
 
 
 if __name__ == "__main__":
     # Run the main training and evaluation pipeline
-    predictions_train_corrected, predictions_test_corrected = main_train_diagnostic_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
+    predictions_train_corrected, predictions_test_corrected, residual_model, residual_model_name, corrected_mae, corrected_mse, corrected_rmse = main_train_diagnostic_residual_transformer(forecast=DEFAULT_FORECAST, lookback=DEFAULT_LOOKBACK, code="T14")
     
     # Optional: View all previous results (uncomment to use)
     # print("\n" + "="*60)

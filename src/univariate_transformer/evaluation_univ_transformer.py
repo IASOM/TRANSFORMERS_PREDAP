@@ -41,3 +41,4 @@ def evaluate_univ_transformer(model_name, input_directory, code, MODEL_FOLDER='m
     
     # Sliding window evaluation (optional)
     # evaluate_model_sliding_window(model, model_display_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
+    return loss, mae, mse
