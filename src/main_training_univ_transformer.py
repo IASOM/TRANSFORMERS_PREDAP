@@ -48,8 +48,7 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
     # Extract configuration values for easier access
     FORECAST = forecast
     LOOKBACK = lookback
-    LOOKBACK_LIST = config.LOOKBACK_LIST
-    FORECAST_LIST = config.FORECAST_LIST
+    
 
     HEAD_SIZE = config.HEAD_SIZE
     NUM_HEADS = config.NUM_HEADS
@@ -65,7 +64,6 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
     SHUFFLE = config.SHUFFLE_DATA
 
     DATA_PATH = config.DATA_PATH
-    TARGET_CODE = config.TARGET_CODE
     MODEL_FOLDER = config.MODEL_DIR
     PLOTS_DIR = config.PLOTS_DIR
 
@@ -75,15 +73,15 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
 
     # Load and preprocess data using configuration
     
-    df = load_and_preprocess_data(DATA_PATH, target_code=TARGET_CODE)
+    df = load_and_preprocess_data(DATA_PATH, target_code=code)
     
     print("Loaded data shape:", df.shape)
     print("Date range:", df.index.min(), "to", df.index.max())
 
     # Plot example data
-    plot_example(df, f"RAW DATA (example 10 diags) - {TARGET_CODE}")
+    plot_example(df, f"RAW DATA (example 10 diags) - {code}")
 
-    code = TARGET_CODE
+    
     input_directory = DATA_PATH
     batch_size = BATCH_SIZE
     shuffle = SHUFFLE   
