@@ -54,7 +54,6 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
-    code = code
     forecast = forecast
     lookback = lookback
     ff_dim = 8
@@ -223,12 +222,12 @@ def main_train_residual_transformer(forecast, lookback, code = "T14", diagnostic
     
     # Plot stepwise errors comparison
     print("Plotting stepwise errors comparison...")
-    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast, "Residual Correction", model_name = residual_model_name)
+    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast, f"{code} Residual Correction", model_name = residual_model_name)
     
     # Plot residuals analysis
     print("Plotting residuals analysis...")
-    plot_residuals_analysis(predictions_test, corrected_forecast, Y_test, "Residual Correction", model_name = residual_model_name)
-    
+    plot_residuals_analysis(predictions_test, corrected_forecast, Y_test, f"{code} Residual Correction", model_name = residual_model_name)
+
     # Create pandemic waves DataFrame
     df_waves = create_pandemic_waves_df()
     

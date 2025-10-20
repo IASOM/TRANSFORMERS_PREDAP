@@ -41,7 +41,7 @@ class TransformerConfig:
         # Data Parameters
         self.DATA_PATH = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
         self.TARGET_CODE = "T14"       # diagnostic code to predict
-        self.CODES_LIST = ["T14", "J00", "M54"]
+        self.CODES_LIST = ["J00","T14",  "M54"]
         self.DATE_CUTOFF = '2010-01-01'  # filter data from this date
         self.TRAIN_SPLIT = 0.8  
                # train/test split ratio
@@ -56,8 +56,8 @@ class TransformerConfig:
         self.SHUFFLE_DATA = False      # whether to shuffle training data
         
         # Hyperparameter Search Lists
-        self.LOOKBACK_LIST = [14, 30, 60, 182, 365]
-        self.FORECAST_LIST = [7, 14, 30, 60, 182, 365]
+        self.LOOKBACK_LIST = [1, 7, 14, 30, 60, 182, 365]
+        self.FORECAST_LIST = [1, 7, 14, 30, 60, 182, 365]
         self.HEAD_SIZE_LIST = [2, 4, 8]
         self.NUM_HEADS_LIST = [1, 2, 4]
         self.FF_DIM_LIST = [8, 16, 32]
