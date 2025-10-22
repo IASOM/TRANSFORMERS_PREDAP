@@ -32,43 +32,72 @@ def plot_example(df, title, plt_show=False):
         plt.show()
     plt.close()
 
-def plt_model(y_test_inverse, yhat_inverse, model_name, col_idx=None, show_plt=False):
+def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False):
     """
-    Plot model results comparing true vs predicted values.
-    
+    Plot model results comparing true vs predicted values across a forecast horizon,
+    showing mean and confidence regions computed from multiple prediction samples.
+
     Parameters:
     -----------
-    y_test_inverse : np.ndarray
-        True values (inverse transformed)
-    yhat_inverse : np.ndarray
-        Predicted values (inverse transformed)
+    y_test_inverse : array-like, shape (num_of_predictions, forecast_horizon)
+        True values (inverse transformed) for each prediction sample.
+    yhat_inverse : array-like, shape (num_of_predictions, forecast_horizon)
+        Predicted values (inverse transformed) for each prediction sample.
     model_name : str
-        Name of the model for the plot title
-    col_idx : int, optional
-        Column index to plot (defaults to global col_idx)
+        Name of the model for the plot title / filename.
+    ci : float
+        Multiplier for standard deviation to plot confidence region (default 1.96 ≈ 95%).
     show_plt : bool
-        Whether to display the plot
-        
-    Example:
-    --------
-    >>> plt_model(y_true, y_pred, "LSTM", col_idx=0)
+        Whether to display the plot interactively.
     """
     try:
-        # Use global col_idx if not provided
-        if col_idx is None:
-            col_idx = globals().get('col_idx', 0)
-            
-        fig, ax = plt.subplots(figsize=(20, 10))
-        ax.plot(pd.DataFrame(y_test_inverse)[[col_idx]], label='True Values')
-        ax.plot(pd.DataFrame(yhat_inverse)[[col_idx]], label='Predicted Values')
-        ax.set_xlabel('Date', fontweight='bold', fontsize=12)
+        y_test_arr = np.asarray(y_test_inverse)
+        yhat_arr = np.asarray(yhat_inverse)
+
+        # Accept 1D inputs by treating them as single-sample predictions
+        if y_test_arr.ndim == 1:
+            y_test_arr = y_test_arr.reshape(1, -1)
+        if yhat_arr.ndim == 1:
+            yhat_arr = yhat_arr.reshape(1, -1)
+
+        if y_test_arr.shape != yhat_arr.shape:
+            raise ValueError("y_test_inverse and yhat_inverse must have the same shape "
+                             "(num_of_predictions, forecast_horizon)")
+
+        n_samples, horizon = y_test_arr.shape
+        x = np.arange(1, horizon + 1)
+
+        # Compute statistics across prediction samples (axis=0 -> across samples for each horizon step)
+        mean_true = np.nanmean(y_test_arr, axis=0)
+        std_true = np.nanstd(y_test_arr, axis=0)
+
+        mean_pred = np.nanmean(yhat_arr, axis=0)
+        std_pred = np.nanstd(yhat_arr, axis=0)
+
+        fig, ax = plt.subplots(figsize=(20, 8))
+
+        # Plot mean lines
+        ax.plot(x, mean_true, label='True (mean)', marker='o', linestyle='-', alpha=0.9)
+        ax.plot(x, mean_pred, label='Predicted (mean)', marker='x', linestyle='--', alpha=0.9)
+
+        # Plot confidence regions: mean ± ci * std
+        upper_true = mean_true + ci * std_true
+        lower_true = mean_true - ci * std_true
+        upper_pred = mean_pred + ci * std_pred
+        lower_pred = mean_pred - ci * std_pred
+
+        ax.fill_between(x, lower_true, upper_true, color='blue', alpha=0.15, label=f'True ± {ci}σ')
+        ax.fill_between(x, lower_pred, upper_pred, color='orange', alpha=0.15, label=f'Predicted ± {ci}σ')
+
+        ax.set_xlabel('Forecast Horizon Step', fontweight='bold', fontsize=12)
         ax.set_ylabel('Value', fontweight='bold', fontsize=12)
-        ax.set_title(f'Real vs. Predicted Values // MODEL: {model_name}')
+        ax.set_title(f'Real vs. Predicted (mean ± {ci}σ) // MODEL: {model_name}')
         ax.legend()
+        ax.grid(alpha=0.3)
+
         fig.tight_layout()
-        
         os.makedirs("plots", exist_ok=True)
-        fig.savefig(f"plots/model_results_{model_name}.png")
+        fig.savefig(f"plots/model_results_{model_name}_horizon.png")
         if show_plt:
             plt.show()
         plt.close()

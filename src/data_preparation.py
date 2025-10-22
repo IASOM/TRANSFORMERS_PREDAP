@@ -9,6 +9,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import time
 from dateutil.easter import easter
+from pathlib import Path
+from sklearn.preprocessing import MinMaxScaler 
 
 
 # Define function for train-test split
@@ -30,19 +32,18 @@ def split_train_test(df, split_ratio=0.8):
     
     return train_df, test_df
 
-def normalize_dataframe(df, date_cutoff = '2010-01-01'):
-    # Keep only rows STRICTLY after 2010-01-01 using the 'timestamp' column
+
+
+def normalize_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False):
+    # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp(date_cutoff)
-    df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
-    
-    # Convert timestamp to datetime (optional)
-    if 'timestamp' in df.columns:
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-    
-    for code in df.columns:
+    scaler = MinMaxScaler()
+    codes = [code for code in df.columns if code != 'timestamp']
+
+    df[codes] = scaler.fit_transform(df[codes])
+    '''for code in df.columns:
         if code != 'timestamp':
             df[code] = pd.to_numeric(df[code], errors='coerce')
             df = df.dropna(subset=[code]).reset_index(drop=True)
@@ -52,15 +53,75 @@ def normalize_dataframe(df, date_cutoff = '2010-01-01'):
             if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
                 df[code] = 0.0
             else:
-                df[code] = (df[code] - cmin) / (cmax - cmin)
+                df[code] = (df[code] - cmin) / (cmax - cmin)'''
+
+    if save_data and csv_file is not None:
+        input_path = Path(csv_file)
+        parent_dir = input_path.parent if input_path.parent != Path('.') else AssertionError("Input path must have a parent directory.")
+        output_file = parent_dir / f"normalized_{input_path.name}"
+        df.to_csv(output_file, index=False)
+        print(f"Normalized data saved to: {output_file}")
+    
+    cutoff = pd.Timestamp(date_cutoff)
+    df = df[df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
 
     return df
 
-def prepare_data(csv_file,code, lookback, forecast, relevant_feature_cols = None,train = True, debug=False, univariate=True):
+
+def inverse_transform_predictions(predictions, original_scale_df, code):
+
+    """
+    Inverses the min-max scaling of predictions to the original scale.
+
+    Parameters:
+    - predictions (np.array): Scaled predictions to inverse transform.
+    - original_scale_df (pd.DataFrame): Original dataframe used for scaling.
+    - code (str): The column name of the target variable.
+
+    Returns:
+    - np.array: Predictions in the original scale.
+    """
+
+    # Extract the original values for the target code
+    original_values = original_scale_df[code].values.reshape(-1, 1)
+
+    # Fit scaler on original values
+    scaler = MinMaxScaler()
+    scaler.fit(original_values)
+
+    # Inverse transform predictions
+    predictions_original_scale = scaler.inverse_transform(predictions)
+
+    return predictions_original_scale
+
+def add_covid_token(df):
+    """
+    Add a column to the dataframe indicating COVID-19 period. The covid token is 1 during the pandemic period and 0 otherwise."""
+
+    waves = {
+        "Primera Onada": ("2020-03-01", "2020-06-30"),
+        "Segona Onada": ("2020-10-01", "2020-12-31"),
+        "Tercera Onada": ("2021-01-01", "2021-03-31"),
+        "Quarta Onada": ("2021-04-01", "2021-06-30"),
+        "Cinquena Onada": ("2021-07-01", "2021-09-30")
+    }
+    
+    for wave, (start, end) in waves.items():
+        start_date = pd.to_datetime(start)
+        end_date = pd.to_datetime(end)
+        df['covid_token'] = df['timestamp'].apply(
+            lambda x: 1 if start_date <= x <= end_date else 0
+        )
+
+    return df
+
+def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True):
+    
+    
     # Load CSV
     df = pd.read_csv(csv_file)
 
-    df = normalize_dataframe(df)
+    df = normalize_dataframe(df, cutoff_date, csv_file)
     train_df, test_df = split_train_test(df)
     
     if train:
@@ -96,7 +157,10 @@ def prepare_data(csv_file,code, lookback, forecast, relevant_feature_cols = None
         else:
             X_raw = df_features.values  # Shape: (200, 3)
         Y_raw = df[target_col].values    # Shape: (200,)
-
+    if covid_token:
+        df_covid = add_covid_token(df)
+        covid_feature = df_covid['covid_token'].values.reshape(-1, 1)
+        X_raw = np.hstack((X_raw, covid_feature))
     # Generate rolling sequences
     X, Y = [], []
     for i in range(len(X_raw) - lookback - forecast + 1):
@@ -169,17 +233,10 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
     if 'timestamp' in df.columns:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         
-    for code in df.columns:
-        if code != 'timestamp':
-            df[code] = pd.to_numeric(df[code], errors='coerce')
-            df = df.dropna(subset=[code]).reset_index(drop=True)
+    scaler = MinMaxScaler()
+    codes = [code for code in df.columns if code != 'timestamp']
 
-            # Min-max scale ONLY the target column (univariate)
-            cmin, cmax = df[code].min(), df[code].max()
-            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
-                df[code] = 0.0
-            else:
-                df[code] = (df[code] - cmin) / (cmax - cmin)
+    df[codes] = scaler.fit_transform(df[codes])
 
 
     # Define fixed public holidays

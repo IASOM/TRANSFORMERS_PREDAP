@@ -12,7 +12,8 @@ import tensorflow as tf
 from .config_residual_transformer import (
     DEFAULT_TRAINING_PARAMS, 
     DEFAULT_SAVE_PARAMS, 
-    MEMORY_LOG_FILE
+    MEMORY_LOG_FILE,
+    DEFAULT_MODEL_DIR,
 )
 from datetime import datetime
 import json
@@ -151,7 +152,8 @@ def train_given_model_and_data(model, X, Y,
     
     # Save model
     if save_model and epochs > 1:
-        model.save(model_name)
+        os.makedirs(os.path.join(DEFAULT_MODEL_DIR, "models"), exist_ok=True)
+        model.save(os.path.join(DEFAULT_MODEL_DIR, model_name))
         print(f"Model saved to: {model_name}")
         
     # Log memory usage if enabled

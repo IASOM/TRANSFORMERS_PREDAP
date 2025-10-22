@@ -30,85 +30,127 @@ from .config_residual_transformer import PANDEMIC_WAVES
 def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix="", show_plt=False, model_name = "Model"):
     """
     Plot analysis comparing original predictions, corrected predictions, and actual values.
-    
-    Parameters:
-    -----------
-    original_predictions : np.ndarray
-        Original model predictions
-    corrected_predictions : np.ndarray
-        Residual-corrected predictions
-    actual_values : np.ndarray
-        Actual target values
-    title_prefix : str, optional
-        Prefix for plot titles
+    Assumes inputs are arrays of shape (num_of_predictions, forecast_horizon).
+    This function plots only the middle-horizon forecast as the main line and
+    shows uncertainty bands around it computed from the spread across horizons.
     """
-    # Ensure arrays are 1D for plotting
-    if len(original_predictions.shape) > 1:
-        original_predictions = original_predictions.mean(axis=1)
-    if len(corrected_predictions.shape) > 1:
-        corrected_predictions = corrected_predictions.mean(axis=1)
-    if len(actual_values.shape) > 1:
-        actual_values = actual_values.mean(axis=1)
-    
+    # Ensure numpy arrays
+    original_predictions = np.asarray(original_predictions)
+    corrected_predictions = np.asarray(corrected_predictions)
+    actual_values = np.asarray(actual_values)
+
+    # Determine mid horizon index if 2D, otherwise treat as 1D series
+    def _extract_mid_and_spread(arr):
+        if arr.ndim == 1:
+            mid = arr
+            p10 = arr
+            p90 = arr
+            mn = arr
+            mx = arr
+        else:
+            H = arr.shape[1]
+            mid_idx = H // 2
+            mid = arr[:, mid_idx]
+            # compute different measures of spread across horizons
+            p10 = np.percentile(arr, 10, axis=1)
+            p90 = np.percentile(arr, 90, axis=1)
+            mn = arr.min(axis=1)
+            mx = arr.max(axis=1)
+        return mid, p10, p90, mn, mx
+
+    orig_mid, orig_p10, orig_p90, orig_min, orig_max = _extract_mid_and_spread(original_predictions)
+    corr_mid, corr_p10, corr_p90, corr_min, corr_max = _extract_mid_and_spread(corrected_predictions)
+    act_mid, _, _, act_min, act_max = _extract_mid_and_spread(actual_values)
+
+    # Basic length check
+    n = len(act_mid)
+    if not (len(orig_mid) == n and len(corr_mid) == n):
+        raise ValueError("Input arrays must have the same number of prediction timesteps (first dimension).")
+
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
-    fig.suptitle(f'{title_prefix} Residual Correction Analysis', fontsize=16)
-    
-    # Time series comparison
-    axes[0, 0].plot(actual_values, label='Actual', alpha=0.8)
-    axes[0, 0].plot(original_predictions, label='Original Predictions', alpha=0.8)
-    axes[0, 0].plot(corrected_predictions, label='Corrected Predictions', alpha=0.8)
-    axes[0, 0].set_title('Time Series Comparison')
+    fig.suptitle(f'{title_prefix} Analysis (middle horizon + across-horizon uncertainty)', fontsize=14)
+
+    # Time series: middle-horizon predictions with uncertainty bands from across horizons
+    t = np.arange(n)
+    axes[0, 0].plot(t, act_mid, label='Actual (middle horizon)', color='black', alpha=0.9)
+    axes[0, 0].plot(t, orig_mid, label='Original (middle)', color='C0', alpha=0.9)
+    axes[0, 0].plot(t, corr_mid, label='Corrected (middle)', color='C1', alpha=0.9)
+
+    # Fill uncertainty bands: (min,max) light band and (10th,90th) darker band
+    axes[0, 0].fill_between(t, orig_min, orig_max, color='C0', alpha=0.12, label='Original min-max')
+    axes[0, 0].fill_between(t, orig_p10, orig_p90, color='C0', alpha=0.25, label='Original 10-90 pct')
+
+    axes[0, 0].fill_between(t, corr_min, corr_max, color='C1', alpha=0.12, label='Corrected min-max')
+    axes[0, 0].fill_between(t, corr_p10, corr_p90, color='C1', alpha=0.25, label='Corrected 10-90 pct')
+
+    axes[0, 0].set_title('Middle-horizon Time Series with Across-horizon Uncertainty')
     axes[0, 0].set_xlabel('Time Steps')
     axes[0, 0].set_ylabel('Values')
-    axes[0, 0].legend()
+    axes[0, 0].legend(loc='upper left', fontsize='small')
     axes[0, 0].grid(True, alpha=0.3)
-    
-    # Residuals before and after correction
-    original_residuals = actual_values - original_predictions
-    corrected_residuals = actual_values - corrected_predictions
-    
-    axes[0, 1].plot(original_residuals, label='Original Residuals', alpha=0.7)
-    axes[0, 1].plot(corrected_residuals, label='Corrected Residuals', alpha=0.7)
-    axes[0, 1].set_title('Residuals Comparison')
+
+    # Residuals for middle horizon and a shaded band for residual spread across horizons
+    orig_res_mid = act_mid - orig_mid
+    corr_res_mid = act_mid - corr_mid
+
+    # For residual spread compute residuals across horizons then percentiles
+    if original_predictions.ndim == 2:
+        orig_res_all = actual_values - original_predictions
+        orig_res_p10 = np.percentile(orig_res_all, 10, axis=1)
+        orig_res_p90 = np.percentile(orig_res_all, 90, axis=1)
+    else:
+        orig_res_p10 = orig_res_p90 = orig_res_mid
+
+    if corrected_predictions.ndim == 2:
+        corr_res_all = actual_values - corrected_predictions
+        corr_res_p10 = np.percentile(corr_res_all, 10, axis=1)
+        corr_res_p90 = np.percentile(corr_res_all, 90, axis=1)
+    else:
+        corr_res_p10 = corr_res_p90 = corr_res_mid
+
+    axes[0, 1].plot(t, orig_res_mid, label='Original residuals (middle)', color='C0', alpha=0.9)
+    axes[0, 1].fill_between(t, orig_res_p10, orig_res_p90, color='C0', alpha=0.2, label='Original resid 10-90 pct')
+
+    axes[0, 1].plot(t, corr_res_mid, label='Corrected residuals (middle)', color='C1', alpha=0.9)
+    axes[0, 1].fill_between(t, corr_res_p10, corr_res_p90, color='C1', alpha=0.2, label='Corrected resid 10-90 pct')
+
+    axes[0, 1].axhline(0, color='black', linestyle='--', alpha=0.6)
+    axes[0, 1].set_title('Residuals (middle horizon) with Residual Spread')
     axes[0, 1].set_xlabel('Time Steps')
     axes[0, 1].set_ylabel('Residuals')
-    axes[0, 1].legend()
+    axes[0, 1].legend(fontsize='small')
     axes[0, 1].grid(True, alpha=0.3)
-    axes[0, 1].axhline(y=0, color='black', linestyle='--', alpha=0.5)
-    
-    # Scatter plot: Actual vs Predictions
-    axes[1, 0].scatter(actual_values, original_predictions, alpha=0.6, label='Original')
-    axes[1, 0].scatter(actual_values, corrected_predictions, alpha=0.6, label='Corrected')
-    
-    # Perfect prediction line
-    min_val = min(actual_values.min(), original_predictions.min(), corrected_predictions.min())
-    max_val = max(actual_values.max(), original_predictions.max(), corrected_predictions.max())
+
+    # Scatter: actual vs predicted (middle horizon)
+    axes[1, 0].scatter(act_mid, orig_mid, alpha=0.6, label='Original (middle)', color='C0')
+    axes[1, 0].scatter(act_mid, corr_mid, alpha=0.6, label='Corrected (middle)', color='C1')
+
+    min_val = min(np.nanmin(act_mid), np.nanmin(orig_min), np.nanmin(corr_min))
+    max_val = max(np.nanmax(act_mid), np.nanmax(orig_max), np.nanmax(corr_max))
     axes[1, 0].plot([min_val, max_val], [min_val, max_val], 'r--', alpha=0.8, label='Perfect Prediction')
-    
-    axes[1, 0].set_title('Actual vs Predicted')
-    axes[1, 0].set_xlabel('Actual Values')
-    axes[1, 0].set_ylabel('Predicted Values')
-    axes[1, 0].legend()
+
+    axes[1, 0].set_title('Actual vs Predicted (middle horizon)')
+    axes[1, 0].set_xlabel('Actual (middle)')
+    axes[1, 0].set_ylabel('Predicted (middle)')
+    axes[1, 0].legend(fontsize='small')
     axes[1, 0].grid(True, alpha=0.3)
-    
-    # Error distribution
-    original_errors = np.abs(original_residuals)
-    corrected_errors = np.abs(corrected_residuals)
-    
-    axes[1, 1].hist(original_errors, bins=30, alpha=0.7, label=f'Original (MAE: {np.mean(original_errors):.4f})')
-    axes[1, 1].hist(corrected_errors, bins=30, alpha=0.7, label=f'Corrected (MAE: {np.mean(corrected_errors):.4f})')
-    axes[1, 1].set_title('Error Distribution')
+
+    # Error distribution for middle horizon (absolute)
+    orig_errors_mid = np.abs(orig_res_mid)
+    corr_errors_mid = np.abs(corr_res_mid)
+    axes[1, 1].hist(orig_errors_mid, bins=30, alpha=0.6, label=f'Original (MAE: {np.mean(orig_errors_mid):.4f})', color='C0')
+    axes[1, 1].hist(corr_errors_mid, bins=30, alpha=0.6, label=f'Corrected (MAE: {np.mean(corr_errors_mid):.4f})', color='C1')
+    axes[1, 1].set_title('Error Distribution (middle horizon)')
     axes[1, 1].set_xlabel('Absolute Error')
     axes[1, 1].set_ylabel('Frequency')
-    axes[1, 1].legend()
+    axes[1, 1].legend(fontsize='small')
     axes[1, 1].grid(True, alpha=0.3)
-    
-    plt.tight_layout()
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     os.makedirs("plots_residual_transformers", exist_ok=True)
     plt.savefig(f"plots_residual_transformers/residuals_analysis_{model_name}.png")
     if show_plt:
         plt.show()
-
     plt.close()
 
 

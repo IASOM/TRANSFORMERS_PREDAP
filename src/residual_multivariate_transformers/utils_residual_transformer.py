@@ -12,6 +12,8 @@ import sys
 import os
 import time
 
+from sklearn.preprocessing import MinMaxScaler
+
 from residual_multivariate_transformers.training_evaluation_residual_transformer import load_trained_model
 
 # Add the src directory to path for module imports
@@ -65,12 +67,12 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     
     df = df.copy()  # Create a copy to avoid modifying the original
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp(init_date)
-    df = df[df['timestamp'] > cutoff].reset_index(drop=True)
     
-    print(f"Data filtered from {init_date}. Remaining records: {len(df)}")
-    
-    # Process each column (except timestamp)
+
+    scaler = MinMaxScaler()
+    columns = [column for column in df.columns if column != 'timestamp']
+    df[columns] = scaler.fit_transform(df[columns])
+    '''# Process each column (except timestamp)
     for code in df.columns:
         if code != 'timestamp':
             # Convert to numeric
@@ -86,8 +88,14 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
                 df[code] = 0.0
             else:
                 df[code] = (df[code] - cmin) / (cmax - cmin)
-                print(f"Column {code} normalized. Range: [{cmin:.4f}, {cmax:.4f}]")
+                print(f"Column {code} normalized. Range: [{cmin:.4f}, {cmax:.4f}]")'''
 
+
+    
+    cutoff = pd.Timestamp(init_date)
+    df = df[df['timestamp'] > cutoff].reset_index(drop=True)
+    
+    print(f"Data filtered from {init_date}. Remaining records: {len(df)}")
     # Split the data
     split_idx = int(len(df) * split_ratio)
     train_df = df.iloc[:split_idx].reset_index(drop=True)
@@ -344,8 +352,8 @@ def extract_model_params_from_filename(model_filename):
     else:
         print(f"Warning: Could not extract parameters from filename: {model_filename}")
         return None
-    
-def prepare_base_model_data(input_directory, code, lookback, forecast, univariate=True):
+
+def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', univariate=True):
     """
     Prepare training and testing data for the base transformer model.
     
@@ -363,6 +371,10 @@ def prepare_base_model_data(input_directory, code, lookback, forecast, univariat
         Number of past time steps to use as input (lookback window)
     forecast : int
         Number of future time steps to predict (forecast horizon)
+    cutoff_date : str, optional
+        Date string to filter data from (default is '2010-01-01')
+    univariate : bool, optional
+        Whether to prepare univariate data (default is True)
         
     Returns:
     --------
@@ -391,17 +403,17 @@ def prepare_base_model_data(input_directory, code, lookback, forecast, univariat
     """
     start_time = time.perf_counter()
     X_test, Y_test = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, 
+        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,
         train=False, debug=True, univariate=univariate
     )
-    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False)
+    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date, train=False)
     
     X_train, Y_train = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, 
+        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,
         train=True, debug=True, univariate=univariate
     )
-    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=True)
-    
+    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date, train=True)
+
     finish_preparing = time.perf_counter()
     time_data_preparation = finish_preparing - start_time
     print(f"Data preparation time: {time_data_preparation:.2f} seconds")

@@ -45,7 +45,7 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
     return x
 
 
-def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, dropout=0, mlp_dropout=0, n_pred=1):
+def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1):
     """
     Build complete transformer model for univariate time series forecasting.
     
@@ -72,7 +72,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
 
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
-        x = layers.Dense(dim, activation="tanh")(x)
+        x = layers.Dense(dim, activation=activation_function)(x)
         x = layers.Dropout(mlp_dropout)(x)
     outputs = layers.Dense(n_pred)(x)
     return keras.Model(inputs, outputs)

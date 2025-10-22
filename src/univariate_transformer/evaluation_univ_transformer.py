@@ -3,8 +3,9 @@ import os
 import tensorflow as tf
 import data_preparation
 from univariate_transformer import plt_model, plot_predictions_with_waves, extract_model_params
+import pandas as pd
 
-def evaluate_univ_transformer(model_name, input_directory, code, MODEL_FOLDER='models_univariate_transformer', df_waves=None):
+def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None):
     print(f"\n--- Evaluating model: {model_name} ---")
         
     # Extract parameters from filename
@@ -20,7 +21,7 @@ def evaluate_univ_transformer(model_name, input_directory, code, MODEL_FOLDER='m
     
     # Prepare test data
     X_test, Y_test = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, train=False, debug=True, univariate=True
+        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date, train=False, debug=True, univariate=True
     )
     date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False)
     
@@ -32,13 +33,21 @@ def evaluate_univ_transformer(model_name, input_directory, code, MODEL_FOLDER='m
     predictions = model.predict(X_test, verbose=0)
     print("Predicted values shape:", predictions.shape)
 
+    original_scale_df = pd.read_csv(input_directory, code)
+    # Inverse transform predictions
+    predictions = data_preparation.inverse_transform_predictions(
+        predictions, original_scale_df, code
+    )
+    Y_test_orig = data_preparation.inverse_transform_predictions(
+        Y_test, original_scale_df, code
+    )
     # Generate plots
     model_display_name = model_name.replace('.keras', '')
-    plt_model(Y_test, predictions, model_name=model_display_name, col_idx=0, show_plt=False)
+    plt_model(Y_test_orig, predictions, model_name=model_display_name, col_idx=0, show_plt=False)
     
     # Plot predictions with pandemic waves
-    plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_display_name)
-    
+    plot_predictions_with_waves(Y_test_orig, predictions, date_list, df_waves, model_display_name)
+
     # Sliding window evaluation (optional)
     # evaluate_model_sliding_window(model, model_display_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
     return loss, mae, mse

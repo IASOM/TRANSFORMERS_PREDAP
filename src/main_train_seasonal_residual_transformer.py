@@ -50,7 +50,7 @@ from residual_multivariate_transformers import (
     evaluate_error_significance_pandemic_waves
 )
 
-def main_train_seasonal_residual_transformer(lookback, forecast, code, predictions_train_corrected = None, predictions_test_corrected = None):
+def main_train_seasonal_residual_transformer(lookback, forecast, code,activation_function = 'tanh',covid_token = None, cutoff_date = '2010-01-01', predictions_train_corrected = None, predictions_test_corrected = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -59,6 +59,13 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     lookback = lookback
     ff_dim = 8
     learning_rate = DEFAULT_LEARNING_RATE
+    if covid_token is None:
+        COVID_TOKEN = COVID_TOKEN
+    else:
+        COVID_TOKEN = covid_token
+
+    ACTIVATION_FUNCTION = activation_function
+    
     
     # Model naming
     base_model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
@@ -184,7 +191,8 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     
     # Load the trained residual model (in case it was saved and reloaded)
     if os.path.exists(residual_model_name):
-        residual_model = load_trained_model(residual_model_name)
+        residuals_model_path = os.path.join(DEFAULT_MODEL_DIR, residual_model_name)
+        residual_model = load_trained_model(residuals_model_path)
     
     # Predict residuals for the test set
     print("Predicting residuals for test set...")
@@ -194,6 +202,19 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     # Correct the original forecast
     print("Computing corrected forecasts...")
     corrected_forecast = predictions_test + predicted_residuals
+
+    original_scale_df = pd.read_csv(input_directory)
+    # Inverse transform predictions
+    Y_test_orig = data_preparation.inverse_transform_predictions(
+        Y_test, original_scale_df, code
+    )
+    corrected_forecast_orig = data_preparation.inverse_transform_predictions(
+        corrected_forecast, original_scale_df, code
+    )
+
+    predictions_test_orig = data_preparation.inverse_transform_predictions(
+        predictions_test, original_scale_df, code
+    )
     
     print(f"Corrected forecast shape: {corrected_forecast.shape}")
     
@@ -204,20 +225,20 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code, predictio
     
     # Plot stepwise errors comparison
     print("Plotting stepwise errors comparison...")
-    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast, "Residual Correction", model_name = residual_model_name)
+    plot_stepwise_errors_comparison(Y_test_orig, predictions_test_orig, corrected_forecast_orig, "Residual Correction", model_name = residual_model_name)
     
     # Plot residuals analysis
     print("Plotting residuals analysis...")
-    plot_residuals_analysis(predictions_test, corrected_forecast, Y_test, "Residual Correction", model_name = residual_model_name)
-    
+    plot_residuals_analysis(predictions_test_orig, corrected_forecast_orig, Y_test_orig, "Residual Correction", model_name = residual_model_name)
+
     # Create pandemic waves DataFrame
     df_waves = create_pandemic_waves_df()
     
     # Prepare data for plotting (average across forecast horizon if needed)
-    predictions_to_plot = predictions_test.mean(axis=1) if len(predictions_test.shape) > 2 else predictions_test
-    corrected_to_plot = corrected_forecast.mean(axis=1) if len(corrected_forecast.shape) > 2 else corrected_forecast
-    Y_test_to_plot = Y_test.mean(axis=1) if len(Y_test.shape) > 2 else Y_test
-    
+    predictions_to_plot = predictions_test_orig.mean(axis=1) if len(predictions_test_orig.shape) > 2 else predictions_test_orig
+    corrected_to_plot = corrected_forecast_orig.mean(axis=1) if len(corrected_forecast_orig.shape) > 2 else corrected_forecast_orig
+    Y_test_to_plot = Y_test_orig.mean(axis=1) if len(Y_test_orig.shape) > 2 else Y_test_orig
+
     # Plot predictions with pandemic waves
     print("Plotting predictions with pandemic waves...")
     plot_predictions_with_pandemic_waves(
