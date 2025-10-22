@@ -7,6 +7,7 @@ transformer models, including prediction plots, error analysis, and pandemic wav
 """
 
 import matplotlib.pyplot as plt
+import mlflow
 import pandas as pd
 import numpy as np
 import sys
@@ -149,6 +150,7 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     os.makedirs("plots_residual_transformers", exist_ok=True)
     plt.savefig(f"plots_residual_transformers/residuals_analysis_{model_name}.png")
+    mlflow.log_artifact(f"plots_residual_transformers/residuals_analysis_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -368,6 +370,8 @@ def plot_training_history(history, model_name="Model", show_plt=False):
     plt.tight_layout()
     os.makedirs("plots_residual_transformers", exist_ok=True)
     plt.savefig(f"plots_residual_transformers/training_history_{model_name}.png")
+
+    mlflow.log_artifact(f"plots_residual_transformers/training_history_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -405,6 +409,7 @@ def plot_model_comparison(models_results, metric='mae', title="Model Comparison"
     plt.grid(True, alpha=0.3)
     os.makedirs("plots_residual_transformers", exist_ok=True)
     plt.savefig(f"plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
+    mlflow.log_artifact(f"plots_residual_transformers/model_comparison_{metric}_{model_name}.png", artifact_path="plots")
     if plt_show:
         plt.show()
     plt.close()

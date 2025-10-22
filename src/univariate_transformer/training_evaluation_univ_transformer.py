@@ -8,6 +8,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import pickle
+import mlflow
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from .config_univ_transformer import (
     
@@ -164,6 +165,7 @@ def evaluate_model_sliding_window(model, model_name, X_test, Y_test, date_list, 
     
     os.makedirs("plots", exist_ok=True)
     plt.savefig(f"plots/evaluation_metrics_over_time_{model_name}.png")  
+    mlflow.log_artifact(f"plots/evaluation_metrics_over_time_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
 

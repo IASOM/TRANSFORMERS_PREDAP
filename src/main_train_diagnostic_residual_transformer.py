@@ -214,6 +214,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     Y_test_orig = data_preparation.inverse_transform_predictions(
         Y_test, original_scale_df, code
     )
+    
     corrected_forecast_orig = data_preparation.inverse_transform_predictions(
         corrected_forecast, original_scale_df, code
     )
