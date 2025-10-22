@@ -5,6 +5,7 @@ Contains plotting functions for model results, predictions, and data exploration
 """
 
 import matplotlib.pyplot as plt
+import mlflow
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -28,6 +29,7 @@ def plot_example(df, title, plt_show=False):
                  x='date', y='value', hue='variable').set(title=title)
     os.makedirs("plots", exist_ok=True)
     plt.savefig("plots/raw_data_example.png")
+    mlflow.log_artifact("plots/raw_data_example.png", artifact_path="plots")
     if plt_show:
         plt.show()
     plt.close()
@@ -98,6 +100,7 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False)
         fig.tight_layout()
         os.makedirs("plots", exist_ok=True)
         fig.savefig(f"plots/model_results_{model_name}_horizon.png")
+        mlflow.log_artifact(f"plots/model_results_{model_name}_horizon.png", artifact_path="plots")
         if show_plt:
             plt.show()
         plt.close()
@@ -145,6 +148,7 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_
     plt.grid()
     os.makedirs("plots", exist_ok=True)
     plt.savefig(f"plots/predictions_with_waves_{model_name}.png")
+    mlflow.log_artifact(f"plots/predictions_with_waves_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -204,6 +208,7 @@ def plot_training_history(history, model_name, save_plot=True, show_plt=False):
     if save_plot:
         os.makedirs("plots", exist_ok=True)
         plt.savefig(f"plots/training_history_{model_name}.png")
+        mlflow.log_artifact(f"plots/training_history_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -235,6 +240,7 @@ def plot_model_comparison(models_results, metric='mae', show_plt=False):
     plt.tight_layout()
     os.makedirs("plots", exist_ok=True)
     plt.savefig(f"plots/model_comparison_{metric}.png")
+    mlflow.log_artifact(f"plots/model_comparison_{metric}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -283,6 +289,7 @@ def plot_residuals_analysis(y_true, y_pred, model_name, show_plt=False):
     
     os.makedirs("plots", exist_ok=True)
     plt.savefig(f"plots/residuals_analysis_{model_name}.png")
+    mlflow.log_artifact(f"plots/residuals_analysis_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()

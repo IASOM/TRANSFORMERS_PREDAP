@@ -133,7 +133,7 @@ for CODE in CODES_LIST:
                         )
 
                         model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
-                        
+                        mlflow.keras.log_model(model)
                         history_path = f"{model_name}_history.pkl"
 
                         if os.path.exists(history_path):
@@ -221,7 +221,7 @@ for CODE in CODES_LIST:
 
                         predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
                                                                                                                                                                                                                                                                                                                        
-                        mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
+                        mlflow.keras.log_model(residual_diagnostics_model, artifact_path="./residual_diagnostics_model")
                         
                         diag_end_time = datetime.now()
                         diag_duration = (diag_end_time - diag_start_time).total_seconds()
@@ -253,7 +253,7 @@ for CODE in CODES_LIST:
                             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
                         )
 
-                        mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
+                        mlflow.keras.log_model(residual_seasonal_model, artifact_path="./residual_seasonal_model")
 
                         seasonal_end_time = datetime.now()
                         seasonal_duration = (seasonal_end_time - seasonal_start_time).total_seconds()
