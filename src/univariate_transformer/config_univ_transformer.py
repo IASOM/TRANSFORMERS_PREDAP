@@ -14,6 +14,8 @@ class TransformerConfig:
         self.NUM_HEADS = 2              # number of attention heads  
         self.NUM_TRANSFORMER_BLOCKS = 2 # number of transformer layers
         self.FF_DIM = 8                 # dimensionality of feed-forward layer
+        self.ACTIVATION = 'tanh'        # activation function
+
         
         # Time Series Parameters
         self.FORECAST = 7      # number of future time steps to predict (prediction horizon)
@@ -30,7 +32,7 @@ class TransformerConfig:
         self.LEARNING_RATE = 0.001     # initial learning rate
         self.EPOCHS = 100              # maximum number of training epochs
         self.BATCH_SIZE = 16           # batch size for training
-        self.EARLY_STOP_PATIENCE = 15  # early stopping patience
+        self.EARLY_STOP_PATIENCE = 60  # early stopping patience
         self.VALIDATION_SPLIT = 0.3    # validation data split ratio
         
         # Learning Rate Schedule Parameters
@@ -40,27 +42,32 @@ class TransformerConfig:
         
         # Data Parameters
         self.DATA_PATH = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+        self.DATA_ORIGINAL_SCALE_PATH = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
         self.TARGET_CODE = "T14"       # diagnostic code to predict
-        self.CODES_LIST = ["J00","T14",  "M54"]
+        self.CODES_LIST = ["J00","T14","M54"]
         self.DATE_CUTOFF = '2010-01-01'  # filter data from this date
         self.TRAIN_SPLIT = 0.8  
                # train/test split ratio
         
         # Directory Parameters
-        self.MODEL_DIR = "models"
+        self.MODEL_DIR = "models_covid_token"
         self.PLOTS_DIR = "plots"
         self.LOGS_DIR = "logs"
         
         # Evaluation Parameters
         self.SLIDING_WINDOW = 10       # window size for sliding evaluation
         self.SHUFFLE_DATA = False      # whether to shuffle training data
-        
+        self.COVID_TOKEN = True      # whether to include COVID-19 token feature
+        self.SAVE_TRAIN_HISTORY = True        # whether to save training history
+
         # Hyperparameter Search Lists
-        self.LOOKBACK_LIST = [1, 7, 14, 30, 60, 182, 365]
-        self.FORECAST_LIST = [1, 7, 14, 30, 60, 182, 365]
+        self.LOOKBACK_LIST = [1, 7, 14, 30, 60]
+        self.FORECAST_LIST = [7, 14, 30, 60]
         self.HEAD_SIZE_LIST = [2, 4, 8]
         self.NUM_HEADS_LIST = [1, 2, 4]
         self.FF_DIM_LIST = [8, 16, 32]
+        self.ACTIVATIONS_LIST = ['tanh', 'relu']
+        self.COVID_TOKEN_LIST = [False, True]
         
     def get_model_name(self, code=None, forecast=None, ff_dim=None, lookback=None, lr=None):
         """Generate standardized model name."""
@@ -126,7 +133,8 @@ default_config = TransformerConfig()
 
 # Utility function to create custom configurations
 def create_config(lookback=7, forecast=7, head_size=2, num_heads=2, ff_dim=8, 
-                 learning_rate=0.001, epochs=100, target_code="T14"):
+                 learning_rate=0.001, epochs=100, target_code="T14", model_dir="models_covid_token",
+                 activations_list=['tanh', 'relu'], covid_token_list=[True, False]):
     """
     Create a custom configuration with specified parameters.
     
@@ -153,5 +161,9 @@ def create_config(lookback=7, forecast=7, head_size=2, num_heads=2, ff_dim=8,
     config.LEARNING_RATE = learning_rate
     config.EPOCHS = epochs
     config.TARGET_CODE = target_code
+    config.MODEL_DIR = model_dir
+    config.ACTIVATIONS_LIST = activations_list
+    config.COVID_TOKEN_LIST = covid_token_list
+
     
     return config

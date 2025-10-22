@@ -143,6 +143,7 @@ def create_pandemic_waves_df():
     return df_waves
 
 
+
 def setup_gpu_memory():
     """
     Configure GPU memory growth to prevent TensorFlow from allocating all GPU memory at once.
@@ -272,3 +273,4 @@ def calculate_forecast_metrics(y_true, y_pred):
         'R2': r2,
         'Directional_Accuracy': directional_accuracy
     }
+

@@ -35,7 +35,8 @@ if src_dir not in sys.path:
 import data_preparation
 
 
-def main_univ_transformer(lookback, forecast, code, config = None, evaluate_model = False):
+def main_univ_transformer(lookback, forecast, code,
+                          activation_function = None,covid_token = None, cutoff_date='2010-01-01', config = None, evaluate_model = False):
     """Main function that orchestrates the training and evaluation pipeline."""
     
     # Use provided config or default configuration
@@ -66,6 +67,15 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
     DATA_PATH = config.DATA_PATH
     MODEL_FOLDER = config.MODEL_DIR
     PLOTS_DIR = config.PLOTS_DIR
+    if covid_token is None:
+        COVID_TOKEN = config.COVID_TOKEN
+    else:
+        COVID_TOKEN = covid_token
+    SAVE_TRAIN_HISTORY = config.SAVE_TRAIN_HISTORY
+    if activation_function is None:
+        ACTIVATION_FUNCTION = config.ACTIVATION_FUNCTION
+    else:
+        ACTIVATION_FUNCTION = activation_function
 
     # Setup
     setup_gpu_memory()
@@ -94,7 +104,7 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
     start_time = time.perf_counter()
 
     # Prepare data for initial training
-    X, Y = data_preparation.prepare_data(input_directory, code, LOOKBACK, FORECAST, debug=True, univariate=True)
+    X, Y = data_preparation.prepare_data(input_directory, code, LOOKBACK, FORECAST,covid_token=COVID_TOKEN, cutoff_date=cutoff_date, debug=True, univariate=True)
     
     finish_preparing = time.perf_counter()
     time_data_preparation = finish_preparing - start_time
@@ -102,7 +112,7 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
 
     # Build model
     model = build_model(
-        (LOOKBACK, 1),
+        (LOOKBACK, X.shape[-1]),  # Input shape
         head_size=HEAD_SIZE,
         num_heads=NUM_HEADS,
         ff_dim=FF_DIM,
@@ -110,7 +120,8 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
         mlp_units=[MLP_UNITS],
         mlp_dropout=MLP_DROPOUT,
         dropout=DROPOUT,
-        n_pred=FORECAST
+        n_pred=FORECAST,
+        activation_function=ACTIVATION_FUNCTION,
     )
 
     model.summary()
@@ -134,7 +145,7 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
     model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam())
 
     # Train initial model
-    MODEL_NAME = f'models/{code}_example_transformer_{FORECAST}fh_{FF_DIM}ff_{LOOKBACK}lb_{LEARNING_RATE}initlr.keras'
+    MODEL_NAME = f'{code}_example_transformer_{FORECAST}fh_{FF_DIM}ff_{LOOKBACK}lb_{LEARNING_RATE}initlr.keras'
     train_given_model_and_data(
         model, X, Y, 
         batch_size=batch_size,
@@ -142,7 +153,8 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
         epochs=EPOCHS, 
         save_model=True, 
         save_memory=False, 
-        callbacks=callbacks
+        callbacks=callbacks, 
+        save_history=SAVE_TRAIN_HISTORY
     )
 
     # EVALUATION PHASE
@@ -161,7 +173,7 @@ def main_univ_transformer(lookback, forecast, code, config = None, evaluate_mode
     df_waves = create_pandemic_waves_df()
     loss, mae, mse = None, None, None
     if evaluate_model:
-        loss, mae, mse = evaluate_univ_transformer(MODEL_NAME, input_directory, code, MODEL_FOLDER=MODEL_FOLDER, df_waves=df_waves)
+        loss, mae, mse = evaluate_univ_transformer(MODEL_NAME, input_directory, code, cutoff_date=cutoff_date,covid_token=COVID_TOKEN, MODEL_FOLDER=MODEL_FOLDER, df_waves=df_waves)
         
     print("\n" + "="*50)
     print("EVALUATION COMPLETE")

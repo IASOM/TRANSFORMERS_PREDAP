@@ -74,11 +74,13 @@ PANDEMIC_WAVES = {
     "Quarta Onada": ("2021-04", "2021-06"),
 }
 
+COVID_TOKEN = True  # Whether to include COVID-19 token feature
+
 # File Extensions
 MODEL_EXTENSION = '.keras'
 HISTORY_EXTENSION = '_history.pkl'
 MEMORY_LOG_FILE = 'memory.csv'
 
 # Directory Paths
-DEFAULT_MODEL_DIR = 'models'
+DEFAULT_MODEL_DIR = 'models_covid_token'
 DEFAULT_DATA_PATH = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"

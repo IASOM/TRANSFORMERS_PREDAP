@@ -14,7 +14,9 @@ from datetime import datetime
 import os
 import tempfile
 import json
+import pickle
 
+from src import data_preparation
 from src import main_train_diagnostic_residual_transformer
 from src import main_train_seasonal_residual_transformer
 
@@ -40,6 +42,8 @@ print(f"   • View results at: http://localhost:5000")
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
 FORECAST_LIST = default_config.FORECAST_LIST
 CODES_LIST = default_config.CODES_LIST
+CUTOFF_DATE = default_config.DATE_CUTOFF
+df = pd.read_csv(default_config.DATA_PATH)
 
 # Track overall experiment metrics
 total_runs = len(CODES_LIST) * len(LOOKBACK_LIST) * len(FORECAST_LIST)
@@ -85,7 +89,60 @@ for CODE in CODES_LIST:
                 univ_start_time = datetime.now()
                 mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
                 # Train univariate transformer and capture results
-                model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(forecast=forecast,lookback=lookback, code=code)
+                model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(forecast=forecast,lookback=lookback, code=code,   cutoff_date=CUTOFF_DATE)
+                mlflow.keras.log_model(model, artifact_path="univariate_model")
+                
+                history_path = f"{model_name}_history.pkl"
+
+                if os.path.exists(history_path):
+                    print(f" Found saved history at: {history_path}")
+    
+                    # Load the history
+                    with open(history_path, "rb") as f:
+                        history_data = pickle.load(f)
+                    
+                    # Convert to DataFrame for easier handling
+                    history_df = pd.DataFrame(history_data)
+                    history_df["epoch"] = range(1, len(history_df) + 1)
+
+                    
+                    # --- Log metrics ---
+                    for epoch, row in history_df.iterrows():
+                        for metric, value in row.items():
+                            if metric != "epoch":
+                                mlflow.log_metric(metric, float(value), step=int(row["epoch"]))
+                    
+                    # --- Create and log plots ---
+                    metric_groups = {
+                        "loss": ["loss", "val_loss"],
+                        "accuracy": ["accuracy", "val_accuracy"],
+                    }
+
+                    for group_name, keys in metric_groups.items():
+                        available = [k for k in keys if k in history_df.columns]
+                        if not available:
+                            continue
+
+                        plt.figure(figsize=(8, 4))
+                        for k in available:
+                            plt.plot(history_df["epoch"], history_df[k], label=k, linewidth=2)
+                        plt.xlabel("Epoch")
+                        plt.ylabel(group_name.capitalize())
+                        plt.title(f"Training vs Validation {group_name.capitalize()}")
+                        plt.legend()
+                        plt.grid(True, linestyle="--", alpha=0.6)
+                        plt.tight_layout()
+
+                        plot_path = f"{model_name}_{group_name}_curve.png"
+                        plt.savefig(plot_path)
+                        plt.close()
+
+                        # Log as artifact
+                        mlflow.log_artifact(plot_path, artifact_path="plots")
+
+                        print("✅ History loaded and logged to MLflow successfully.")
+                else:
+                    print(f"⚠️ No history file found at {history_path}")
                 
                 univ_end_time = datetime.now()
                 univ_duration = (univ_end_time - univ_start_time).total_seconds()
@@ -107,7 +164,9 @@ for CODE in CODES_LIST:
                 # RESIDUAL DIAGNOSTICS TRANSFORMER
                 diag_start_time = datetime.now()
                 mlflow.log_param("phase_2_start_time", diag_start_time.isoformat())
-                predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(lookback=lookback, forecast=forecast, code=code, predictions_train_corrected=None, predictions_test_corrected=None)
+                predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(lookback=lookback, forecast=forecast, code=code, cutoff_date=CUTOFF_DATE, predictions_train_corrected=None, predictions_test_corrected=None)
+                mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
+                
                 diag_end_time = datetime.now()
                 diag_duration = (diag_end_time - diag_start_time).total_seconds()
                 
@@ -121,8 +180,9 @@ for CODE in CODES_LIST:
                 # RESIDUAL SEASONAL TRANSFORMER
                 seasonal_start_time = datetime.now()
                 mlflow.log_param("phase_3_start_time", seasonal_start_time.isoformat())
-                    
-                predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(lookback=lookback, forecast=forecast, code=code, predictions_train_corrected=predictions_train_corrected, predictions_test_corrected=predictions_test_corrected)
+
+                predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(lookback=lookback, forecast=forecast, code=code, cutoff_date=CUTOFF_DATE, predictions_train_corrected=predictions_train_corrected, predictions_test_corrected=predictions_test_corrected)
+                mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
 
                 seasonal_end_time = datetime.now()
                 seasonal_duration = (seasonal_end_time - seasonal_start_time).total_seconds()
