@@ -21,6 +21,7 @@ from src import main_train_diagnostic_residual_transformer
 from src import main_train_seasonal_residual_transformer
 
 from src import main_training_univ_transformer
+from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_history 
 #load and visualize data 
 
 from src.univariate_transformer import default_config
@@ -134,58 +135,9 @@ for CODE in CODES_LIST:
 
                         model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
                         mlflow.keras.log_model(model)
-                        history_path = f"{model_name}_history.pkl"
-
-                        if os.path.exists(history_path):
-                            print(f" Found saved history at: {history_path}")
-            
-                            # Load the history
-                            with open(history_path, "rb") as f:
-                                history_data = pickle.load(f)
-                            
-                            # Convert to DataFrame for easier handling
-                            history_df = pd.DataFrame(history_data)
-                            history_df["epoch"] = range(1, len(history_df) + 1)
-
-                            
-                            # --- Log metrics ---
-                            for epoch, row in history_df.iterrows():
-                                for metric, value in row.items():
-                                    if metric != "epoch":
-                                        mlflow.log_metric(metric, float(value), step=int(row["epoch"]))
-                            
-                            # --- Create and log plots ---
-                            metric_groups = {
-                                "loss": ["loss", "val_loss"],
-                                "accuracy": ["accuracy", "val_accuracy"],
-                            }
-
-                            for group_name, keys in metric_groups.items():
-                                available = [k for k in keys if k in history_df.columns]
-                                if not available:
-                                    continue
-
-                                plt.figure(figsize=(8, 4))
-                                for k in available:
-                                    plt.plot(history_df["epoch"], history_df[k], label=k, linewidth=2)
-                                plt.xlabel("Epoch")
-                                plt.ylabel(group_name.capitalize())
-                                plt.title(f"Training vs Validation {group_name.capitalize()}")
-                                plt.legend()
-                                plt.grid(True, linestyle="--", alpha=0.6)
-                                plt.tight_layout()
-
-                                plot_path = f"{model_name}_{group_name}_curve.png"
-                                plt.savefig(plot_path)
-                                plt.close()
-
-                                # Log as artifact
-                                mlflow.log_artifact(plot_path, artifact_path="plots")
-
-                                print("✅ History loaded and logged to MLflow successfully.")
-                        else:
-                            print(f"⚠️ No history file found at {history_path}")
                         
+                        load_mlflow_model_history(model_name)
+
                         univ_end_time = datetime.now()
                         univ_duration = (univ_end_time - univ_start_time).total_seconds()
                         
@@ -221,7 +173,8 @@ for CODE in CODES_LIST:
 
                         predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
                                                                                                                                                                                                                                                                                                                        
-                        mlflow.keras.log_model(residual_diagnostics_model, artifact_path="./residual_diagnostics_model")
+                        mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
+                        load_mlflow_model_history(residual_diagnostics_model_name)
                         
                         diag_end_time = datetime.now()
                         diag_duration = (diag_end_time - diag_start_time).total_seconds()
@@ -253,8 +206,9 @@ for CODE in CODES_LIST:
                             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
                         )
 
-                        mlflow.keras.log_model(residual_seasonal_model, artifact_path="./residual_seasonal_model")
-
+                        mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
+                        load_mlflow_model_history(residual_seasonal_model_name)
+                        
                         seasonal_end_time = datetime.now()
                         seasonal_duration = (seasonal_end_time - seasonal_start_time).total_seconds()
                         total_duration = (seasonal_end_time - univ_start_time).total_seconds()

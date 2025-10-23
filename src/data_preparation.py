@@ -146,17 +146,18 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',c
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
         idx_code = df.columns.get_loc(code)
-        df_features = df.drop(columns = [code, 'timestamp'])
+        
+        df_features = df.drop(columns = ['timestamp'])
 
-         # Ignore timestamp, exclude target
-        target_col = df.columns[idx_code]  # Target is the last column
+        
+        target_col = df.columns[idx_code]  # Target code column
     
         # Convert DataFrame to numpy arrays
         if relevant_feature_cols is not None:
-            X_raw = df[relevant_feature_cols].values  # Shape: (200, 3)
+            X_raw = df_features[relevant_feature_cols].values  
         else:
-            X_raw = df_features.values  # Shape: (200, 3)
-        Y_raw = df[target_col].values    # Shape: (200,)
+            X_raw = df_features.values
+        Y_raw = df[target_col].values
     if covid_token:
         df_covid = add_covid_token(df)
         covid_feature = df_covid['covid_token'].values.reshape(-1, 1)

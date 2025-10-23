@@ -155,7 +155,8 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     print("Building residual correction model...")
     residual_model = hybrid_lstm_transformer_model(
         input_shape=(lookback, X_train_covs.shape[2]), 
-        forecast=forecast
+        forecast=forecast,
+        activation_function=ACTIVATION_FUNCTION
     )
     residual_model.summary()
     
@@ -214,7 +215,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     Y_test_orig = data_preparation.inverse_transform_predictions(
         Y_test, original_scale_df, code
     )
-    
+
     corrected_forecast_orig = data_preparation.inverse_transform_predictions(
         corrected_forecast, original_scale_df, code
     )
