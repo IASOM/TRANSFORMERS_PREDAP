@@ -150,7 +150,8 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code,activation
     print("Building residual correction model...")
     residual_model = hybrid_lstm_transformer_model(
         (lookback, X_train_covs.shape[2]), 
-        forecast
+        forecast,
+        activation_function=ACTIVATION_FUNCTION
     )
     residual_model.summary()
     

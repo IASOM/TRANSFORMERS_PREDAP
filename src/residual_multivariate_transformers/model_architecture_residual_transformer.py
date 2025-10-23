@@ -13,7 +13,7 @@ import math
 from .config_residual_transformer import DEFAULT_TRANSFORMER_PARAMS, DEFAULT_LSTM_PARAMS
 
 
-def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dropout=None):
+def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dropout=None, activation_function='tanh'):
     """
     Transformer Encoder Block for processing sequential data.
     
@@ -54,7 +54,7 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
 
     # Feed Forward Part
     x = layers.LayerNormalization(epsilon=1e-6)(res)                       
-    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation="tanh")(x) 
+    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation=activation_function)(x) 
     x = layers.Dropout(dropout)(x)                                         
     x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)          
     return x + res    
@@ -62,7 +62,8 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
 
 def hybrid_lstm_transformer_model(input_shape, forecast, 
                                   lstm_params=None, 
-                                  transformer_params=None):
+                                  transformer_params=None,
+                                  activation_function='tanh'):
     """
     Build a hybrid LSTM-Transformer model for residual learning.
     
@@ -109,13 +110,14 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
         head_size=transformer_params['head_size'],
         num_heads=transformer_params['num_heads'],
         ff_dim=transformer_params['ff_dim'],
+        activation_function=activation_function,
         dropout=transformer_params['dropout']
     )
 
     # GlobalAveragePooling1D Layer
     x = layers.GlobalAveragePooling1D()(x) # May be changed to Flatten() if needed
     # Output Layer
-    outputs = layers.Dense(forecast)(x)
+    outputs = layers.Dense(forecast, activation=activation_function)(x)
 
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)

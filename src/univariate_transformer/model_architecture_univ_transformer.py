@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam
 
 
-def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
+def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_function='tanh', dropout=0):
     """
     Transformer encoder block with multi-head attention and feed-forward layers.
     
@@ -25,8 +25,6 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
     Returns:
         Encoded tensor with residual connections
     """
-    d_model = max(head_size * num_heads, 8)
-    x = layers.Dense(d_model, activation="relu")(inputs)
     
     # Normalization and Attention
     x = layers.LayerNormalization(epsilon=1e-6)(inputs)  # to inputs to stabilize training
@@ -37,7 +35,7 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, dropout=0):
 
     # Feed Forward Part
     x = layers.LayerNormalization(epsilon=1e-6)(res)  # again after resid connection
-    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation="tanh")(x)  # point-wise convol.: Expands feature dim to ff_dim using tanh activ
+    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation=activation_function)(x)  # point-wise convol.: Expands feature dim to ff_dim using tanh activ
     x = layers.Dropout(dropout)(x)  # dropout again
     x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)  # reduces feature dim back to match input size
     x = x + res
@@ -66,9 +64,12 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     inputs = keras.Input(shape=input_shape)  # defines input tensor
     
     x = inputs  # initial input
+    d_model = max(head_size * num_heads, 8)
+    x = layers.Dense(d_model, activation=activation_function)(inputs)
+    
     
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
-        x = transformer_encoder(x, head_size, num_heads, ff_dim, dropout)  # uses previous defined trans_encoder layer
+        x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
