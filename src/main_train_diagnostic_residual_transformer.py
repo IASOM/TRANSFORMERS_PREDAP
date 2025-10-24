@@ -52,7 +52,17 @@ from residual_multivariate_transformers import (
 )
 
 
-def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14", activation_function = 'tanh', covid_token = None, diagnostic_covariates_path = "BEST_features_NOSMOOTH.xlsx", cutoff_date = '2010-01-01', predictions_train_corrected = None, predictions_test_corrected = None):
+def main_train_diagnostic_residual_transformer(forecast, lookback, 
+                                               code = "T14", activation_function = 'tanh', 
+                                               covid_token = None, 
+                                               diagnostic_covariates_path = "BEST_features_NOSMOOTH.xlsx", 
+                                               cutoff_date = '2010-01-01', 
+                                               num_heads = 2,
+                                               head_size = 2,
+                                               ff_dim = 8,
+                                               mlp_units = 64,
+                                               predictions_train_corrected = None, 
+                                               predictions_test_corrected = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -69,7 +79,10 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
         COVID_TOKEN = covid_token
 
     ACTIVATION_FUNCTION = activation_function
-
+    HEAD_SIZE = head_size
+    NUM_HEADS = num_heads
+    FF_DIM = ff_dim
+    MLP_UNITS = mlp_units
     
     # Model naming
     base_model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
@@ -153,10 +166,18 @@ def main_train_diagnostic_residual_transformer(forecast, lookback, code = "T14",
     
     # Define Hybrid LSTM + Transformer Model for residuals
     print("Building residual correction model...")
+    TRANSFORMER_PARAMS = {
+    'head_size': HEAD_SIZE,
+    'num_heads': NUM_HEADS,
+    'ff_dim': FF_DIM,
+    'dropout': 0.2
+    }
+
     residual_model = hybrid_lstm_transformer_model(
         input_shape=(lookback, X_train_covs.shape[2]), 
         forecast=forecast,
-        activation_function=ACTIVATION_FUNCTION
+        activation_function=ACTIVATION_FUNCTION,
+        transformer_parameters=TRANSFORMER_PARAMS
     )
     residual_model.summary()
     

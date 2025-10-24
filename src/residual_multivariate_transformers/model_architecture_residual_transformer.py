@@ -88,6 +88,8 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
         lstm_params = DEFAULT_LSTM_PARAMS.copy()
     if transformer_params is None:
         transformer_params = DEFAULT_TRANSFORMER_PARAMS.copy()
+
+
     
     input_layer = keras.Input(shape=input_shape)
 
