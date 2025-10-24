@@ -36,7 +36,11 @@ import data_preparation
 
 
 def main_univ_transformer(lookback, forecast, code,
-                          activation_function = None,covid_token = None, cutoff_date='2010-01-01', config = None, evaluate_model = False):
+                          activation_function = None,
+                          covid_token = None, cutoff_date='2010-01-01', 
+                          config = None, evaluate_model = False,
+                          head_size = default_config.HEAD_SIZE, num_heads = default_config.NUM_HEADS,
+                          ff_dim = default_config.FF_DIM, num_transformer_blocks = default_config.NUM_TRANSFORMER_BLOCKS):
     """Main function that orchestrates the training and evaluation pipeline."""
     
     # Use provided config or default configuration
@@ -51,10 +55,10 @@ def main_univ_transformer(lookback, forecast, code,
     LOOKBACK = lookback
     
 
-    HEAD_SIZE = config.HEAD_SIZE
-    NUM_HEADS = config.NUM_HEADS
-    NUM_TRANSFORMER_BLOCKS = config.NUM_TRANSFORMER_BLOCKS
-    FF_DIM = config.FF_DIM
+    HEAD_SIZE = head_size
+    NUM_HEADS = num_heads
+    NUM_TRANSFORMER_BLOCKS = num_transformer_blocks
+    FF_DIM = ff_dim
     MLP_UNITS = config.MLP_UNITS
     MLP_DROPOUT = config.MLP_DROPOUT
     DROPOUT = config.DROPOUT
