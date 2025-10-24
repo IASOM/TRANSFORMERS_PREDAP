@@ -68,6 +68,12 @@ class TransformerConfig:
         self.FF_DIM_LIST = [8, 16, 32]
         self.ACTIVATIONS_LIST = ['tanh', 'relu']
         self.COVID_TOKEN_LIST = [False, True]
+        self.HEAD_SIZE_LIST = [2, 8, 16, 32]
+        self.NUM_HEADS_LIST = [2, 4, 8]
+        self.FF_DIM_LIST = [8, 16, 32, 64]
+        self.MLP_UNITS_LIST = [16, 32, 64, 128]
+
+        
         
     def get_model_name(self, code=None, forecast=None, ff_dim=None, lookback=None, lr=None):
         """Generate standardized model name."""

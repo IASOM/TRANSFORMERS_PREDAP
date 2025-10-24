@@ -104,7 +104,9 @@ for CODE in CODES_LIST:
                             "forecast_horizon": fh,
                             "model_type": "transformer",
                             "run_number": run_counter,
-                            "total_runs": total_runs
+                            "total_runs": total_runs,
+                            "activation_function": ACTIVATION_FUNCTION,
+                            "covid_token": COVID_TOKEN,
                         })
                         
                         # Log system information

@@ -50,7 +50,17 @@ from residual_multivariate_transformers import (
     evaluate_error_significance_pandemic_waves
 )
 
-def main_train_seasonal_residual_transformer(lookback, forecast, code,activation_function = 'tanh',covid_token = None, cutoff_date = '2010-01-01', predictions_train_corrected = None, predictions_test_corrected = None):
+def main_train_seasonal_residual_transformer(lookback, forecast, 
+                                             code,
+                                             activation_function = 'tanh',
+                                             covid_token = None, 
+                                             cutoff_date = '2010-01-01', 
+                                             head_size=2,
+                                             num_heads=2,
+                                             ff_dim=8,
+                                             mlp_units=64,
+                                             predictions_train_corrected = None, 
+                                             predictions_test_corrected = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -65,6 +75,11 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code,activation
         COVID_TOKEN = covid_token
 
     ACTIVATION_FUNCTION = activation_function
+
+    HEAD_SIZE = head_size
+    NUM_HEADS = num_heads
+    FF_DIM = ff_dim
+    MLP_UNITS = mlp_units
     
     
     # Model naming
@@ -96,7 +111,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code,activation
     print("Preparing data for base model...")
 
     Y_train, Y_test, X_train, X_test, date_list_train, date_list_test = prepare_base_model_data(
-        input_directory, code, lookback, forecast
+        input_directory, code, lookback, forecast, covid_token=COVID_TOKEN, cutoff_date=cutoff_date
     )
     
     if predictions_train_corrected is None:
@@ -129,7 +144,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code,activation
     #df_processed = learn_covariates(train_split)
     
     categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation"]
-    df_train_processed = data_preparation.prepare_time_series_features(train_split, categorical_vars)
+    df_train_processed = data_preparation.prepare_time_series_features(train_split, categorical_vars, cutoff_date = cutoff_date)
     
 
     # Generate rolling sequences with covariates for training
@@ -148,11 +163,21 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code,activation
     
     # Define Hybrid LSTM + Transformer Model for residuals
     print("Building residual correction model...")
+
+    TRANSFORMER_PARAMS = {
+    'head_size': HEAD_SIZE,
+    'num_heads': NUM_HEADS,
+    'ff_dim': FF_DIM,
+    'dropout': 0.2
+    }
     residual_model = hybrid_lstm_transformer_model(
         (lookback, X_train_covs.shape[2]), 
         forecast,
-        activation_function=ACTIVATION_FUNCTION
+        activation_function=ACTIVATION_FUNCTION,
+        transformer_parameters=TRANSFORMER_PARAMS
     )
+
+    
     residual_model.summary()
     
     # Train the residual model
@@ -181,7 +206,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast, code,activation
     # Prepare test data with covariates
     print("Preparing test data with covariates...")
     categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation"]
-    df_test_processed = data_preparation.prepare_time_series_features(test_split, categorical_vars)
+    df_test_processed = data_preparation.prepare_time_series_features(test_split, categorical_vars, cutoff_date=cutoff_date)
     
     # Generate rolling sequences for test data
     X_test_covs = data_preparation.generate_rolling_sequences_covariates(
