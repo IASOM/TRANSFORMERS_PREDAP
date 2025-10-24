@@ -151,6 +151,7 @@ for CODE in CODES_LIST:
                                     num_heads = num_heads, 
                                     ff_dim = ff_dim, 
                                     mlp_units = mlp_units,
+                                    evaluate_model = True,
                                 )
 
                                 model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
