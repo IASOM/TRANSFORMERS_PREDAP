@@ -104,7 +104,9 @@ for CODE in CODES_LIST:
                             "forecast_horizon": fh,
                             "model_type": "transformer",
                             "run_number": run_counter,
-                            "total_runs": total_runs
+                            "total_runs": total_runs,
+                            "activation_function": ACTIVATION_FUNCTION,
+                            "covid_token": COVID_TOKEN,
                         })
                         
                         # Log system information
@@ -130,7 +132,8 @@ for CODE in CODES_LIST:
                             code=code,
                             activation_function=ACTIVATION_FUNCTION,
                             covid_token= COVID_TOKEN,   
-                            cutoff_date=CUTOFF_DATE
+                            cutoff_date=CUTOFF_DATE,
+                            evaluate_model = True
                         )
 
                         model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)

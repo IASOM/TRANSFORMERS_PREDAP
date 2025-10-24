@@ -349,7 +349,7 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
     X_raw = df_processed[feature_cols].values  # Convert DataFrame to NumPy array
 
     # Generate rolling sequences
-    X = [X_raw[i : i + lookback ] for i in range(len(X_raw) - lookback - forecast + 1)]
+    X = [X_raw[i+lookback : i + lookback + forecast ] for i in range(len(X_raw) - lookback - forecast + 1)]
     
     # Convert to NumPy array
     X_train_covs = np.array(X)
