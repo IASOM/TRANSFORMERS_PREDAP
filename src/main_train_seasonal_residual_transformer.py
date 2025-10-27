@@ -171,10 +171,10 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     'dropout': 0.2
     }
     residual_model = hybrid_lstm_transformer_model(
-        (lookback, X_train_covs.shape[2]), 
+        (forecast, X_train_covs.shape[2]), 
         forecast,
         activation_function=ACTIVATION_FUNCTION,
-        transformer_parameters=TRANSFORMER_PARAMS
+        transformer_params=TRANSFORMER_PARAMS
     )
 
     
@@ -231,15 +231,15 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
 
     original_scale_df = pd.read_csv(input_directory)
     # Inverse transform predictions
-    Y_test_orig = data_preparation.inverse_transform_predictions(
-        Y_test, original_scale_df, code
+    X_test_orig, Y_test_orig = data_preparation.prepare_data_not_normalized(
+        input_directory, code, lookback, forecast,covid_token=COVID_TOKEN, cutoff_date=cutoff_date, train=False, univariate=True
     )
     corrected_forecast_orig = data_preparation.inverse_transform_predictions(
-        corrected_forecast, original_scale_df, code
+        corrected_forecast, original_scale_df, code , cutoff_date=cutoff_date
     )
 
     predictions_test_orig = data_preparation.inverse_transform_predictions(
-        predictions_test, original_scale_df, code
+        predictions_test, original_scale_df, code, cutoff_date=cutoff_date
     )
     
     print(f"Corrected forecast shape: {corrected_forecast.shape}")

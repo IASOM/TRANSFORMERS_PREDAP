@@ -50,7 +50,8 @@ def safe_float(value):
 
 # MAIN TRANSFORMER MODEL 
 COVID_TOKEN = True
-ACTIVATION_FUNCTION = 'relu'
+ACTIVATION_FUNCTION = 'tanh'
+POSITIONAL_ENCODING  = False
 
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
 FORECAST_LIST = default_config.FORECAST_LIST
@@ -152,6 +153,7 @@ for CODE in CODES_LIST:
                                     ff_dim = ff_dim, 
                                     mlp_units = mlp_units,
                                     evaluate_model = True,
+                                    positional_encoding = POSITIONAL_ENCODING
                                 )
 
                                 model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
@@ -193,9 +195,6 @@ for CODE in CODES_LIST:
                                     head_size=head_size,
                                     num_heads=num_heads,
                                     ff_dim=ff_dim,
-                                    mlp_units=mlp_units,
-
-
                                 )
 
                                 predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)

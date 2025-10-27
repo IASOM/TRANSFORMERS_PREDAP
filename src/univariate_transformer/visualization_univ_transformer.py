@@ -34,7 +34,7 @@ def plot_example(df, title, plt_show=False):
         plt.show()
     plt.close()
 
-def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False):
+def plt_model(y_test_inverse, yhat_inverse, date_list, model_name, ci=1.96, show_plt=False):
     """
     Plot model results comparing true vs predicted values across a forecast horizon,
     showing mean and confidence regions computed from multiple prediction samples.
@@ -58,9 +58,9 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False)
 
         # Accept 1D inputs by treating them as single-sample predictions
         if y_test_arr.ndim == 1:
-            y_test_arr = y_test_arr.reshape(1, -1)
+            y_test_arr = y_test_arr.reshape(-1, 1)
         if yhat_arr.ndim == 1:
-            yhat_arr = yhat_arr.reshape(1, -1)
+            yhat_arr = yhat_arr.reshape(-1, 1)
 
         if y_test_arr.shape != yhat_arr.shape:
             raise ValueError("y_test_inverse and yhat_inverse must have the same shape "
@@ -70,17 +70,22 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False)
         x = np.arange(1, horizon + 1)
 
         # Compute statistics across prediction samples (axis=0 -> across samples for each horizon step)
-        mean_true = np.nanmean(y_test_arr, axis=0)
-        std_true = np.nanstd(y_test_arr, axis=0)
+        mean_true = np.nanmean(y_test_arr, axis=1)
+        std_true = np.nanstd(y_test_arr, axis=1)
 
-        mean_pred = np.nanmean(yhat_arr, axis=0)
-        std_pred = np.nanstd(yhat_arr, axis=0)
+        mean_pred = np.nanmean(yhat_arr, axis=1)
+        std_pred = np.nanstd(yhat_arr, axis=1)
 
+
+        # pick middle column (robust to 1D arrays)
+        if y_test_arr.ndim > 1:
+            middle_value = int(y_test_arr.shape[1] // 2)
+        else:
+            middle_value = 0
         fig, ax = plt.subplots(figsize=(20, 8))
-
         # Plot mean lines
-        ax.plot(x, mean_true, label='True (mean)', marker='o', linestyle='-', alpha=0.9)
-        ax.plot(x, mean_pred, label='Predicted (mean)', marker='x', linestyle='--', alpha=0.9)
+        ax.plot(date_list, y_test_arr[:, 3], label='True (mean)', marker='o', linestyle='-', alpha=0.9)
+        ax.plot(date_list, yhat_arr[:, 3], label='Predicted (mean)', marker='x', linestyle='--', alpha=0.9)
 
         # Plot confidence regions: mean ± ci * std
         upper_true = mean_true + ci * std_true
@@ -88,9 +93,9 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False)
         upper_pred = mean_pred + ci * std_pred
         lower_pred = mean_pred - ci * std_pred
 
-        ax.fill_between(x, lower_true, upper_true, color='blue', alpha=0.15, label=f'True ± {ci}σ')
-        ax.fill_between(x, lower_pred, upper_pred, color='orange', alpha=0.15, label=f'Predicted ± {ci}σ')
-
+        '''ax.fill_between(date_list, lower_true, upper_true, color='blue', alpha=0.15, label=f'True ± {ci}σ')
+        ax.fill_between(date_list, lower_pred, upper_pred, color='orange', alpha=0.15, label=f'Predicted ± {ci}σ')
+        '''
         ax.set_xlabel('Forecast Horizon Step', fontweight='bold', fontsize=12)
         ax.set_ylabel('Value', fontweight='bold', fontsize=12)
         ax.set_title(f'Real vs. Predicted (mean ± {ci}σ) // MODEL: {model_name}')
@@ -103,7 +108,7 @@ def plt_model(y_test_inverse, yhat_inverse, model_name, ci=1.96, show_plt=False)
         mlflow.log_artifact(f"plots/model_results_{model_name}_horizon.png", artifact_path="plots")
         if show_plt:
             plt.show()
-        plt.close()
+        plt.close(fig)
 
     except Exception as e:
         print(f"Error plotting model results: {str(e)}")
@@ -133,6 +138,11 @@ def plot_predictions_with_waves(Y_test, predictions, date_list, df_waves, model_
     for i, row in df_waves.iterrows():
         plt.axvspan(row["Inici"], row["Final"], color="red", alpha=0.2)
 
+    # pick middle column (robust to 1D arrays)
+    if Y_test.ndim > 1:
+        middle_value = int(Y_test.shape[1] // 2)
+    else:
+        middle_value = 0
     # Plot actual and predicted values
     plt.plot(date_list, Y_test, label="Actual Values (Y-test)", marker='o', linestyle='-', alpha=0.7)
     plt.plot(date_list, predictions, label="Predicted Values", marker='x', linestyle='--', alpha=0.7)

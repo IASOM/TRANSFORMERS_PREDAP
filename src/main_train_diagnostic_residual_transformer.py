@@ -55,12 +55,11 @@ from residual_multivariate_transformers import (
 def main_train_diagnostic_residual_transformer(forecast, lookback, 
                                                code = "T14", activation_function = 'tanh', 
                                                covid_token = None, 
-                                               diagnostic_covariates_path = "BEST_features_NOSMOOTH.xlsx", 
+                                               diagnostic_covariates_path = "BEST_features_NOSMOOTH", 
                                                cutoff_date = '2010-01-01', 
                                                num_heads = 2,
                                                head_size = 2,
                                                ff_dim = 8,
-                                               mlp_units = 64,
                                                predictions_train_corrected = None, 
                                                predictions_test_corrected = None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
@@ -70,7 +69,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     lookback = lookback
     ff_dim = 8
     learning_rate = DEFAULT_LEARNING_RATE
-    diagnostic_covariates_path = diagnostic_covariates_path
+    diagnostic_covariates_path = f'{diagnostic_covariates_path}_{code}.xlsx'
     diagnostic_covariates_df = pd.read_excel(diagnostic_covariates_path, engine='openpyxl')
     diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] == forecast]['predictors'])[0].split(',')
     if covid_token is None:
@@ -82,7 +81,8 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     HEAD_SIZE = head_size
     NUM_HEADS = num_heads
     FF_DIM = ff_dim
-    MLP_UNITS = mlp_units
+
+
     
     # Model naming
     base_model_name = f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{learning_rate}initlr.keras'
@@ -177,7 +177,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
         input_shape=(lookback, X_train_covs.shape[2]), 
         forecast=forecast,
         activation_function=ACTIVATION_FUNCTION,
-        transformer_parameters=TRANSFORMER_PARAMS
+        transformer_params=TRANSFORMER_PARAMS
     )
     residual_model.summary()
     
@@ -233,16 +233,18 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     
     original_scale_df = pd.read_csv(input_directory)
     # Inverse transform predictions
-    Y_test_orig = data_preparation.inverse_transform_predictions(
-        Y_test, original_scale_df, code
+
+    X_test_orig,Y_test_orig = data_preparation.prepare_data_not_normalized(
+        input_directory, code, lookback, forecast,covid_token=COVID_TOKEN, cutoff_date=cutoff_date, train=False, univariate=True
     )
+    
 
     corrected_forecast_orig = data_preparation.inverse_transform_predictions(
-        corrected_forecast, original_scale_df, code
+        corrected_forecast, original_scale_df, code, cutoff_date=cutoff_date
     )
 
     predictions_test_orig = data_preparation.inverse_transform_predictions(
-        predictions_test, original_scale_df, code
+        predictions_test, original_scale_df, code, cutoff_date=cutoff_date
     )
     print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")
     

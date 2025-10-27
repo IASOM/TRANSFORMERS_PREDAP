@@ -69,9 +69,7 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     
 
-    scaler = MinMaxScaler()
-    columns = [column for column in df.columns if column != 'timestamp']
-    df[columns] = scaler.fit_transform(df[columns])
+    
     '''# Process each column (except timestamp)
     for code in df.columns:
         if code != 'timestamp':
@@ -100,6 +98,11 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     split_idx = int(len(df) * split_ratio)
     train_df = df.iloc[:split_idx].reset_index(drop=True)
     test_df = df.iloc[split_idx:].reset_index(drop=True)
+
+    scaler = MinMaxScaler()
+    columns = [column for column in df.columns if column != 'timestamp']
+    scaler.fit(train_df[columns])
+    df[columns] = scaler.transform(df[columns])
     
     print(f"Data split - Train: {len(train_df)} records, Test: {len(test_df)} records")
     
@@ -468,7 +471,8 @@ def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
     
     # Get predictions from the base transformer model
     print("\nGenerating predictions from base model...")
-    predictions_test = model.predict(X_test, verbose=1)
+    
     predictions_train = model.predict(X_train, verbose=1)
+    predictions_test = model.predict(X_test, verbose=1)
     
     return predictions_train, predictions_test

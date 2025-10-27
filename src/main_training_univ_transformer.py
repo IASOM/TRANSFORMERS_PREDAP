@@ -40,7 +40,9 @@ def main_univ_transformer(lookback, forecast, code,
                           covid_token = None, cutoff_date='2010-01-01', 
                           config = None, evaluate_model = False,
                           head_size = default_config.HEAD_SIZE, num_heads = default_config.NUM_HEADS,
-                          ff_dim = default_config.FF_DIM, num_transformer_blocks = default_config.NUM_TRANSFORMER_BLOCKS):
+                          ff_dim = default_config.FF_DIM, num_transformer_blocks = default_config.NUM_TRANSFORMER_BLOCKS,
+                          mlp_units = default_config.MLP_UNITS,
+                          positional_encoding = False):
     """Main function that orchestrates the training and evaluation pipeline."""
     
     # Use provided config or default configuration
@@ -59,7 +61,7 @@ def main_univ_transformer(lookback, forecast, code,
     NUM_HEADS = num_heads
     NUM_TRANSFORMER_BLOCKS = num_transformer_blocks
     FF_DIM = ff_dim
-    MLP_UNITS = config.MLP_UNITS
+    MLP_UNITS = mlp_units
     MLP_DROPOUT = config.MLP_DROPOUT
     DROPOUT = config.DROPOUT
     LEARNING_RATE = config.LEARNING_RATE
@@ -126,6 +128,7 @@ def main_univ_transformer(lookback, forecast, code,
         dropout=DROPOUT,
         n_pred=FORECAST,
         activation_function=ACTIVATION_FUNCTION,
+        pos_encoding=positional_encoding,
     )
 
     model.summary()
@@ -146,7 +149,7 @@ def main_univ_transformer(lookback, forecast, code,
     ]
 
     # Compile model
-    model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam())
+    model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam(clipnorm = 1.0, learning_rate=LEARNING_RATE, weight_decay=1e-5))
 
     # Train initial model
     MODEL_NAME = f'{code}_example_transformer_{FORECAST}fh_{FF_DIM}ff_{LOOKBACK}lb_{LEARNING_RATE}initlr.keras'

@@ -32,7 +32,7 @@ class TransformerConfig:
         self.LEARNING_RATE = 0.001     # initial learning rate
         self.EPOCHS = 100              # maximum number of training epochs
         self.BATCH_SIZE = 16           # batch size for training
-        self.EARLY_STOP_PATIENCE = 60  # early stopping patience
+        self.EARLY_STOP_PATIENCE = 20  # early stopping patience
         self.VALIDATION_SPLIT = 0.3    # validation data split ratio
         
         # Learning Rate Schedule Parameters
@@ -41,8 +41,8 @@ class TransformerConfig:
         self.LR_MIN_MULTIPLIER = 10    # min LR = initial_lr * this value
         
         # Data Parameters
-        self.DATA_PATH = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
-        self.DATA_ORIGINAL_SCALE_PATH = "J:/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+        self.DATA_PATH = "TRANSFORMERS_PREDAP/src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+        
         self.TARGET_CODE = "T14"       # diagnostic code to predict
         self.CODES_LIST = ["J00","T14","M54"]
         self.DATE_CUTOFF = '2010-01-01'  # filter data from this date
@@ -64,14 +64,13 @@ class TransformerConfig:
         self.LOOKBACK_LIST = [1, 7, 14, 30, 60]
         self.FORECAST_LIST = [7, 14, 30, 60]
         self.HEAD_SIZE_LIST = [2, 4, 8]
-        self.NUM_HEADS_LIST = [1, 2, 4]
-        self.FF_DIM_LIST = [8, 16, 32]
+        self.NUM_HEADS_LIST = [2, 4, 8]
         self.ACTIVATIONS_LIST = ['tanh', 'relu']
         self.COVID_TOKEN_LIST = [False, True]
         self.HEAD_SIZE_LIST = [2, 8, 16, 32]
         self.NUM_HEADS_LIST = [2, 4, 8]
         self.FF_DIM_LIST = [8, 16, 32, 64]
-        self.MLP_UNITS_LIST = [16, 32, 64, 128]
+        self.MLP_UNITS_LIST = [ 64, 128]
 
         
         
