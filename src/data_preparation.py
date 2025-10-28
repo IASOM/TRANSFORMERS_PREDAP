@@ -12,7 +12,7 @@ from dateutil.easter import easter
 from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler 
 
-
+MAX_DATE = '2021-06-30'
 # Define function for train-test split
 def split_train_test(df, split_ratio=0.8):
     """
@@ -34,7 +34,7 @@ def split_train_test(df, split_ratio=0.8):
 
 
 
-def normalize_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = '2019-01-01'):
+def normalize_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE):
     # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
@@ -69,7 +69,7 @@ def normalize_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_da
     return df
 
 
-def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = '2019-01-01'):
+def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE):
     # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
@@ -280,7 +280,7 @@ def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date =
     return X, Y
 
 
-def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = '2010-01-01', max_date = '2019-01-01'):
+def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = '2010-01-01', max_date = MAX_DATE):
     """
     Extracts the 'date' column from the CSV file to align with the test dataset for plotting.
 
@@ -316,7 +316,7 @@ def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = 
     return date_list.tolist()
 
 
-def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01', max_date = '2019-01-01'):
+def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01', max_date = MAX_DATE):
     """
     Prepares a time series dataset by adding date-related features (holidays, school vacations, etc.)
     and dummifying categorical variables.

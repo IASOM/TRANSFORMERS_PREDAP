@@ -141,7 +141,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     a warmup phase, then applies cosine decay for the remaining training steps.
     """
     
-    def __init__(self, initial_lr=1e-4, max_lr=1e-3, min_lr=1e-5, 
+    def __init__(self, initial_lr=1e-5, max_lr=1e-4, min_lr=1e-6, 
                  warmup_steps=20, total_steps=50):
         """
         Initialize the CustomCosineDecay learning rate schedule.

@@ -88,7 +88,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     Defaults to 50 epochs total and 20 warmup steps.
     """
     
-    def __init__(self, initial_lr=1e-5, max_lr=1e-4, min_lr=1e-6, warmup_steps=20, total_steps=50):
+    def __init__(self, initial_lr=1e-5, max_lr=5e-5, min_lr=1e-6, warmup_steps=20, total_steps=50):
         """
         Initialize the learning rate schedule.
         
