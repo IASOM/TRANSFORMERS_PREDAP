@@ -78,7 +78,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
         x = layers.Dense(dim, activation=activation_function)(x)
         x = layers.Dropout(mlp_dropout)(x)
-    outputs = layers.Dense(n_pred, activation = 'sigmoid')(x)
+    outputs = layers.Dense(n_pred)(x)
     return keras.Model(inputs, outputs)
 
 
