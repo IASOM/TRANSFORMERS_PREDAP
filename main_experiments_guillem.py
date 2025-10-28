@@ -50,7 +50,7 @@ def safe_float(value):
 
 # MAIN TRANSFORMER MODEL 
 COVID_TOKEN = True
-ACTIVATION_FUNCTION = 'tanh'
+ACTIVATION_FUNCTION = 'relu'
 POSITIONAL_ENCODING  = False
 
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
@@ -63,9 +63,10 @@ HEAD_SIZE_LIST = default_config.HEAD_SIZE_LIST
 NUM_HEADS_LIST = default_config.NUM_HEADS_LIST
 FF_DIM_LIST = default_config.FF_DIM_LIST
 MLP_UNITS_LIST = default_config.MLP_UNITS_LIST
+DATA_PATH = default_config.DATA_PATH
 
 
-df = pd.read_csv(default_config.DATA_PATH)
+df = pd.read_csv(DATA_PATH)
 
 # Track overall experiment metrics
 total_runs = len(CODES_LIST) * len(LOOKBACK_LIST) * len(FORECAST_LIST)
@@ -115,6 +116,7 @@ for CODE in CODES_LIST:
                                     "model_type": "transformer",
                                     "run_number": run_counter,
                                     "total_runs": total_runs, 
+                                    "dataset": DATA_PATH,
                                     "activation_function": ACTIVATION_FUNCTION,
                                     "covid_token": COVID_TOKEN,
                                     "cutoff_date": CUTOFF_DATE,

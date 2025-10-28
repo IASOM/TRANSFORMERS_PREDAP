@@ -29,7 +29,7 @@ class TransformerConfig:
         self.DROPOUT = 0.5      # dropout rate for transformer layers
         
         # Training Parameters
-        self.LEARNING_RATE = 0.001     # initial learning rate
+        self.LEARNING_RATE = 1e-5     # initial learning rate
         self.EPOCHS = 100              # maximum number of training epochs
         self.BATCH_SIZE = 16           # batch size for training
         self.EARLY_STOP_PATIENCE = 20  # early stopping patience
@@ -38,7 +38,7 @@ class TransformerConfig:
         # Learning Rate Schedule Parameters
         self.LR_WARMUP_RATIO = 0.2     # warmup steps as ratio of total epochs
         self.LR_MAX_MULTIPLIER = 100   # max LR = initial_lr * this value
-        self.LR_MIN_MULTIPLIER = 10    # min LR = initial_lr * this value
+        self.LR_MIN_MULTIPLIER = 0.1    # min LR = initial_lr * this value
         
         # Data Parameters
         self.DATA_PATH = "TRANSFORMERS_PREDAP/src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
