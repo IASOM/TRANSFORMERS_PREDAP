@@ -39,6 +39,8 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_functio
     x = layers.Dropout(dropout)(x)  # dropout again
     x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1, activation=activation_function)(x)  # reduces feature dim back to match input size
     x = x + res
+
+    x = layers.LayerNormalization(epsilon=1e-6)(x)
     
     return x
 
@@ -75,9 +77,11 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
     x = layers.Flatten()(x)  # flatten before MLP
+    
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
         x = layers.Dense(dim, activation=activation_function)(x)
         x = layers.Dropout(mlp_dropout)(x)
+   
     outputs = layers.Dense(n_pred)(x)
     return keras.Model(inputs, outputs)
 

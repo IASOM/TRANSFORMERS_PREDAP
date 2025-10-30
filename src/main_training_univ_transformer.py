@@ -110,7 +110,7 @@ def main_univ_transformer(lookback, forecast, code,
     start_time = time.perf_counter()
 
     # Prepare data for initial training
-    X, Y = data_preparation.prepare_data(input_directory, code, LOOKBACK, FORECAST,covid_token=COVID_TOKEN, cutoff_date=cutoff_date, debug=True, univariate=True)
+    X, Y = data_preparation.prepare_data(input_directory, code, LOOKBACK, FORECAST,covid_token=COVID_TOKEN, cutoff_date=cutoff_date,train = True, debug=True, univariate=True)
     
     finish_preparing = time.perf_counter()
     time_data_preparation = finish_preparing - start_time

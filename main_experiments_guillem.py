@@ -49,7 +49,7 @@ def safe_float(value):
         return None
 
 # MAIN TRANSFORMER MODEL 
-COVID_TOKEN = True
+COVID_TOKEN = False
 ACTIVATION_FUNCTION = 'tanh'
 POSITIONAL_ENCODING  = False
 
@@ -102,7 +102,7 @@ for CODE in CODES_LIST:
                             run_counter += 1
                             
                             # Start MLflow run for this specific configuration
-                            run_name = f"Grid_search_transformer_{CODE}_lb{lb}_fh{fh}_{datetime.now().strftime('%H%M%S')}"
+                            run_name = f"V2_Experiments_Guillem_transformer_{CODE}_lb{lb}_fh{fh}_{datetime.now().strftime('%H%M%S')}"
                             with mlflow.start_run(run_name=run_name) as run:
                                 print(f"\n🚀 [{run_counter}/{total_runs}] Starting MLflow run: {run_name}")
                                 print(f"   • Run ID: {run.info.run_id}")

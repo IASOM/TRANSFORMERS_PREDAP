@@ -34,21 +34,25 @@ def split_train_test(df, split_ratio=0.8):
 
 
 
-def normalize_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE, target_code=None):
+def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE, target_code=None):
     # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
-    if 'timestamp' not in df.columns:
+    if 'timestamp' not in train_df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp(date_cutoff)
-    max_dt = pd.Timestamp(max_date)
-    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    train_df['timestamp'] = pd.to_datetime(train_df['timestamp'], errors='coerce')
+    test_df['timestamp'] = pd.to_datetime(test_df['timestamp'], errors='coerce')
+    
+    
     scaler = MinMaxScaler()
-    codes = [code for code in df.columns if code != 'timestamp']
-    df[codes] = scaler.fit_transform(df[codes].values)
+    codes = [code for code in train_df.columns if (code != 'timestamp' and code != target_code)]
+    scaler.fit(train_df[codes].values)
+    train_df[codes] = scaler.transform(train_df[codes].values)  
+    test_df[codes] = scaler.transform(test_df[codes].values)
     if target_code is not None:
         # Min-max scale ONLY the target column (univariate)
         scaler_target = MinMaxScaler()
-        df[[target_code]] = scaler_target.fit_transform(df[[target_code]].values)
+        scaler_target = scaler_target.fit(train_df[[target_code]].values)
+        test_df[[target_code]] = scaler_target.transform(test_df[[target_code]].values)
+        train_df[[target_code]] = scaler_target.transform(train_df[[target_code]].values)
     '''for code in df.columns:
         if code != 'timestamp':
             df[code] = pd.to_numeric(df[code], errors='coerce')
@@ -64,12 +68,12 @@ def normalize_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_da
     if save_data and csv_file is not None:
         input_path = Path(csv_file)
         parent_dir = input_path.parent if input_path.parent != Path('.') else AssertionError("Input path must have a parent directory.")
-        output_file = parent_dir / f"normalized_{input_path.name}"
-        df.to_csv(output_file, index=False)
+        output_file = parent_dir / f"train_df_normalized_{input_path.name}"
+        train_df.to_csv(output_file, index=False)
         print(f"Normalized data saved to: {output_file}")
     
 
-    return df
+    return train_df, test_df
 
 
 def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE):
@@ -104,7 +108,7 @@ def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = F
 
 
 
-def inverse_transform_predictions(predictions, original_scale_df, code, cutoff_date='2010-01-01'):
+def inverse_transform_predictions(predictions, original_scale_df, code, cutoff_date='2010-01-01', max_dt = '2021-06-30'):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -124,7 +128,8 @@ def inverse_transform_predictions(predictions, original_scale_df, code, cutoff_d
     # Fit scaler on original values
     original_scale_df['timestamp'] = pd.to_datetime(original_scale_df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
-    original_scale_df = original_scale_df[original_scale_df['timestamp'] > cutoff].reset_index(drop=True)  # Subset the DataFrame
+    original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_dt)].reset_index(drop=True)  # Subset the DataFrame
+    
     train_df, test_df = split_train_test(original_scale_df)
     '''codes = [code for code in train_df.columns if code != 'timestamp']
     scaler = MinMaxScaler()
@@ -144,8 +149,14 @@ def inverse_transform_predictions(predictions, original_scale_df, code, cutoff_d
     # Min-max scale ONLY the target column (univariate)
     scaler_target = MinMaxScaler()
     scaler_target.fit(train_df[[code]].values)
-    pred_original_scale = scaler_target.inverse_transform(predictions.reshape(-1, 1))
-    pred_original_scale = pred_original_scale.reshape(predictions.shape)
+    pred_original_scale = np.zeros_like(predictions)
+
+    for i, pred in enumerate(predictions):
+        pred = pred.reshape(-1, 1)
+        pred_orig = scaler_target.inverse_transform(pred)
+        pred_original_scale[i] = pred_orig.flatten()
+
+    #pred_original_scale = pred_original_scale.reshape(predictions.shape)
 
     return pred_original_scale
 
@@ -178,13 +189,12 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',c
 
     df = cut_dataframe(df, cutoff_date, csv_file)
     train_df, test_df = split_train_test(df)
-    
+    train_df, test_df = normalize_dataframe(train_df,test_df, cutoff_date, csv_file, target_code=code)
+
     if train:
         df = train_df
     else:
         df = test_df
-
-    df = normalize_dataframe(df, cutoff_date, csv_file, target_code=code)
 
     if univariate:
         # univariate scenario ...................................................
@@ -197,7 +207,7 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',c
 
         # Convert to numpy arrays
         X_raw = df[feature_cols].values.reshape(-1, 1)  # Ensure shape is (rows, 1)
-        Y_raw = df[target_col].values # Target values
+        Y_raw = df[target_col].values.reshape(-1, 1) # Target values
         print(X_raw.shape, Y_raw.shape)
     else: 
         # multivariate scenario ..................................................
