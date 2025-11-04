@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Add the src directory to path for module imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -139,8 +140,8 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     # Error distribution for middle horizon (absolute)
     orig_errors_mid = np.abs(orig_res_mid)
     corr_errors_mid = np.abs(corr_res_mid)
-    axes[1, 1].hist(orig_errors_mid, bins=30, alpha=0.6, label=f'Original (MAE: {np.mean(orig_errors_mid):.4f})', color='C0')
-    axes[1, 1].hist(corr_errors_mid, bins=30, alpha=0.6, label=f'Corrected (MAE: {np.mean(corr_errors_mid):.4f})', color='C1')
+    axes[1, 1].hist(orig_errors_mid, bins=30, alpha=0.6, label=f'Original (MAE: {mean_absolute_error(actual_values, original_predictions):.4f})', color='C0')
+    axes[1, 1].hist(corr_errors_mid, bins=30, alpha=0.6, label=f'Corrected (MAE: {mean_absolute_error(actual_values, corrected_predictions):.4f})', color='C1')
     axes[1, 1].set_title('Error Distribution (middle horizon)')
     axes[1, 1].set_xlabel('Absolute Error')
     axes[1, 1].set_ylabel('Frequency')

@@ -31,8 +31,8 @@ import evaluation_plot_utils
 # Import from residual_multivariate_transformers module
 from residual_multivariate_transformers import (
     # Configuration
-    DEFAULT_FORECAST, DEFAULT_LOOKBACK, DEFAULT_LEARNING_RATE,
-    DEFAULT_DATA_PATH, DEFAULT_MODEL_DIR, COVID_TOKEN,DEFAULT_MODEL_DIR,
+    DEFAULT_FORECAST, DEFAULT_LOOKBACK, DEFAULT_MODEL_DIR,
+
     
     # Model Architecture
     hybrid_lstm_transformer_model, CustomCosineDecay,
@@ -62,17 +62,27 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
                                                head_size = 2,
                                                ff_dim = 8,
                                                predictions_train_corrected = None, 
-                                               predictions_test_corrected = None):
+                                               predictions_test_corrected = None,
+                                               
+                                               dropout=None,
+                                               learning_rate= None,
+                                               data_path=None):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
     forecast = forecast
     lookback = lookback
-    ff_dim = 8
-    learning_rate = DEFAULT_LEARNING_RATE
-    diagnostic_covariates_path = f'{diagnostic_covariates_path}_{code}.xlsx'
+    ff_dim = ff_dim
+
+    diagnostic_covariates_path = f'../data/{diagnostic_covariates_path}_{code}.xlsx'
     diagnostic_covariates_df = pd.read_excel(diagnostic_covariates_path, engine='openpyxl')
     diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] == forecast]['predictors'])[0].split(',')
+    
+    
+    dropout = dropout
+    learning_rate = learning_rate
+    data_path = data_path
+
     if covid_token is None:
         COVID_TOKEN = COVID_TOKEN
     else:
@@ -108,7 +118,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     print("="*50)
     
     
-    input_directory = DEFAULT_DATA_PATH
+    input_directory = data_path
     
     
     # Load and prepare data for the base model
@@ -120,7 +130,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
 
     if predictions_train_corrected is None:
         predictions_train, predictions_test = load_base_model_transformer(
-           X_train, X_test, DEFAULT_MODEL_DIR, base_model_name
+           X_train, X_test, DEFAULT_MODEL_DIR , base_model_name
         )
     else:
         predictions_train = predictions_train_corrected
@@ -171,8 +181,11 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     'head_size': HEAD_SIZE,
     'num_heads': NUM_HEADS,
     'ff_dim': FF_DIM,
-    'dropout': 0.2
+    'dropout': dropout
     }
+
+
+
 
     residual_model = hybrid_lstm_transformer_model(
         input_shape=(lookback, X_train_covs.shape[2]), 
@@ -191,7 +204,8 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
         epochs=100,
         save_model=True,
         save_memory=False,
-        callbacks=None
+        callbacks=None,
+        save_history=True,
     )
 
     predicted_residuals_train = residual_model.predict(X_train_covs, verbose=1)
@@ -219,8 +233,8 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     print(f"Test covariates shape: {X_test_covs.shape}")
     
     # Load the trained residual model (in case it was saved and reloaded)
-    if os.path.exists(DEFAULT_MODEL_DIR + residual_model_name):
-        residuals_model_path = os.path.join(DEFAULT_MODEL_DIR, residual_model_name)
+    if os.path.exists(data_path + residual_model_name):
+        residuals_model_path = os.path.join(data_path, residual_model_name)
         residual_model = load_trained_model(residuals_model_path)
     
     # Predict residuals for the test set
@@ -241,11 +255,11 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     
 
     corrected_forecast_orig = data_preparation.inverse_transform_predictions(
-        corrected_forecast, original_scale_df, code, cutoff_date=cutoff_date
+        corrected_forecast, original_scale_df, code, lookback=lookback, forecast=forecast, cutoff_date=cutoff_date
     )
 
     predictions_test_orig = data_preparation.inverse_transform_predictions(
-        predictions_test, original_scale_df, code, cutoff_date=cutoff_date
+        predictions_test, original_scale_df, code, lookback=lookback, forecast=forecast, cutoff_date=cutoff_date
     )
     print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")
     
@@ -266,9 +280,9 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     df_waves = create_pandemic_waves_df()
     
     # Prepare data for plotting (average across forecast horizon if needed)
-    predictions_to_plot = predictions_test_orig.mean(axis=1) if len(predictions_test_orig.shape) > 2 else predictions_test_orig
-    corrected_to_plot = corrected_forecast_orig.mean(axis=1) if len(corrected_forecast_orig.shape) > 2 else corrected_forecast_orig
-    Y_test_to_plot = Y_test_orig.mean(axis=1) if len(Y_test_orig.shape) > 2 else Y_test_orig
+    predictions_to_plot = predictions_test_orig[:,-1] if len(predictions_test_orig.shape) > 2 else predictions_test_orig
+    corrected_to_plot = corrected_forecast_orig[:,-1]if len(corrected_forecast_orig.shape) > 2 else corrected_forecast_orig
+    Y_test_to_plot = Y_test_orig[:,-1] if len(Y_test_orig.shape) > 2 else Y_test_orig
     
     # Plot predictions with pandemic waves
     print("Plotting predictions with pandemic waves...")
@@ -350,7 +364,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
         code=code
     )
 
-    compare_model_performance()
+    #compare_model_performance()
     
     print("\n" + "="*50)
     print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")

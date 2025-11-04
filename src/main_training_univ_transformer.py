@@ -10,6 +10,7 @@ import tensorflow as tf
 import time
 import os
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import Huber
 
 
 from univariate_transformer import (
@@ -42,7 +43,11 @@ def main_univ_transformer(lookback, forecast, code,
                           head_size = default_config.HEAD_SIZE, num_heads = default_config.NUM_HEADS,
                           ff_dim = default_config.FF_DIM, num_transformer_blocks = default_config.NUM_TRANSFORMER_BLOCKS,
                           mlp_units = default_config.MLP_UNITS,
-                          positional_encoding = False):
+                          positional_encoding = False,
+                          dropout = default_config.DROPOUT,
+                          learning_rate = default_config.LEARNING_RATE,
+                          data_path = default_config.DATA_PATH
+                          ):
     """Main function that orchestrates the training and evaluation pipeline."""
     
     # Use provided config or default configuration
@@ -50,7 +55,10 @@ def main_univ_transformer(lookback, forecast, code,
         config = default_config
     
     # Print configuration for transparency
-    config.print_config()
+    config.print_config(head_size=head_size, num_heads=num_heads, num_transformer_blocks=num_transformer_blocks,
+                        ff_dim=ff_dim, lookback=lookback, forecast=forecast, learning_rate=learning_rate,
+                        epochs=config.EPOCHS, batch_size=config.BATCH_SIZE, early_stop_patience=config.EARLY_STOP_PATIENCE,
+                        target_code=code, date_cutoff=cutoff_date)
     
     # Extract configuration values for easier access
     FORECAST = forecast
@@ -62,15 +70,15 @@ def main_univ_transformer(lookback, forecast, code,
     NUM_TRANSFORMER_BLOCKS = num_transformer_blocks
     FF_DIM = ff_dim
     MLP_UNITS = mlp_units
-    MLP_DROPOUT = config.MLP_DROPOUT
-    DROPOUT = config.DROPOUT
-    LEARNING_RATE = config.LEARNING_RATE
+    MLP_DROPOUT = dropout
+    DROPOUT = dropout
+    LEARNING_RATE = learning_rate
     EPOCHS = config.EPOCHS
     EARLY_STOP_PATIENCE = config.EARLY_STOP_PATIENCE
     BATCH_SIZE = config.BATCH_SIZE
     SHUFFLE = config.SHUFFLE_DATA
 
-    DATA_PATH = config.DATA_PATH
+    DATA_PATH = data_path
     MODEL_FOLDER = config.MODEL_DIR
     PLOTS_DIR = config.PLOTS_DIR
     if covid_token is None:
@@ -89,13 +97,13 @@ def main_univ_transformer(lookback, forecast, code,
 
     # Load and preprocess data using configuration
     
-    df = load_and_preprocess_data(DATA_PATH, target_code=code)
+    '''df = load_and_preprocess_data(DATA_PATH, target_code=code)
     
     print("Loaded data shape:", df.shape)
     print("Date range:", df.index.min(), "to", df.index.max())
 
     # Plot example data
-    plot_example(df, f"RAW DATA (example 10 diags) - {code}")
+    plot_example(df, f"RAW DATA (example 10 diags) - {code}")'''
 
     
     input_directory = DATA_PATH
@@ -134,7 +142,7 @@ def main_univ_transformer(lookback, forecast, code,
     model.summary()
 
     # Create learning rate scheduler using configuration
-    lr_params = config.get_lr_schedule_params()
+    lr_params = config.get_lr_schedule_params(learning_rate=LEARNING_RATE)
     scheduler = CustomCosineDecay(**lr_params)
 
     # Setup callbacks
@@ -149,7 +157,7 @@ def main_univ_transformer(lookback, forecast, code,
     ]
 
     # Compile model
-    model.compile(loss='MSE', metrics=['mae', 'mse'], optimizer=Adam(clipnorm = 1.0, learning_rate=LEARNING_RATE, weight_decay=1e-5))
+    model.compile(loss='MAE', metrics=['mae', 'mse'], optimizer=Adam(clipnorm = 2.0, learning_rate=LEARNING_RATE, weight_decay=1e-4))
 
     # Train initial model
     MODEL_NAME = f'{code}_example_transformer_{FORECAST}fh_{FF_DIM}ff_{LOOKBACK}lb_{LEARNING_RATE}initlr.keras'

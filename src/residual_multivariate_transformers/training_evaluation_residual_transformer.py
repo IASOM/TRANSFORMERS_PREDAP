@@ -145,8 +145,9 @@ def train_given_model_and_data(model, X, Y,
 
     # Save training history
     if save_history:
-        history_filename = f'{model_name}_history.pkl'
-        with open(history_filename, 'wb') as file_pi:
+        raw_model_name = model_name.replace('.keras', '')
+        history_filename = f'{raw_model_name}_history.pkl'
+        with open('history/' + history_filename, 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
         print(f"Training history saved to: {history_filename}")
     

@@ -65,7 +65,8 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
         model_name = "testing"
 
     if save_history:  # save training history
-        with open(f'{model_name}_history.pkl', 'wb') as file_pi:
+        raw_model_name = model_name.replace('.keras', '')
+        with open(f'history/{raw_model_name}_history.pkl', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
     
     if save_model and epochs > 1:  # save model

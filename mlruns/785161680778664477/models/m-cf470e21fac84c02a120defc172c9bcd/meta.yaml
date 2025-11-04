@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-cf470e21fac84c02a120defc172c9bcd/artifacts
+creation_timestamp: 1762243222372
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762243246829
+model_id: m-cf470e21fac84c02a120defc172c9bcd
+model_type: null
+name: shivering-wasp-52
+source_run_id: 8ad50abf973b404e85712b778595d4c5
+status: 2
+status_message: null

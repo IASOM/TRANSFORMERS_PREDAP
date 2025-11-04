@@ -60,7 +60,12 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
                                              ff_dim=8,
                                              mlp_units=64,
                                              predictions_train_corrected = None, 
-                                             predictions_test_corrected = None):
+                                             predictions_test_corrected = None,
+                                             dropout=0.2,
+                                             learning_rate=DEFAULT_LEARNING_RATE,
+                                             data_path = DEFAULT_DATA_PATH,
+                                             
+                                             ):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -68,7 +73,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     forecast = forecast
     lookback = lookback
     ff_dim = 8
-    learning_rate = DEFAULT_LEARNING_RATE
+    learning_rate = learning_rate
     if covid_token is None:
         COVID_TOKEN = COVID_TOKEN
     else:
@@ -105,7 +110,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     print("="*50)
     
     start_time = time.perf_counter()
-    input_directory = DEFAULT_DATA_PATH
+    input_directory = data_path
     
     # Load and prepare data for the base model
     print("Preparing data for base model...")
@@ -116,7 +121,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     
     if predictions_train_corrected is None:
         predictions_train, predictions_test = load_base_model_transformer(
-           X_train, X_test, DEFAULT_MODEL_DIR, base_model_name, base_model_name
+           X_train, X_test, DEFAULT_MODEL_DIR, base_model_name, 
         )
     else:
         predictions_train = predictions_train_corrected
@@ -138,7 +143,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     print("="*50)
     
     # Load and split the original data for covariate extraction
-    train_split, test_split = split_train_test(pd.read_csv(input_directory), split_ratio=0.8, init_date='2010-01-01')
+    train_split, test_split = split_train_test(pd.read_csv(input_directory), split_ratio=0.8, init_date=cutoff_date)
     
     # Learn covariates from training data
     #df_processed = learn_covariates(train_split)
@@ -168,7 +173,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     'head_size': HEAD_SIZE,
     'num_heads': NUM_HEADS,
     'ff_dim': FF_DIM,
-    'dropout': 0.2
+    'dropout': dropout
     }
     residual_model = hybrid_lstm_transformer_model(
         (forecast, X_train_covs.shape[2]), 
@@ -189,7 +194,8 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
         epochs=100,
         save_model=True,
         save_memory=False,
-        callbacks=None
+        callbacks=None,
+        save_history=True
     )
     
     predicted_residuals_train = residual_model.predict(X_train_covs, verbose=1)
@@ -235,11 +241,11 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
         input_directory, code, lookback, forecast,covid_token=COVID_TOKEN, cutoff_date=cutoff_date, train=False, univariate=True
     )
     corrected_forecast_orig = data_preparation.inverse_transform_predictions(
-        corrected_forecast, original_scale_df, code , cutoff_date=cutoff_date
+        corrected_forecast, original_scale_df, code ,forecast=forecast,lookback=lookback, cutoff_date=cutoff_date
     )
 
     predictions_test_orig = data_preparation.inverse_transform_predictions(
-        predictions_test, original_scale_df, code, cutoff_date=cutoff_date
+        predictions_test, original_scale_df, code, forecast=forecast,lookback=lookback, cutoff_date=cutoff_date
     )
     
     print(f"Corrected forecast shape: {corrected_forecast.shape}")

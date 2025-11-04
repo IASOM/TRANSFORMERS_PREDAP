@@ -278,7 +278,7 @@ def calculate_forecast_metrics(y_true, y_pred):
         'Directional_Accuracy': directional_accuracy
     }
 
-def load_mlflow_model_history(model_name):
+def load_mlflow_model_history(model_name, model_type="univariate_transformer"):
 
     """
     Load training history from an MLflow Keras model.
@@ -288,8 +288,8 @@ def load_mlflow_model_history(model_name):
     Returns:
         dict: Training history  
     """
-
-    history_path = f"{model_name}_history.pkl"
+    raw_model_name = model_name.replace(".keras", "")
+    history_path = f"history/{raw_model_name}_history.pkl"
 
     if os.path.exists(history_path):
         print(f" Found saved history at: {history_path}")
@@ -307,7 +307,7 @@ def load_mlflow_model_history(model_name):
         for epoch, row in history_df.iterrows():
             for metric, value in row.items():
                 if metric != "epoch":
-                    mlflow.log_metric(metric, float(value), step=int(row["epoch"]))
+                    mlflow.log_metric(metric + "_" + model_type, float(value), step=int(row["epoch"]))
         
         # --- Create and log plots ---
         metric_groups = {
@@ -322,7 +322,7 @@ def load_mlflow_model_history(model_name):
 
             plt.figure(figsize=(8, 4))
             for k in available:
-                plt.plot(history_df["epoch"], history_df[k], label=k, linewidth=2)
+                plt.plot(history_df["epoch"], history_df[k], label=k+ "_" + model_type, linewidth=2)
             plt.xlabel("Epoch")
             plt.ylabel(group_name.capitalize())
             plt.title(f"Training vs Validation {group_name.capitalize()}")

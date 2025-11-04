@@ -23,10 +23,10 @@ class TransformerConfig:
         
         # Multi-Layer Perceptron (MLP) Parameters
         self.MLP_UNITS = 32     # number of neurons in fully connected layers
-        self.MLP_DROPOUT = 0.25 # dropout rate for MLP layers
+        self.MLP_DROPOUT = 0.5 # dropout rate for MLP layers
         
         # Regularization Parameters
-        self.DROPOUT = 0.5      # dropout rate for transformer layers
+        self.DROPOUT = 0.2      # dropout rate for transformer layers
         
         # Training Parameters
         self.LEARNING_RATE = 5e-5     # initial learning rate
@@ -41,11 +41,11 @@ class TransformerConfig:
         self.LR_MIN_MULTIPLIER = 10    # min LR = initial_lr * this value
         
         # Data Parameters
-        self.DATA_PATH = "TRANSFORMERS_PREDAP/src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+        self.DATA_PATH = "src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
         
         self.TARGET_CODE = "T14"       # diagnostic code to predict
         self.CODES_LIST = ["J00","T14","M54"]
-        self.DATE_CUTOFF = '2010-01-01'  # filter data from this date
+        self.DATE_CUTOFF = '2008-01-01'  # filter data from this date
         self.TRAIN_SPLIT = 0.8  
                # train/test split ratio
         
@@ -61,7 +61,7 @@ class TransformerConfig:
         self.SAVE_TRAIN_HISTORY = True        # whether to save training history
 
         # Hyperparameter Search Lists
-        self.LOOKBACK_LIST = [1, 7, 14, 30, 60]
+        self.LOOKBACK_LIST = [7, 14, 30, 60]
         self.FORECAST_LIST = [7, 14, 30, 60]
         self.HEAD_SIZE_LIST = [2, 4, 8]
         self.NUM_HEADS_LIST = [2, 4, 8]
@@ -83,10 +83,13 @@ class TransformerConfig:
         lr = lr or self.LEARNING_RATE
         
         return f'{code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{lr}initlr.keras'
-    
-    def get_lr_schedule_params(self):
+
+    def get_lr_schedule_params(self, learning_rate=None):
         """Get learning rate schedule parameters."""
-        lr_init = self.LEARNING_RATE
+        if learning_rate is not None:
+            lr_init = learning_rate
+        else:
+            lr_init = self.LEARNING_RATE
         lr_max = lr_init * self.LR_MAX_MULTIPLIER
         lr_min = lr_init * self.LR_MIN_MULTIPLIER
         warmup_steps = int(self.EPOCHS * self.LR_WARMUP_RATIO)
@@ -99,27 +102,29 @@ class TransformerConfig:
             'total_steps': self.EPOCHS
         }
     
-    def print_config(self):
+    def print_config(self, head_size=None, num_heads=None, num_transformer_blocks=None,
+                     ff_dim=None, lookback=None, forecast=None, learning_rate=None, epochs=None,
+                     batch_size=None, early_stop_patience=None, target_code=None, date_cutoff=None):
         """Print current configuration."""
         print("="*50)
         print("TRANSFORMER CONFIGURATION")
         print("="*50)
         print(f"Model Architecture:")
-        print(f"  - Head Size: {self.HEAD_SIZE}")
-        print(f"  - Number of Heads: {self.NUM_HEADS}")
-        print(f"  - Transformer Blocks: {self.NUM_TRANSFORMER_BLOCKS}")
-        print(f"  - Feed Forward Dimension: {self.FF_DIM}")
+        print(f"  - Head Size: {head_size}")
+        print(f"  - Number of Heads: {num_heads}")
+        print(f"  - Transformer Blocks: {num_transformer_blocks}")
+        print(f"  - Feed Forward Dimension: {ff_dim}")
         print(f"\nTime Series:")
-        print(f"  - Lookback: {self.LOOKBACK}")
-        print(f"  - Forecast: {self.FORECAST}")
+        print(f"  - Lookback: {lookback}")
+        print(f"  - Forecast: {forecast}")
         print(f"\nTraining:")
-        print(f"  - Learning Rate: {self.LEARNING_RATE}")
-        print(f"  - Epochs: {self.EPOCHS}")
-        print(f"  - Batch Size: {self.BATCH_SIZE}")
-        print(f"  - Early Stop Patience: {self.EARLY_STOP_PATIENCE}")
+        print(f"  - Learning Rate: {learning_rate}")
+        print(f"  - Epochs: {epochs}")
+        print(f"  - Batch Size: {batch_size}")
+        print(f"  - Early Stop Patience: {early_stop_patience}")
         print(f"\nData:")
-        print(f"  - Target Code: {self.TARGET_CODE}")
-        print(f"  - Date Cutoff: {self.DATE_CUTOFF}")
+        print(f"  - Target Code: {target_code}")
+        print(f"  - Date Cutoff: {date_cutoff}")
         print("="*50)
 
 

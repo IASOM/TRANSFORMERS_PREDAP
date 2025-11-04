@@ -37,10 +37,8 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_functio
     x = layers.LayerNormalization(epsilon=1e-6)(res)  # again after resid connection
     x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation=activation_function)(x)  # point-wise convol.: Expands feature dim to ff_dim 
     x = layers.Dropout(dropout)(x)  # dropout again
-    x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1, activation=activation_function)(x)  # reduces feature dim back to match input size
+    x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)  # reduces feature dim back to match input size
     x = x + res
-
-    x = layers.LayerNormalization(epsilon=1e-6)(x)
     
     return x
 
@@ -68,15 +66,15 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     x = inputs  # initial input
     d_model = max(head_size * num_heads, 8)
     x = layers.Dense(d_model, activation=activation_function)(inputs)
-    if pos_encoding == True:
+    '''if pos_encoding == True:
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
-    
+    '''
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
-    x = layers.Flatten()(x)  # flatten before MLP
+    
     
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
         x = layers.Dense(dim, activation=activation_function)(x)

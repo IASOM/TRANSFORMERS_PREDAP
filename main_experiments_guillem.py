@@ -161,7 +161,7 @@ for CODE in CODES_LIST:
                                 model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
                                 mlflow.keras.log_model(model)
                                 
-                                load_mlflow_model_history(model_name)
+                                load_mlflow_model_history(model_name, model_type="univariate_transformer" )
 
                                 univ_end_time = datetime.now()
                                 univ_duration = (univ_end_time - univ_start_time).total_seconds()
@@ -197,12 +197,13 @@ for CODE in CODES_LIST:
                                     head_size=head_size,
                                     num_heads=num_heads,
                                     ff_dim=ff_dim,
+                                    data_path = DATA_PATH
                                 )
 
                                 predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
                                                                                                                                                                                                                                                                                                                             
                                 mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
-                                load_mlflow_model_history(residual_diagnostics_model_name)
+                                load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
                                 
                                 diag_end_time = datetime.now()
                                 diag_duration = (diag_end_time - diag_start_time).total_seconds()
@@ -235,7 +236,7 @@ for CODE in CODES_LIST:
                                 )
 
                                 mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
-                                load_mlflow_model_history(residual_seasonal_model_name)
+                                load_mlflow_model_history(residual_seasonal_model_name,  model_type="residual_seasonal_transformer")
                                 
                                 seasonal_end_time = datetime.now()
                                 seasonal_duration = (seasonal_end_time - seasonal_start_time).total_seconds()

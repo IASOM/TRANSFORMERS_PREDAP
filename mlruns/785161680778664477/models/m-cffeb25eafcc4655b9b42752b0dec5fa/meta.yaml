@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-cffeb25eafcc4655b9b42752b0dec5fa/artifacts
+creation_timestamp: 1762252880500
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762252914453
+model_id: m-cffeb25eafcc4655b9b42752b0dec5fa
+model_type: null
+name: welcoming-ray-432
+source_run_id: 944a20b919c64ed7a4c980dd907002d3
+status: 2
+status_message: null

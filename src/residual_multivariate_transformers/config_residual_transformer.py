@@ -57,7 +57,7 @@ DEFAULT_FORECAST = 30
 DEFAULT_LOOKBACK = 30
 
 # Default Learning Rate
-DEFAULT_LEARNING_RATE = 1e-5
+DEFAULT_LEARNING_RATE = 5e-5
 
 # Model Saving Parameters
 DEFAULT_SAVE_PARAMS = {
@@ -83,4 +83,4 @@ MEMORY_LOG_FILE = 'memory.csv'
 
 # Directory Paths
 DEFAULT_MODEL_DIR = 'models_covid_token'
-DEFAULT_DATA_PATH = "TRANSFORMERS_PREDAP/src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+DEFAULT_DATA_PATH = "src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"

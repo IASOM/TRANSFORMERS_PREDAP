@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/153886793008816631/models/m-b641cda4bd024b3b9b5ad6b60b96379e/artifacts
+creation_timestamp: 1762179095163
+experiment_id: '153886793008816631'
+last_updated_timestamp: 1762179115767
+model_id: m-b641cda4bd024b3b9b5ad6b60b96379e
+model_type: null
+name: aged-croc-631
+source_run_id: 94f812a846204bd197148da5bbe77bce
+status: 2
+status_message: null

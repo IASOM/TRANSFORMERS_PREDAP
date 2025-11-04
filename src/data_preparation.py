@@ -108,7 +108,7 @@ def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = F
 
 
 
-def inverse_transform_predictions(predictions, original_scale_df, code, cutoff_date='2010-01-01', max_dt = '2021-06-30'):
+def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_dt='2021-06-30'):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -145,16 +145,15 @@ def inverse_transform_predictions(predictions, original_scale_df, code, cutoff_d
         pred_orig = scaler.inverse_transform(pred)
         pred_original_array[i] = pred_orig.flatten()'''
     
-
+    train_df_seq = []
+    
+    for i in range(len(original_scale_df[[code]]) - lookback - forecast + 1):
+        train_df_seq.append(original_scale_df[[code]].values[i + lookback : i + lookback + forecast])  # Future `forecast` values
+    train_df_seq = np.array(train_df_seq).squeeze()
     # Min-max scale ONLY the target column (univariate)
     scaler_target = MinMaxScaler()
-    scaler_target.fit(train_df[[code]].values)
-    pred_original_scale = np.zeros_like(predictions)
-
-    for i, pred in enumerate(predictions):
-        pred = pred.reshape(-1, 1)
-        pred_orig = scaler_target.inverse_transform(pred)
-        pred_original_scale[i] = pred_orig.flatten()
+    scaler_target.fit(train_df_seq)
+    pred_original_scale = scaler_target.inverse_transform(predictions)
 
     #pred_original_scale = pred_original_scale.reshape(predictions.shape)
 
@@ -207,7 +206,7 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',c
 
         # Convert to numpy arrays
         X_raw = df[feature_cols].values.reshape(-1, 1)  # Ensure shape is (rows, 1)
-        Y_raw = df[target_col].values.reshape(-1, 1) # Target values
+        Y_raw = df[target_col].values # Target values
         print(X_raw.shape, Y_raw.shape)
     else: 
         # multivariate scenario ..................................................
@@ -228,6 +227,7 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',c
     if covid_token:
         df_covid = add_covid_token(df)
         covid_feature = df_covid['covid_token'].values.reshape(-1, 1)
+        
         X_raw = np.hstack((X_raw, covid_feature))
     # Generate rolling sequences
     X, Y = [], []
