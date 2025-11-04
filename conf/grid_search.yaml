@@ -48,21 +48,21 @@ hydra:
       model.target_code: T14,J00,M54
       
       # Temporal parameters - lookback and forecast horizons
-      model.lookback: 7,14,30,60,182,365
-      model.forecast: 7,14,30,60,182,365
+      model.lookback: 1,7,14,30,60,182,365
+      model.forecast: 1,7,14,30,60,182,365
       
       # Model architecture parameters
-      model.num_transformer_blocks: 2,4,6
-      model.head_size: 2,4,8
-      model.num_heads: 2,4,8
-      model.ff_dim: 8,16,32
-      model.mlp_units: 32,64,128
+      model.num_transformer_blocks: 4
+      model.head_size: 4
+      model.num_heads: 4
+      model.ff_dim: 32
+      model.mlp_units: 64
       
       # Training hyperparameters
       model.activation: tanh,relu
-      model.covid_token: true,false
-      model.dropout: 0.1,0.3,0.5
-      model.learning_rate: 0.00001,0.00005
+      model.covid_token: false
+      model.dropout: 0.25,0.5
+      model.learning_rate: 0.00001
      
       
       # Optional: Add training configuration parameters to grid search

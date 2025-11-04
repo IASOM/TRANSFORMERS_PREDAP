@@ -189,21 +189,7 @@ python main_experiments_hydra.py --config-path=conf --config-name=grid_search --
 - Can resume by excluding completed parameter combinations
 - Results are saved incrementally
 
-## Comparison: Before vs After
-
-### Before (Nested For Loops)
-```python
-for CODE in CODES_LIST:
-    for head_size in HEAD_SIZE_LIST:
-        for num_heads in NUM_HEADS_LIST:
-            for ff_dim in FF_DIM_LIST:
-                for mlp_units in MLP_UNITS_LIST:
-                    for lb in LOOKBACK_LIST:
-                        for fh in FORECAST_LIST:
-                            # Training logic here...
-```
-
-### After (Hydra)
+### Hydra usage
 ```python
 @hydra.main(config_path="conf", config_name="config")
 def main_experiment(cfg: DictConfig) -> None:
@@ -211,5 +197,3 @@ def main_experiment(cfg: DictConfig) -> None:
 
 # Run with: python script.py --multirun
 ```
-
-Much cleaner, more maintainable, and more powerful!
