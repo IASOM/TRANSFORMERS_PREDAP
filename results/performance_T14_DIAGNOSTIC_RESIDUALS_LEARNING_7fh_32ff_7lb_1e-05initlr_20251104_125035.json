@@ -1,0 +1,31 @@
+{
+    "model_info": {
+        "residual_model_name": "T14_DIAGNOSTIC_RESIDUALS_LEARNING_7fh_32ff_7lb_1e-05initlr.keras",
+        "target_code": "T14",
+        "forecast_horizon": 7,
+        "lookback_window": 7,
+        "evaluation_timestamp": "2025-11-04T12:50:35.616002",
+        "model_type": "Residual Multivariate Transformer"
+    },
+    "original_model_performance": {
+        "MAE": 74.496407,
+        "MSE": 16061.756836,
+        "RMSE": 126.734987
+    },
+    "corrected_model_performance": {
+        "MAE": 84.239075,
+        "MSE": 17381.175781,
+        "RMSE": 131.837687
+    },
+    "improvements": {
+        "MAE_improvement_percent": -13.08,
+        "MSE_improvement_percent": -8.21,
+        "RMSE_improvement_percent": -4.03,
+        "overall_assessment": "negative"
+    },
+    "summary": {
+        "best_metric": "MAE",
+        "best_improvement": -4.026276218813057,
+        "average_improvement": -8.44
+    }
+}

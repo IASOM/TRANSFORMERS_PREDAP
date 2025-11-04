@@ -1,0 +1,31 @@
+{
+    "model_info": {
+        "residual_model_name": "T14_SEASONAL_RESIDUALS_LEARNING_7fh_8ff_7lb_1e-05initlr.keras",
+        "target_code": "T14",
+        "forecast_horizon": 7,
+        "lookback_window": 7,
+        "evaluation_timestamp": "2025-11-04T12:53:23.887618",
+        "model_type": "Residual Multivariate Transformer"
+    },
+    "original_model_performance": {
+        "MAE": 84.239075,
+        "MSE": 17381.175781,
+        "RMSE": 131.837687
+    },
+    "corrected_model_performance": {
+        "MAE": 98.58284,
+        "MSE": 18411.167969,
+        "RMSE": 135.687759
+    },
+    "improvements": {
+        "MAE_improvement_percent": -17.03,
+        "MSE_improvement_percent": -5.93,
+        "RMSE_improvement_percent": -2.92,
+        "overall_assessment": "negative"
+    },
+    "summary": {
+        "best_metric": "MAE",
+        "best_improvement": -2.920312029240522,
+        "average_improvement": -8.62
+    }
+}
