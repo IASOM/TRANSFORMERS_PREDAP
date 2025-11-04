@@ -50,8 +50,8 @@ class TransformerConfig:
                # train/test split ratio
         
         # Directory Parameters
-        self.MODEL_DIR = "models_covid_token"
-        self.PLOTS_DIR = "plots"
+        self.MODEL_DIR = "transformer_outputs/models_covid_token"
+        self.PLOTS_DIR = "transformer_outputs/plots"
         self.LOGS_DIR = "logs"
         
         # Evaluation Parameters

@@ -289,7 +289,7 @@ def load_mlflow_model_history(model_name, model_type="univariate_transformer"):
         dict: Training history  
     """
     raw_model_name = model_name.replace(".keras", "")
-    history_path = f"history/{raw_model_name}_history.pkl"
+    history_path = f"../history/{raw_model_name}_history.pkl"
 
     if os.path.exists(history_path):
         print(f" Found saved history at: {history_path}")
@@ -331,7 +331,7 @@ def load_mlflow_model_history(model_name, model_type="univariate_transformer"):
             plt.tight_layout()
 
             plot_path = f"{model_name}_{group_name}_curve.png"
-            plt.savefig(plot_path)
+            
             plt.close()
 
             # Log as artifact

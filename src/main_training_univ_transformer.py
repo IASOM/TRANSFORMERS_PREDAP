@@ -79,7 +79,7 @@ def main_univ_transformer(lookback, forecast, code,
     SHUFFLE = config.SHUFFLE_DATA
 
     DATA_PATH = data_path
-    MODEL_FOLDER = config.MODEL_DIR
+    MODEL_FOLDER = '../' + config.MODEL_DIR
     PLOTS_DIR = config.PLOTS_DIR
     if covid_token is None:
         COVID_TOKEN = config.COVID_TOKEN

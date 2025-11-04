@@ -82,5 +82,6 @@ HISTORY_EXTENSION = '_history.pkl'
 MEMORY_LOG_FILE = 'memory.csv'
 
 # Directory Paths
-DEFAULT_MODEL_DIR = 'models_covid_token'
+DEFAULT_MODEL_DIR = 'transformer_outputs/models_covid_token'
+DEFAULT_PLOTS_DIR = 'transformer_outputs/plots'
 DEFAULT_DATA_PATH = "src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"

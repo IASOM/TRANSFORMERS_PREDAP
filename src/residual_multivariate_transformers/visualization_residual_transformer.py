@@ -26,7 +26,7 @@ except ImportError:
     print("Warning: evaluation_plot_utils module not found. Some plotting functions may not work.")
     evaluation_plot_utils = None
 
-from .config_residual_transformer import PANDEMIC_WAVES
+from .config_residual_transformer import PANDEMIC_WAVES, DEFAULT_PLOTS_DIR
 
 
 def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix="", show_plt=False, model_name = "Model"):
@@ -149,9 +149,9 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     axes[1, 1].grid(True, alpha=0.3)
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    os.makedirs("plots_residual_transformers", exist_ok=True)
-    plt.savefig(f"plots_residual_transformers/residuals_analysis_{model_name}.png")
-    mlflow.log_artifact(f"plots_residual_transformers/residuals_analysis_{model_name}.png", artifact_path="plots")
+    os.makedirs('../' + DEFAULT_PLOTS_DIR, exist_ok=True)
+    plt.savefig(f"../{DEFAULT_PLOTS_DIR}/residuals_analysis_{model_name}.png")
+    mlflow.log_artifact(f"../{DEFAULT_PLOTS_DIR}/residuals_analysis_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -369,7 +369,7 @@ def plot_training_history(history, model_name="Model", show_plt=False):
     axes[1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    os.makedirs("plots_residual_transformers", exist_ok=True)
+    os.makedirs("../transformer_outputs/plots_residual_transformers", exist_ok=True)
     plt.savefig(f"plots_residual_transformers/training_history_{model_name}.png")
 
     mlflow.log_artifact(f"plots_residual_transformers/training_history_{model_name}.png", artifact_path="plots")

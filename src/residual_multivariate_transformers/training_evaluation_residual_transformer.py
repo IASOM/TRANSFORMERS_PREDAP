@@ -147,14 +147,14 @@ def train_given_model_and_data(model, X, Y,
     if save_history:
         raw_model_name = model_name.replace('.keras', '')
         history_filename = f'{raw_model_name}_history.pkl'
-        with open('history/' + history_filename, 'wb') as file_pi:
+        with open('../history/' + history_filename, 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
         print(f"Training history saved to: {history_filename}")
     
     # Save model
     if save_model and epochs > 1:
-        os.makedirs(os.path.join(DEFAULT_MODEL_DIR, "models"), exist_ok=True)
-        model.save(os.path.join(DEFAULT_MODEL_DIR, model_name))
+        os.makedirs('../' + DEFAULT_MODEL_DIR, exist_ok=True)
+        model.save(os.path.join('../' + DEFAULT_MODEL_DIR, model_name))
         print(f"Model saved to: {model_name}")
         
     # Log memory usage if enabled
@@ -311,8 +311,8 @@ def save_performance_results(model_name, original_mae, original_mse, original_rm
     """
     
     # Create output directory if it doesn't exist
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not os.path.exists('../' +output_dir):
+        os.makedirs('../' + output_dir)
         print(f"Created directory: {output_dir}")
     
     # Calculate improvements
@@ -358,7 +358,7 @@ def save_performance_results(model_name, original_mae, original_mse, original_rm
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     clean_model_name = model_name.replace('.keras', '').replace('/', '_').replace('\\', '_')
     filename = f"performance_{clean_model_name}_{timestamp}.json"
-    filepath = os.path.join(output_dir, filename)
+    filepath = os.path.join('../' +output_dir, filename)
     
     # Save to JSON file
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -383,11 +383,11 @@ def load_performance_results(results_dir="results"):
     list
         List of loaded performance dictionaries
     """
-    if not os.path.exists(results_dir):
+    if not os.path.exists('../' +results_dir):
         print(f"Results directory '{results_dir}' not found.")
         return []
     
-    json_files = [f for f in os.listdir(results_dir) if f.endswith('.json') and f.startswith('performance_')]
+    json_files = [f for f in os.listdir('../' +results_dir) if f.endswith('.json') and f.startswith('performance_')]
     
     if not json_files:
         print(f"No performance JSON files found in '{results_dir}'.")
@@ -398,7 +398,7 @@ def load_performance_results(results_dir="results"):
     print("="*80)
     
     for json_file in sorted(json_files):
-        filepath = os.path.join(results_dir, json_file)
+        filepath = os.path.join('../' +results_dir, json_file)
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 result = json.load(f)
@@ -426,7 +426,7 @@ def load_performance_results(results_dir="results"):
     return results
 
 
-def compare_model_performance(results_dir="results", metric="MAE"):
+def compare_model_performance(results_dir="../results", metric="MAE"):
     """
     Compare performance of multiple models and rank them.
     

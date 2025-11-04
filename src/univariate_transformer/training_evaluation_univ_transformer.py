@@ -66,12 +66,13 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
 
     if save_history:  # save training history
         raw_model_name = model_name.replace('.keras', '')
-        with open(f'history/{raw_model_name}_history.pkl', 'wb') as file_pi:
+        os.makedirs('../history', exist_ok=True)
+        with open(f'../history/{raw_model_name}_history.pkl', 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
     
     if save_model and epochs > 1:  # save model
-        os.makedirs(default_config.MODEL_DIR, exist_ok=True)
-        model.save(default_config.MODEL_DIR +"/" + model_name)
+        os.makedirs('../' + default_config.MODEL_DIR, exist_ok=True)
+        model.save('../' + default_config.MODEL_DIR +"/" + model_name)
 
     if save_memory:  # log memory usage (optional)
         # save memory usage

@@ -1,5 +1,5 @@
 artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/358621261789155666/c68a175f07464dfdbbbf413758bb32a7/artifacts
-end_time: null
+end_time: 1762257764866
 entry_point_name: ''
 experiment_id: '358621261789155666'
 lifecycle_stage: active
@@ -9,6 +9,6 @@ source_name: ''
 source_type: 4
 source_version: ''
 start_time: 1762257218554
-status: 1
+status: 3
 tags: []
 user_id: Sira
