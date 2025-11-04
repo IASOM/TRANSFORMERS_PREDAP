@@ -1,0 +1,11 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-a6fb876bba3845eb9cdcb35e6ae77127/artifacts
+creation_timestamp: 1762272225515
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762272225515
+lifecycle_stage: active
+model_id: m-a6fb876bba3845eb9cdcb35e6ae77127
+model_type: null
+name: angry-cow-88
+source_run_id: 651a1f6af75d4f92af7027f111cef3bc
+status: 1
+status_message: null

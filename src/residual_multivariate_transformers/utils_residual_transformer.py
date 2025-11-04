@@ -455,6 +455,7 @@ def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
         If the model file does not exist
     """
    # Load the base transformer model
+    base_path = "../" + base_path
     
     available_models = os.listdir(base_path) if os.path.exists(base_path) else []
     

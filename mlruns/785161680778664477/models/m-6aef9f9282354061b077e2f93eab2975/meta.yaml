@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-6aef9f9282354061b077e2f93eab2975/artifacts
+creation_timestamp: 1762268772758
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762268799734
+model_id: m-6aef9f9282354061b077e2f93eab2975
+model_type: null
+name: beautiful-fowl-80
+source_run_id: cd43d7e9aab04742a82cd0aa8bca7d64
+status: 2
+status_message: null

@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-a2b49a8169184e20a40dfbc63f68af19/artifacts
+creation_timestamp: 1762268966853
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762268991611
+model_id: m-a2b49a8169184e20a40dfbc63f68af19
+model_type: null
+name: powerful-pig-320
+source_run_id: 5a44336ed40a4e3cbb05fedf799f687d
+status: 2
+status_message: null

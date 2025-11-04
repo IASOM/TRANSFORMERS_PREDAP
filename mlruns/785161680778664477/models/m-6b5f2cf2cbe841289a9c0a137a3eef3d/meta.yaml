@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-6b5f2cf2cbe841289a9c0a137a3eef3d/artifacts
+creation_timestamp: 1762271325841
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762271352881
+model_id: m-6b5f2cf2cbe841289a9c0a137a3eef3d
+model_type: null
+name: luxuriant-deer-394
+source_run_id: b02d69bcc9a94c23a00ac3e7c667c503
+status: 2
+status_message: null

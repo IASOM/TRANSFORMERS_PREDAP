@@ -270,7 +270,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     
     # Plot stepwise errors comparison
     print("Plotting stepwise errors comparison...")
-    plot_stepwise_errors_comparison(Y_test_orig, predictions_test_orig, corrected_forecast_orig, f" {code} Residual Correction", model_name = residual_model_name)
+    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast, f" {code} Residual Correction", model_name = residual_model_name)
     
     # Plot residuals analysis
     print("Plotting residuals analysis...")

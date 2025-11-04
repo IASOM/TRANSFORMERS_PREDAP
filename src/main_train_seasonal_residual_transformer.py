@@ -64,7 +64,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
                                              dropout=0.2,
                                              learning_rate=DEFAULT_LEARNING_RATE,
                                              data_path = DEFAULT_DATA_PATH,
-                                             
+
                                              ):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
@@ -257,7 +257,7 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     
     # Plot stepwise errors comparison
     print("Plotting stepwise errors comparison...")
-    plot_stepwise_errors_comparison(Y_test_orig, predictions_test_orig, corrected_forecast_orig, "Residual Correction", model_name = residual_model_name)
+    plot_stepwise_errors_comparison(Y_test, predictions_test, corrected_forecast_orig, "Residual Correction", model_name = residual_model_name)
     
     # Plot residuals analysis
     print("Plotting residuals analysis...")

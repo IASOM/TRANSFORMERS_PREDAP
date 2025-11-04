@@ -15,6 +15,11 @@ import mlflow
 import pickle
 import matplotlib.pyplot as plt
 
+from .config_univ_transformer import (
+    default_config,
+)
+
+PLOTS_DIR = default_config.PLOTS_DIR
 
 def extract_model_params(model_name):
     """
@@ -330,10 +335,11 @@ def load_mlflow_model_history(model_name, model_type="univariate_transformer"):
             plt.grid(True, linestyle="--", alpha=0.6)
             plt.tight_layout()
 
-            plot_path = f"{model_name}_{group_name}_curve.png"
+            plot_path = f"../{PLOTS_DIR}/{model_name}_{group_name}_curve.png"
             
             plt.close()
-
+            os.makedirs('../' + PLOTS_DIR, exist_ok=True)
+            plt.savefig(plot_path)
             # Log as artifact
             mlflow.log_artifact(plot_path, artifact_path="plots")
 

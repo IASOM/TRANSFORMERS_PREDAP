@@ -30,7 +30,7 @@ class TransformerConfig:
         
         # Training Parameters
         self.LEARNING_RATE = 5e-5     # initial learning rate
-        self.EPOCHS = 100              # maximum number of training epochs
+        self.EPOCHS = 10             # maximum number of training epochs
         self.BATCH_SIZE = 16           # batch size for training
         self.EARLY_STOP_PATIENCE = 20  # early stopping patience
         self.VALIDATION_SPLIT = 0.3    # validation data split ratio

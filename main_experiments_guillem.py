@@ -64,6 +64,7 @@ NUM_HEADS_LIST = default_config.NUM_HEADS_LIST
 FF_DIM_LIST = default_config.FF_DIM_LIST
 MLP_UNITS_LIST = default_config.MLP_UNITS_LIST
 DATA_PATH = default_config.DATA_PATH
+LEARNING_RATE = default_config.LEARNING_RATE
 
 
 df = pd.read_csv(DATA_PATH)
@@ -155,7 +156,9 @@ for CODE in CODES_LIST:
                                     ff_dim = ff_dim, 
                                     mlp_units = mlp_units,
                                     evaluate_model = True,
-                                    positional_encoding = POSITIONAL_ENCODING
+                                    positional_encoding = POSITIONAL_ENCODING,
+                                    data_path = DATA_PATH,
+                                    learning_rate = LEARNING_RATE
                                 )
 
                                 model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
@@ -197,7 +200,10 @@ for CODE in CODES_LIST:
                                     head_size=head_size,
                                     num_heads=num_heads,
                                     ff_dim=ff_dim,
-                                    data_path = DATA_PATH
+                                    data_path = DATA_PATH,
+                                    learning_rate = LEARNING_RATE,
+                                   
+
                                 )
 
                                 predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
@@ -229,6 +235,12 @@ for CODE in CODES_LIST:
                                     cutoff_date=CUTOFF_DATE,
                                     predictions_train_corrected=predictions_train_corrected,
                                     predictions_test_corrected=predictions_test_corrected,
+                                    data_path = DATA_PATH,
+                                    head_size=head_size,
+                                    num_heads=num_heads,
+                                    ff_dim=ff_dim,
+                                    learning_rate = LEARNING_RATE,
+                                    
                                 )
 
                                 predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (

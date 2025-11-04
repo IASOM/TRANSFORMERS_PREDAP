@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-1e2646afa5a240e990d735471e689dad/artifacts
+creation_timestamp: 1762269501513
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762269527588
+model_id: m-1e2646afa5a240e990d735471e689dad
+model_type: null
+name: nervous-shrew-449
+source_run_id: c5fc45af9d8e429a9e17c2158f0c822a
+status: 2
+status_message: null

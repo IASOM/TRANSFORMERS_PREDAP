@@ -369,10 +369,10 @@ def plot_training_history(history, model_name="Model", show_plt=False):
     axes[1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    os.makedirs("../transformer_outputs/plots_residual_transformers", exist_ok=True)
-    plt.savefig(f"plots_residual_transformers/training_history_{model_name}.png")
+    os.makedirs(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/training_history_{model_name}.png")
 
-    mlflow.log_artifact(f"plots_residual_transformers/training_history_{model_name}.png", artifact_path="plots")
+    mlflow.log_artifact(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/training_history_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -408,9 +408,9 @@ def plot_model_comparison(models_results, metric='mae', title="Model Comparison"
     
     plt.tight_layout()
     plt.grid(True, alpha=0.3)
-    os.makedirs("plots_residual_transformers", exist_ok=True)
-    plt.savefig(f"plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
-    mlflow.log_artifact(f"plots_residual_transformers/model_comparison_{metric}_{model_name}.png", artifact_path="plots")
+    os.makedirs(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
+    mlflow.log_artifact(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/model_comparison_{metric}_{model_name}.png", artifact_path="plots")
     if plt_show:
         plt.show()
     plt.close()
