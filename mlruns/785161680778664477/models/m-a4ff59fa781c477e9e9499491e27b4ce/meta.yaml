@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-a4ff59fa781c477e9e9499491e27b4ce/artifacts
+creation_timestamp: 1762337293286
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762337311728
+model_id: m-a4ff59fa781c477e9e9499491e27b4ce
+model_type: null
+name: merciful-shoat-806
+source_run_id: 99d7613b0d0f4d3c9c0672412a2c0c9a
+status: 2
+status_message: null

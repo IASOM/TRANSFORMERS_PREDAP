@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-782886c62b884ef6b74ddc7a6ef08a1e/artifacts
+creation_timestamp: 1762290444822
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762290462982
+model_id: m-782886c62b884ef6b74ddc7a6ef08a1e
+model_type: null
+name: magnificent-ant-746
+source_run_id: 3c35ed19052842adb6388ac29f0b9780
+status: 2
+status_message: null

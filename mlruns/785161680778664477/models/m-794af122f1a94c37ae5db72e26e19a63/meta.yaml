@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-794af122f1a94c37ae5db72e26e19a63/artifacts
+creation_timestamp: 1762275653336
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762275671123
+model_id: m-794af122f1a94c37ae5db72e26e19a63
+model_type: null
+name: dapper-rat-710
+source_run_id: 43913ac115fd43aa8c4281062aae1db8
+status: 2
+status_message: null

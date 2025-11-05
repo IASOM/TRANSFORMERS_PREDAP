@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-b43c2f1f26c542fc943c4cc1c3b40b9d/artifacts
+creation_timestamp: 1762334723523
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762334741335
+model_id: m-b43c2f1f26c542fc943c4cc1c3b40b9d
+model_type: null
+name: mercurial-jay-239
+source_run_id: c1520c59c6054434a66b5f8eb5c322fb
+status: 2
+status_message: null

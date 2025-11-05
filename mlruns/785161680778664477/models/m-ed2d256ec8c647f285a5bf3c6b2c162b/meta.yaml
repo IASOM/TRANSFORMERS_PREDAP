@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-ed2d256ec8c647f285a5bf3c6b2c162b/artifacts
+creation_timestamp: 1762313824777
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762313843145
+model_id: m-ed2d256ec8c647f285a5bf3c6b2c162b
+model_type: null
+name: nosy-vole-13
+source_run_id: e7da438177b24d858fb6d21a02f3b9e9
+status: 2
+status_message: null

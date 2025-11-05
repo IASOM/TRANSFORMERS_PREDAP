@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-bcdbe53b857d4bfeb52cbde77fb04267/artifacts
+creation_timestamp: 1762326153541
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762326171796
+model_id: m-bcdbe53b857d4bfeb52cbde77fb04267
+model_type: null
+name: suave-snake-472
+source_run_id: 1f9adefd4a4543da9c71195653f46cb3
+status: 2
+status_message: null

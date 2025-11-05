@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-62eecf4e390c498f8687c1e5e37f3765/artifacts
+creation_timestamp: 1762302609541
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762302627751
+model_id: m-62eecf4e390c498f8687c1e5e37f3765
+model_type: null
+name: resilient-toad-973
+source_run_id: 437e574111b84dc9aeb6b8f6bffa6899
+status: 2
+status_message: null

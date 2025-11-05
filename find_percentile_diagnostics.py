@@ -2,7 +2,7 @@
 import pandas as pd 
 import numpy as np
 
-def find_code_percentile_diagnostics(data, percentile=95):
+def find_code_percentile_diagnostics(data, percentile=95, top_n= 1):
     """
     Find diagnostic codes that fall within the specified percentile of total counts.
 
@@ -15,13 +15,11 @@ def find_code_percentile_diagnostics(data, percentile=95):
     """
     import pandas as pd
 
-    # Calculate the threshold count for the given percentile
-    threshold = data['count'].quantile(percentile / 100.0)
-
-    # Filter diagnostic codes that meet or exceed the threshold
-    representative_codes = data[data['count'] >= threshold]['diagnostic_code'].tolist()
-
-    return representative_codes
+    sorted_data = data.iloc[0].sort_values(ascending=False)
+    threshold = np.percentile(sorted_data.values, percentile)
+    representative_codes = sorted_data[sorted_data <= threshold].index.tolist()
+    most_representative_code = representative_codes[:top_n]
+    return most_representative_code
 
 def find_more_prevalent_diagnostics(data, top_n=1):
     """
@@ -57,12 +55,21 @@ def aggregate_dataframe(df):
     df = df.drop(columns=['timestamp'])
 
     for code in df.columns:
-        agg_df[code] = np.sum(df[code].values)
+        agg_df[code] = [np.sum(df[code].values)]
     
-    return df
+    return agg_df
 
 if __name__ == "__main__":
     df = pd.read_csv('../data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv')  # Example CSV file
     aggregated_df = aggregate_dataframe(df)
+    representative_codes = find_code_percentile_diagnostics(aggregated_df, percentile=95)
+    
+    
     print("Aggregated DataFrame:")
     print(aggregated_df)
+
+    percentiles = [10, 25, 50, 75, 90]
+
+    for perc in percentiles:
+        codes_in_percentile = find_code_percentile_diagnostics(aggregated_df, percentile=perc, top_n=1)
+        print(f"Diagnostic codes in the {perc}th percentile: {codes_in_percentile}")

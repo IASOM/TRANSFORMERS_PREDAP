@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-c98d492434924f71a3d4ba24d2b55928/artifacts
+creation_timestamp: 1762293153419
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762293171616
+model_id: m-c98d492434924f71a3d4ba24d2b55928
+model_type: null
+name: silent-hawk-515
+source_run_id: f281ecc0fff84a6ab13515d2502eb0fe
+status: 2
+status_message: null

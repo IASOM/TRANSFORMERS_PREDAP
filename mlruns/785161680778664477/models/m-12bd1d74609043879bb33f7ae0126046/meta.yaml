@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-12bd1d74609043879bb33f7ae0126046/artifacts
+creation_timestamp: 1762278474242
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762278492086
+model_id: m-12bd1d74609043879bb33f7ae0126046
+model_type: null
+name: legendary-cat-935
+source_run_id: c8894cfc585a4b69bab4b9ceff7b90fd
+status: 2
+status_message: null

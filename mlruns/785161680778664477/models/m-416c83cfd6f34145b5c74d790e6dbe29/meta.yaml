@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-416c83cfd6f34145b5c74d790e6dbe29/artifacts
+creation_timestamp: 1762282614879
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762282632962
+model_id: m-416c83cfd6f34145b5c74d790e6dbe29
+model_type: null
+name: burly-jay-45
+source_run_id: 5ef55eb5be524ddd8be8456ee5ce36b7
+status: 2
+status_message: null

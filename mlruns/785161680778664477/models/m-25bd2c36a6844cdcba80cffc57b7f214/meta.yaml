@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-25bd2c36a6844cdcba80cffc57b7f214/artifacts
+creation_timestamp: 1762339506503
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762339525541
+model_id: m-25bd2c36a6844cdcba80cffc57b7f214
+model_type: null
+name: chill-worm-542
+source_run_id: 1503b9d5654e4d9aa65dd5d34ccfcf4d
+status: 2
+status_message: null

@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-fff000699e4646f2952047b14fb71580/artifacts
+creation_timestamp: 1762308005103
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762308023135
+model_id: m-fff000699e4646f2952047b14fb71580
+model_type: null
+name: rare-pug-927
+source_run_id: ff73691b297d46ac89843df3c1838753
+status: 2
+status_message: null

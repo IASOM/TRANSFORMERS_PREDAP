@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-6c405c9330a74a0e99f02c8fce3ad114/artifacts
+creation_timestamp: 1762286604736
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762286622806
+model_id: m-6c405c9330a74a0e99f02c8fce3ad114
+model_type: null
+name: polite-fowl-714
+source_run_id: 39955525d0294235b91a440a450fec9e
+status: 2
+status_message: null

@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-a176843a5149495ebb8ee1b241dacf2e/artifacts
+creation_timestamp: 1762323273187
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762323291445
+model_id: m-a176843a5149495ebb8ee1b241dacf2e
+model_type: null
+name: charming-shoat-762
+source_run_id: 54dc03ed1d624acfbebcfbe343b409c2
+status: 2
+status_message: null

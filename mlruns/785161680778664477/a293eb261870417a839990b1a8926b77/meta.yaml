@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/a293eb261870417a839990b1a8926b77/artifacts
+end_time: 1762305546439
+entry_point_name: ''
+experiment_id: '785161680778664477'
+lifecycle_stage: active
+run_id: a293eb261870417a839990b1a8926b77
+run_name: V2_Experiments_Guillem_transformer_J00_lb14_fh14_015213
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762303933853
+status: 3
+tags: []
+user_id: Sira

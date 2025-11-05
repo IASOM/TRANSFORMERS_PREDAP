@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-b624128eb8ae4da4a303e17b079083de/artifacts
+creation_timestamp: 1762335769540
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762335787541
+model_id: m-b624128eb8ae4da4a303e17b079083de
+model_type: null
+name: defiant-dolphin-560
+source_run_id: b89b99f16be1407ab4d8db2d6e0c1158
+status: 2
+status_message: null

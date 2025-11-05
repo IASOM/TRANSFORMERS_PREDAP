@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-591b1fa2b48440bc9bd5a374da1be90c/artifacts
+creation_timestamp: 1762275176363
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762275193816
+model_id: m-591b1fa2b48440bc9bd5a374da1be90c
+model_type: null
+name: unruly-bat-144
+source_run_id: 6a8374c919924da4b3f9d60ba21ea77a
+status: 2
+status_message: null

@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-0742a9e827c843099ad11165a879a6c8/artifacts
+creation_timestamp: 1762305625418
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762305643808
+model_id: m-0742a9e827c843099ad11165a879a6c8
+model_type: null
+name: carefree-shoat-723
+source_run_id: 6d58760de0274f5dbcb480b24bc06338
+status: 2
+status_message: null
