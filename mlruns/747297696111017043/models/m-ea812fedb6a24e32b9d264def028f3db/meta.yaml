@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/747297696111017043/models/m-ea812fedb6a24e32b9d264def028f3db/artifacts
+creation_timestamp: 1762939522159
+experiment_id: '747297696111017043'
+last_updated_timestamp: 1762939530772
+model_id: m-ea812fedb6a24e32b9d264def028f3db
+model_type: null
+name: residual_diagnostics_model
+source_run_id: d1acf9a9fa6b4f1aacbd220be062ea39
+status: 2
+status_message: null

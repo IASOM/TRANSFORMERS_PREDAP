@@ -10,8 +10,10 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import math
-from .config_residual_transformer import DEFAULT_TRANSFORMER_PARAMS, DEFAULT_LSTM_PARAMS
 
+from src.config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
 
 def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dropout=None, activation_function='tanh'):
     """
@@ -37,13 +39,13 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
     """
     # Use default parameters if not provided
     if head_size is None:
-        head_size = DEFAULT_TRANSFORMER_PARAMS['head_size']
+        head_size = default_config.DEFAULT_RESIDUAL_TRANSFORMER_PARAMS['head_size']
     if num_heads is None:
-        num_heads = DEFAULT_TRANSFORMER_PARAMS['num_heads']
+        num_heads = default_config.DEFAULT_RESIDUAL_TRANSFORMER_PARAMS['num_heads']
     if ff_dim is None:
-        ff_dim = DEFAULT_TRANSFORMER_PARAMS['ff_dim']
+        ff_dim = default_config.DEFAULT_RESIDUAL_TRANSFORMER_PARAMS['ff_dim']
     if dropout is None:
-        dropout = DEFAULT_TRANSFORMER_PARAMS['dropout']
+        dropout = default_config.DEFAULT_RESIDUAL_TRANSFORMER_PARAMS['dropout']
     
     # Multi-Head Self-Attention
     x = layers.LayerNormalization(epsilon=1e-6)(inputs)                  
@@ -85,9 +87,9 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     """
     # Use default parameters if not provided
     if lstm_params is None:
-        lstm_params = DEFAULT_LSTM_PARAMS.copy()
+        lstm_params = default_config.DEFAULT_RESIDUAL_LSTM_PARAMS.copy()
     if transformer_params is None:
-        transformer_params = DEFAULT_TRANSFORMER_PARAMS.copy()
+        transformer_params = default_config.DEFAULT_RESIDUAL_TRANSFORMER_PARAMS.copy()
 
 
     

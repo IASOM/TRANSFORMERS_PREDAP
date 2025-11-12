@@ -47,6 +47,7 @@ class BaseTransformerConfig(ABC):
     data_path: str = '../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv'
     cutoff_date: str = "2008-01-01"
     positional_encoding: bool = False
+    default_split_ratio: float = 0.8
     
     # ==================== OPTIONAL PARAMETERS ====================
     covid_token: bool = False
@@ -68,6 +69,54 @@ class BaseTransformerConfig(ABC):
     NUM_HEADS_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
     FF_DIM_LIST: List[int] = field(default_factory=lambda: [8, 16, 32, 64])
     MLP_UNITS_LIST: List[int] = field(default_factory=lambda: [16, 32, 64, 128])
+
+    #Hyperparameters residual transformer
+    # Model Architecture Parameters
+    DEFAULT_RESIDUAL_TRANSFORMER_PARAMS: dict = field(default_factory=lambda:  {
+        'head_size': 2,
+        'num_heads': 2,
+        'ff_dim': 8,
+        'dropout': 0.2
+    })
+
+    DEFAULT_RESIDUAL_LSTM_PARAMS: dict = field(default_factory=lambda: {
+        'units_1': 64,
+        'units_2': 32,
+        'dropout': 0.2,
+        'return_sequences': True
+    })
+
+    # Model Saving Parameters
+    DEFAULT_RESIDUAL_SAVE_PARAMS: dict = field(default_factory=lambda: {
+        'save_history': True,
+        'save_model': True,
+        'save_memory': False
+    })
+    DEFAULT_RESIDUAL_TRAINING_PARAMS: dict = field(default_factory= lambda:{
+        'batch_size': 32,
+        'epochs': 100,
+        'validation_split': 0.1,
+        'shuffle': False,
+        'patience': 25
+    })
+
+    DEFAULT_SEASONAL_CATEGORICAL_VARS: list = field(default_factory=lambda: [
+        "Day_of_Week", 
+        "Month", 
+        "Season", 
+        "Holiday", 
+        "School_Vacation"
+    ])
+
+    PANDEMIC_WAVES: dict = field(default_factory=lambda: {
+        "Primera Onada": ("2020-03", "2020-06"),
+        "Segona Onada": ("2020-10", "2020-12"),
+        "Tercera Onada": ("2021-01", "2021-03"),
+        "Quarta Onada": ("2021-04", "2021-06"),
+    })
+
+    MEMORY_LOG_FILE: str = 'memory.csv'
+
     
     def __post_init__(self):
         """Validate parameters after initialization"""

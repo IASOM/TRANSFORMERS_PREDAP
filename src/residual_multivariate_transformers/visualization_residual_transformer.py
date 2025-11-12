@@ -27,7 +27,9 @@ except ImportError:
     print("Warning: evaluation_plot_utils module not found. Some plotting functions may not work.")
     evaluation_plot_utils = None
 
-from .config_residual_transformer import PANDEMIC_WAVES, DEFAULT_PLOTS_DIR
+from config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
 
 
 def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix="", show_plt=False, model_name = "Model"):
@@ -150,9 +152,9 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     axes[1, 1].grid(True, alpha=0.3)
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    os.makedirs('../' + DEFAULT_PLOTS_DIR, exist_ok=True)
-    plt.savefig(f"../{DEFAULT_PLOTS_DIR}/residuals_analysis_{model_name}.png")
-    mlflow.log_artifact(f"../{DEFAULT_PLOTS_DIR}/residuals_analysis_{model_name}.png", artifact_path="plots")
+    os.makedirs(default_config.plots_dir, exist_ok=True)
+    plt.savefig(f"{default_config.plots_dir}/residuals_analysis_{model_name}.png")
+    mlflow.log_artifact(f"{default_config.plots_dir}/residuals_analysis_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -314,7 +316,7 @@ def create_pandemic_waves_df():
     pd.DataFrame
         DataFrame with pandemic wave periods
     """
-    df_waves = pd.DataFrame(PANDEMIC_WAVES).T.reset_index()
+    df_waves = pd.DataFrame(default_config.PANDEMIC_WAVES).T.reset_index()
     df_waves.columns = ["Onada", "Inici", "Final"]
     df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
     df_waves["Final"] = pd.to_datetime(df_waves["Final"])
@@ -369,10 +371,10 @@ def plot_training_history(history, model_name="Model", show_plt=False):
     axes[1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    os.makedirs(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers", exist_ok=True)
-    plt.savefig(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/training_history_{model_name}.png")
+    os.makedirs(f"{default_config.plots_dir}/plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"{default_config.plots_dir}/plots_residual_transformers/training_history_{model_name}.png")
 
-    mlflow.log_artifact(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/training_history_{model_name}.png", artifact_path="plots")
+    mlflow.log_artifact(f"{default_config.plots_dir}/plots_residual_transformers/training_history_{model_name}.png", artifact_path="plots")
     if show_plt:
         plt.show()
     plt.close()
@@ -408,9 +410,9 @@ def plot_model_comparison(models_results, metric='mae', title="Model Comparison"
     
     plt.tight_layout()
     plt.grid(True, alpha=0.3)
-    os.makedirs(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers", exist_ok=True)
-    plt.savefig(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
-    mlflow.log_artifact(f"../{DEFAULT_PLOTS_DIR}/plots_residual_transformers/model_comparison_{metric}_{model_name}.png", artifact_path="plots")
+    os.makedirs(f"{default_config.plots_dir}/plots_residual_transformers", exist_ok=True)
+    plt.savefig(f"{default_config.plots_dir}/plots_residual_transformers/model_comparison_{metric}_{model_name}.png")
+    mlflow.log_artifact(f"{default_config.plots_dir}/plots_residual_transformers/model_comparison_{metric}_{model_name}.png", artifact_path="plots")
     if plt_show:
         plt.show()
     plt.close()

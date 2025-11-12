@@ -776,3 +776,20 @@ def subset_df_covs_by_index(df, df_covs):
     df_covs_subset = df_covs.loc[df['timestamp'].min():df['timestamp'].max()]
 
     return df_covs_subset
+
+
+def compute_batch_size(lookback, forecast):
+    """
+    Computes an appropriate batch size based on lookback and forecast parameters.
+
+    Parameters:
+    - lookback (int): Number of past timesteps used for input sequences.
+    - forecast (int): Number of timesteps predicted.
+
+    Returns:
+    - int: Computed batch size.
+    """
+    base_size = max(16, (lookback + forecast) // 2)
+    # Round to nearest multiple of 8
+    batch_size = (base_size + 7) // 8 * 8
+    return batch_size

@@ -1,8 +1,8 @@
 {
     "run_info": {
-        "run_id": "235425389233424fb5e5760a9a61be60",
-        "run_name": "HYDRA_transformer_T14_lb1_fh1_095500",
-        "timestamp": "2025-11-12T09:57:41.105044",
+        "run_id": "615bf95328454a33908778470bd6218e",
+        "run_name": "HYDRA_transformer_T14_lb1_fh1_113809",
+        "timestamp": "2025-11-12T11:42:23.278998",
         "hydra_job_num": 0
     },
     "hyperparameters": {
@@ -28,27 +28,27 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 51.350469,
-        "phase_2_diagnostic_seconds": 52.667295,
-        "phase_3_seasonal_seconds": 56.24302,
-        "total_training_seconds": 160.28441,
-        "total_training_minutes": 2.6714068333333336
+        "phase_1_univariate_seconds": 71.045395,
+        "phase_2_diagnostic_seconds": 93.496745,
+        "phase_3_seasonal_seconds": 89.105751,
+        "total_training_seconds": 253.684435,
+        "total_training_minutes": 4.228073916666667
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.12804552912712097,
-            "mae": 208.20204162597656,
-            "mse": 63532.39453125
+            "loss": 0.1661505103111267,
+            "mae": 270.1607360839844,
+            "mse": 103991.78125
         },
         "diagnostic_residual": {
-            "mae": 244.7105712890625,
-            "mse": 87455.15625,
-            "rmse": 295.72817966842456
+            "mae": 206.6197052001953,
+            "mse": 70449.1015625,
+            "rmse": 265.422496338385
         },
         "seasonal_residual": {
-            "mae": 162.46202087402344,
-            "mse": 49057.40625,
-            "rmse": 221.48906575720616
+            "mae": 163.59921264648438,
+            "mse": 44547.97265625,
+            "rmse": 211.0639065691953
         }
     },
     "model_paths": {

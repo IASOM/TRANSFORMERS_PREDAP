@@ -9,15 +9,13 @@ transformer models, including model training, GPU memory management, and callbac
 import os
 import pickle
 import tensorflow as tf
-from .config_residual_transformer import (
-    DEFAULT_TRAINING_PARAMS, 
-    DEFAULT_SAVE_PARAMS, 
-    MEMORY_LOG_FILE,
-    DEFAULT_MODEL_DIR,
-)
 from datetime import datetime
 import json
 import pandas as pd
+
+from config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
 
 
 def setup_gpu_memory():
@@ -86,21 +84,21 @@ def train_given_model_and_data(model, X, Y,
     """
     # Use default parameters if not provided
     if batch_size is None:
-        batch_size = DEFAULT_TRAINING_PARAMS['batch_size']
+        batch_size = default_config.DEFAULT_RESIDUAL_TRAINING_PARAMS['batch_size']
     if epochs is None:
-        epochs = DEFAULT_TRAINING_PARAMS['epochs']
+        epochs = default_config.DEFAULT_RESIDUAL_TRAINING_PARAMS['epochs']
     if validation_split is None:
-        validation_split = DEFAULT_TRAINING_PARAMS['validation_split']
+        validation_split = default_config.DEFAULT_RESIDUAL_TRAINING_PARAMS['validation_split']
     if shuffle is None:
-        shuffle = DEFAULT_TRAINING_PARAMS['shuffle']
+        shuffle = default_config.DEFAULT_RESIDUAL_TRAINING_PARAMS['shuffle']
     if patience is None:
-        patience = DEFAULT_TRAINING_PARAMS['patience']
+        patience = default_config.DEFAULT_RESIDUAL_TRAINING_PARAMS['patience']
     if save_history is None:
-        save_history = DEFAULT_SAVE_PARAMS['save_history']
+        save_history = default_config.DEFAULT_RESIDUAL_SAVE_PARAMS['save_history']
     if save_model is None:
-        save_model = DEFAULT_SAVE_PARAMS['save_model']
+        save_model = default_config.DEFAULT_RESIDUAL_SAVE_PARAMS['save_model']
     if save_memory is None:
-        save_memory = DEFAULT_SAVE_PARAMS['save_memory']
+        save_memory = default_config.DEFAULT_RESIDUAL_SAVE_PARAMS['save_memory']
     
     if model_name is None:
         model_name = "testing"
@@ -153,15 +151,15 @@ def train_given_model_and_data(model, X, Y,
     
     # Save model
     if save_model and epochs > 1:
-        os.makedirs('../' + DEFAULT_MODEL_DIR, exist_ok=True)
-        model.save(os.path.join('../' + DEFAULT_MODEL_DIR, model_name))
+        os.makedirs(default_config.model_folder, exist_ok=True)
+        model.save(os.path.join(default_config.model_folder, model_name))
         print(f"Model saved to: {model_name}")
         
     # Log memory usage if enabled
     if save_memory:
         try:
             memory_info = tf.config.experimental.get_memory_info('GPU:0')
-            with open(MEMORY_LOG_FILE, 'a') as resultcsv:
+            with open(default_config.MEMORY_LOG_FILE, 'a') as resultcsv:
                 resultcsv.write(f"{model_name},{memory_info['peak']},train\n")
             print(f"Current memory usage: {memory_info['current'] / (batch_size**2)} MB")
             print(f"Peak memory usage: {memory_info['peak'] / (batch_size**2)} MB")
@@ -264,7 +262,7 @@ def get_callbacks(patience=None, monitor='val_loss', mode='min',
         List of Keras callbacks
     """
     if patience is None:
-        patience = DEFAULT_TRAINING_PARAMS['patience']
+        patience = default_config.DEFAULT_RESIDUAL_TRAINING_PARAMS['patience']
     
     callbacks = [
         tf.keras.callbacks.EarlyStopping(

@@ -24,12 +24,10 @@ if src_dir not in sys.path:
 
 import data_preparation
 
-from .config_residual_transformer import (
-    DEFAULT_SPLIT_RATIO, 
-    DEFAULT_INIT_DATE, 
-    DEFAULT_CATEGORICAL_VARS,
-    PANDEMIC_WAVES
-)
+
+from config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
 
 
 def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
@@ -57,9 +55,9 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     """
     # Use default parameters if not provided
     if split_ratio is None:
-        split_ratio = DEFAULT_SPLIT_RATIO
+        split_ratio = default_config.default_split_ratio
     if init_date is None:
-        init_date = DEFAULT_INIT_DATE
+        init_date = default_config.cutoff_date
     
     # Keep only rows STRICTLY after init_date using the 'timestamp' column
     if 'timestamp' not in df.columns:
@@ -161,7 +159,7 @@ def learn_covariates(df_split, categorical_vars=None):
     """
     # Use default categorical variables if not provided
     if categorical_vars is None:
-        categorical_vars = DEFAULT_CATEGORICAL_VARS.copy()
+        categorical_vars = default_config.DEFAULT_SEASONAL_CATEGORICAL_VARS.copy()
     
     print(f"Learning covariates with variables: {categorical_vars}")
     
@@ -223,7 +221,7 @@ def create_pandemic_waves_df():
         DataFrame with pandemic wave periods
     """
     # Convert waves dictionary to DataFrame
-    df_waves = pd.DataFrame(PANDEMIC_WAVES).T.reset_index()
+    df_waves = pd.DataFrame(default_config.PANDEMIC_WAVES).T.reset_index()
     df_waves.columns = ["Onada", "Inici", "Final"]
     df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
     df_waves["Final"] = pd.to_datetime(df_waves["Final"])
