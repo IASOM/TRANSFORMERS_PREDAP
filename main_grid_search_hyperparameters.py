@@ -150,7 +150,7 @@ for CODE in CODES_LIST:
                         univ_start_time = datetime.now()
                         mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
                         # Train univariate transformer and capture results
-                        
+                        batch_size = data_preparation.compute_dynamic_batch_size(lookback, forecast)
                         # Create configuration object
                         transformer_config = TransformerUnivConfig(
                             lookback=lookback,
@@ -166,7 +166,8 @@ for CODE in CODES_LIST:
                             evaluate_model = True,
                             positional_encoding = False,
                             data_path = data_path,
-                            learning_rate = 1e-4
+                            learning_rate = 1e-4,
+                            batch_size = batch_size,
                         )
 
                         # Create and run pipeline
@@ -218,7 +219,8 @@ for CODE in CODES_LIST:
                             evaluate_model = True,
                             positional_encoding = False,
                             data_path = data_path,
-                            learning_rate = 1e-4
+                            learning_rate = 1e-4,
+                            batch_size = batch_size,
                         )
 
                         pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
@@ -252,6 +254,7 @@ for CODE in CODES_LIST:
                             cutoff_date=CUTOFF_DATE,
                             predictions_train_corrected=predictions_train_corrected,
                             predictions_test_corrected=predictions_test_corrected,
+                            batch_size = batch_size,
                         )
                         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
                         predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = pipeline.run_complete_pipeline()

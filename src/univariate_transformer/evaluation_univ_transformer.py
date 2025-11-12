@@ -1,15 +1,24 @@
 
-import os 
+import os
+import sys 
 import mlflow
 import tensorflow as tf
-
-import data_preparation
-from univariate_transformer import plt_model, plot_predictions_with_waves, extract_model_params
-from residual_multivariate_transformers import load_base_model_transformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import pandas as pd
 import numpy as np
 import time
+
+
+# Add the src directory to path for module imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir) if os.path.basename(current_dir) != 'src' else current_dir
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+import data_preparation
+from univariate_transformer import plt_model, plot_predictions_with_waves, extract_model_params
+from residual_multivariate_transformers import load_base_model_transformer
+
 
 def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None):
     print(f"\n--- Evaluating model: {model_name} ---")

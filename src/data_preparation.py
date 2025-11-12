@@ -778,7 +778,7 @@ def subset_df_covs_by_index(df, df_covs):
     return df_covs_subset
 
 
-def compute_batch_size(lookback, forecast):
+def compute_dynamic_batch_size(lookback, forecast):
     """
     Computes an appropriate batch size based on lookback and forecast parameters.
 
@@ -789,7 +789,20 @@ def compute_batch_size(lookback, forecast):
     Returns:
     - int: Computed batch size.
     """
-    base_size = max(16, (lookback + forecast) // 2)
-    # Round to nearest multiple of 8
-    batch_size = (base_size + 7) // 8 * 8
+    gpus = tf.config.list_physical_devices('GPU')
+
+    
+    
+    if lookback <= 30 and forecast <= 30:
+        batch_size = 1024
+    elif (30 <= lookback <= 128) and forecast <= 60:
+        batch_size = 512
+    elif 128 <= lookback <= 365 and forecast<= 128:
+        batch_size = 256
+    elif 128 < lookback <= 365 and forecast <=365:
+        batch_size = 128
+
+    if len(gpus) == 0:
+        batch_size = 32
+        
     return batch_size

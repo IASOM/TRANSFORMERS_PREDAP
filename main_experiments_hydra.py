@@ -18,6 +18,8 @@ import pickle
 import hydra
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.global_hydra import GlobalHydra
+from tensorflow.keras import backend as K
+import gc
 
 
 #load and visualize data 
@@ -47,6 +49,18 @@ from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_
 from src.config.base_transformer_config import BaseTransformerConfig
 
 default_config = BaseTransformerConfig()
+
+
+
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
+
 
 # Utility function for safe float conversion
 def safe_float(value):
@@ -158,7 +172,7 @@ def main_experiment(cfg: DictConfig) -> None:
         # ==================== PHASE 1: UNIVARIATE TRANSFORMER ====================
         univ_start_time = datetime.now()
         mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
-        
+        batch_size = data_preparation.compute_dynamic_batch_size(lookback, forecast)
         # Train univariate transformer with parameters from config
         univariate_parameters = TransformerUnivConfig(  
             lookback=lookback,
@@ -176,12 +190,18 @@ def main_experiment(cfg: DictConfig) -> None:
             num_transformer_blocks=num_transformer_blocks,
             dropout=dropout,
             learning_rate=learning_rate,
-            data_path=data_path
+            data_path=data_path,
+            batch_size = batch_size,
         )
 
         pipeline = UnivariateTransformerPipeline(univariate_parameters)
         #model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
         model, model_name, loss, mae, mse = pipeline.run_complete_pipeline()
+        
+        #Clear the GPU memory and possible memory garbage
+        K.clear_session()
+        gc.collect()
+
         mlflow.keras.log_model(model, artifact_path="univariate_model")
         
         load_mlflow_model_history(model_name, model_type="univariate_transformer")
@@ -222,13 +242,18 @@ def main_experiment(cfg: DictConfig) -> None:
             mlp_units=mlp_units,
             dropout=dropout,
             learning_rate=learning_rate,
-            data_path=data_path
+            data_path=data_path,
+            batch_size = batch_size,
         )
 
         #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
         pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
         predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
-       
+        
+        #Clear the GPU memory and possible memory garbage
+        K.clear_session()
+        gc.collect()
+
         mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
         load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
         
@@ -262,7 +287,8 @@ def main_experiment(cfg: DictConfig) -> None:
             mlp_units = mlp_units,
             dropout=dropout, #Only applyied to the transformer
             learning_rate=learning_rate,#Not applyied yet
-            data_path=data_path
+            data_path=data_path,
+            batch_size = batch_size,
         )
 
         '''predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
@@ -270,6 +296,10 @@ def main_experiment(cfg: DictConfig) -> None:
         )'''
         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
         predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = pipeline.run_complete_pipeline()
+        
+        #Clear the GPU memory and possible memory garbage
+        K.clear_session()
+        gc.collect()
 
         mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
         load_mlflow_model_history(residual_seasonal_model_name, model_type="residual_seasonal_transformer")

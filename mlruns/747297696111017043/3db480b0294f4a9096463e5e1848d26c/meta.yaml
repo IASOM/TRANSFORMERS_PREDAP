@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/747297696111017043/3db480b0294f4a9096463e5e1848d26c/artifacts
+end_time: 1762945143594
+entry_point_name: ''
+experiment_id: '747297696111017043'
+lifecycle_stage: active
+run_id: 3db480b0294f4a9096463e5e1848d26c
+run_name: HYDRA_transformer_T14_lb1_fh7_115330
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762944810787
+status: 3
+tags: []
+user_id: Sira
