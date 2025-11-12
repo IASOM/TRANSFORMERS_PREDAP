@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/288975541482373009/c5bbb217d7d54741b4fb4daf40c1637d/artifacts
+end_time: 1762896190869
+entry_point_name: ''
+experiment_id: '288975541482373009'
+lifecycle_stage: active
+run_id: c5bbb217d7d54741b4fb4daf40c1637d
+run_name: Grid_search_transformer_J00_lb30_fh182_220746
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762895266705
+status: 3
+tags: []
+user_id: Sira

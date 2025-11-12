@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/279857858152698881/models/m-b6a95fcd455e4a56933b6f7fd7324c8c/artifacts
+creation_timestamp: 1762419766530
+experiment_id: '279857858152698881'
+last_updated_timestamp: 1762419813263
+model_id: m-b6a95fcd455e4a56933b6f7fd7324c8c
+model_type: null
+name: abundant-eel-409
+source_run_id: 8a391b3b8fb84e94a14283bcea329b55
+status: 2
+status_message: null

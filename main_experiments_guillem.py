@@ -15,6 +15,8 @@ import os
 import tempfile
 import json
 import pickle
+import keras
+import time
 
 from src import data_preparation
 from src import main_train_diagnostic_residual_transformer
@@ -50,7 +52,7 @@ def safe_float(value):
 
 # MAIN TRANSFORMER MODEL 
 COVID_TOKEN = False
-ACTIVATION_FUNCTION = 'tanh'
+ACTIVATION_FUNCTION = keras.activations.gelu
 POSITIONAL_ENCODING  = False
 
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
@@ -108,7 +110,7 @@ for CODE in CODES_LIST:
                                 print(f"\n🚀 [{run_counter}/{total_runs}] Starting MLflow run: {run_name}")
                                 print(f"   • Run ID: {run.info.run_id}")
                                 
-                                
+                               
                                 # Log hyperparameters
                                 mlflow.log_params({
                                     "target_code": CODE,
@@ -126,6 +128,8 @@ for CODE in CODES_LIST:
                                     "ff_dim": ff_dim,
                                     "mlp_units": mlp_units,
                                 })
+                               
+                                
                                 
                                 # Log system information
                                 mlflow.log_params({

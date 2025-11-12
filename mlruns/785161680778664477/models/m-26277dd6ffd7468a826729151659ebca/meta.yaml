@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-26277dd6ffd7468a826729151659ebca/artifacts
+creation_timestamp: 1762371192144
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762371210507
+model_id: m-26277dd6ffd7468a826729151659ebca
+model_type: null
+name: fun-crane-454
+source_run_id: 802be7246f624944be0bbe90c52d6a20
+status: 2
+status_message: null

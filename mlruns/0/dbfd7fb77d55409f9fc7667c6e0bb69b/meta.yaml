@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/0/dbfd7fb77d55409f9fc7667c6e0bb69b/artifacts
+end_time: 1762861063298
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: dbfd7fb77d55409f9fc7667c6e0bb69b
+run_name: fortunate-crab-571
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762861061657
+status: 3
+tags: []
+user_id: Sira

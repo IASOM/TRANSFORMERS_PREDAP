@@ -15,11 +15,9 @@ import mlflow
 import pickle
 import matplotlib.pyplot as plt
 
-from .config_univ_transformer import (
-    default_config,
-)
-
-PLOTS_DIR = default_config.PLOTS_DIR
+from src.config.base_transformer_config import BaseTransformerConfig
+default_config = BaseTransformerConfig()
+PLOTS_DIR = default_config.plots_dir
 
 def extract_model_params(model_name):
     """

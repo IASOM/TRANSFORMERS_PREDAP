@@ -124,6 +124,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)
 
+
     # Build Model
     model = keras.Model(inputs=input_layer, outputs=outputs)
 
@@ -141,7 +142,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     a warmup phase, then applies cosine decay for the remaining training steps.
     """
     
-    def __init__(self, initial_lr=1e-5, max_lr=1e-4, min_lr=1e-6, 
+    def __init__(self, initial_lr=1e-4, max_lr=1e-3, min_lr=1e-5, 
                  warmup_steps=20, total_steps=50):
         """
         Initialize the CustomCosineDecay learning rate schedule.

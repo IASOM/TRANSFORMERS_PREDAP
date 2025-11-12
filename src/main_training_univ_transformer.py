@@ -46,7 +46,8 @@ def main_univ_transformer(lookback, forecast, code,
                           positional_encoding = False,
                           dropout = default_config.DROPOUT,
                           learning_rate = default_config.LEARNING_RATE,
-                          data_path = default_config.DATA_PATH
+                          data_path = default_config.DATA_PATH,
+                          epochs = default_config.EPOCHS,
                           ):
     """Main function that orchestrates the training and evaluation pipeline."""
     
@@ -73,7 +74,7 @@ def main_univ_transformer(lookback, forecast, code,
     MLP_DROPOUT = dropout
     DROPOUT = dropout
     LEARNING_RATE = learning_rate
-    EPOCHS = config.EPOCHS
+    EPOCHS = epochs
     EARLY_STOP_PATIENCE = config.EARLY_STOP_PATIENCE
     BATCH_SIZE = config.BATCH_SIZE
     SHUFFLE = config.SHUFFLE_DATA

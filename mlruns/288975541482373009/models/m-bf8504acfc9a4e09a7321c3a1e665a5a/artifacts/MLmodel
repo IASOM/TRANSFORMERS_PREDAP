@@ -1,0 +1,20 @@
+artifact_path: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/288975541482373009/models/m-bf8504acfc9a4e09a7321c3a1e665a5a/artifacts
+flavors:
+  keras:
+    data: data
+    keras_backend: tensorflow
+    keras_version: 3.8.0
+    save_exported_model: false
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.keras
+    python_version: 3.12.4
+mlflow_version: 3.5.0
+model_id: m-bf8504acfc9a4e09a7321c3a1e665a5a
+model_size_bytes: 203884
+model_uuid: m-bf8504acfc9a4e09a7321c3a1e665a5a
+prompts: null
+run_id: f61d169e3ae2400da39b804e1716e144
+utc_time_created: '2025-11-12 02:31:17.634860'

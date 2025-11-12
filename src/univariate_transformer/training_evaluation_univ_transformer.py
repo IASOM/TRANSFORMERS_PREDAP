@@ -10,10 +10,10 @@ import os
 import pickle
 import mlflow
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from .config_univ_transformer import (
-    
-    default_config,
-)
+
+from src.config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
 
 
 def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, epochs=100, 
@@ -71,8 +71,8 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
             pickle.dump(history.history, file_pi)
     
     if save_model and epochs > 1:  # save model
-        os.makedirs('../' + default_config.MODEL_DIR, exist_ok=True)
-        model.save('../' + default_config.MODEL_DIR +"/" + model_name)
+        os.makedirs(default_config.model_folder, exist_ok=True)
+        model.save(default_config.model_folder +"/" + model_name)
 
     if save_memory:  # log memory usage (optional)
         # save memory usage

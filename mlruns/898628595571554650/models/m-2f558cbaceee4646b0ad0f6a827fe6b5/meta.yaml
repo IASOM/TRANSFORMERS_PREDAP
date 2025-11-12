@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/898628595571554650/models/m-2f558cbaceee4646b0ad0f6a827fe6b5/artifacts
+creation_timestamp: 1762769031141
+experiment_id: '898628595571554650'
+last_updated_timestamp: 1762769040357
+model_id: m-2f558cbaceee4646b0ad0f6a827fe6b5
+model_type: null
+name: univariate_model
+source_run_id: f012b94aaaf04341818ffef816ad5efd
+status: 2
+status_message: null

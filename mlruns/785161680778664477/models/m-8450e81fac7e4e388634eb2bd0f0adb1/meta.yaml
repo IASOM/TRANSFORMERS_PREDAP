@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-8450e81fac7e4e388634eb2bd0f0adb1/artifacts
+creation_timestamp: 1762353386647
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762353405062
+model_id: m-8450e81fac7e4e388634eb2bd0f0adb1
+model_type: null
+name: hilarious-croc-696
+source_run_id: 0df99f916c01408582407f502f779043
+status: 2
+status_message: null

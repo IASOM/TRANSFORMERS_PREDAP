@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/640583727877553962/models/m-fb1fdc032958449b9cd9026bfc332976/artifacts
+creation_timestamp: 1762519847438
+experiment_id: '640583727877553962'
+last_updated_timestamp: 1762519870602
+model_id: m-fb1fdc032958449b9cd9026bfc332976
+model_type: null
+name: unequaled-owl-683
+source_run_id: 9fb6c67c6df04b5ea2398a1c2403066c
+status: 2
+status_message: null

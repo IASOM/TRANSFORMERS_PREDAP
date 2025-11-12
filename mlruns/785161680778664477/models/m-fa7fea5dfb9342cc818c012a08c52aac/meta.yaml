@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-fa7fea5dfb9342cc818c012a08c52aac/artifacts
+creation_timestamp: 1762342812122
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762342830127
+model_id: m-fa7fea5dfb9342cc818c012a08c52aac
+model_type: null
+name: mercurial-fowl-804
+source_run_id: e2590f1008d64d0eb25b8420e4b28015
+status: 2
+status_message: null

@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-8e2e5bae55ef470a87611c5eac65ed7d/artifacts
+creation_timestamp: 1762380367691
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762380386102
+model_id: m-8e2e5bae55ef470a87611c5eac65ed7d
+model_type: null
+name: auspicious-perch-814
+source_run_id: 0a9baf5e6472405493191db20c253e5c
+status: 2
+status_message: null

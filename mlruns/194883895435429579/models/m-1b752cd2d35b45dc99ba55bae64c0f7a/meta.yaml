@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/194883895435429579/models/m-1b752cd2d35b45dc99ba55bae64c0f7a/artifacts
+creation_timestamp: 1762762342499
+experiment_id: '194883895435429579'
+last_updated_timestamp: 1762762375029
+model_id: m-1b752cd2d35b45dc99ba55bae64c0f7a
+model_type: null
+name: gaudy-wasp-588
+source_run_id: 481661d51eec40ad8d9966580317444f
+status: 2
+status_message: null

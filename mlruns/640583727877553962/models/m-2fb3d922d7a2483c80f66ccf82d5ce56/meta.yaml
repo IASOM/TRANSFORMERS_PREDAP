@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/640583727877553962/models/m-2fb3d922d7a2483c80f66ccf82d5ce56/artifacts
+creation_timestamp: 1762527966883
+experiment_id: '640583727877553962'
+last_updated_timestamp: 1762527991448
+model_id: m-2fb3d922d7a2483c80f66ccf82d5ce56
+model_type: null
+name: legendary-duck-699
+source_run_id: 249a6277c885400d997b6805c3fa0c84
+status: 2
+status_message: null

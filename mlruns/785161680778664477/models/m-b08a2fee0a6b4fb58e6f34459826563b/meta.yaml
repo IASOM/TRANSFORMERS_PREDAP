@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-b08a2fee0a6b4fb58e6f34459826563b/artifacts
+creation_timestamp: 1762405139288
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762405157222
+model_id: m-b08a2fee0a6b4fb58e6f34459826563b
+model_type: null
+name: big-cod-13
+source_run_id: 8b76fec13e5347abb22da5bd4d6b3ce9
+status: 2
+status_message: null

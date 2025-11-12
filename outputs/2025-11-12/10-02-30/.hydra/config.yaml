@@ -1,0 +1,24 @@
+data:
+  data_path: ../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv
+model:
+  target_code: T14
+  lookback: 1
+  forecast: 1
+  num_transformer_blocks: 2
+  head_size: 2
+  num_heads: 2
+  activation: leaky_relu
+  covid_token: false
+  ff_dim: 8
+  mlp_units: 32
+  dropout: 0.1
+  learning_rate: 0.0001
+training:
+  cutoff_date: '2008-01-01'
+  positional_encoding: false
+  evaluate_model: true
+system:
+  backend: Agg
+mlflow:
+  tracking_uri: file:./mlruns
+  experiment_name: TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH

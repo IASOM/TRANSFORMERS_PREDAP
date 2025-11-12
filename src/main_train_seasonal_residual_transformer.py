@@ -30,7 +30,7 @@ import evaluation_plot_utils
 from residual_multivariate_transformers import (
     # Configuration
     DEFAULT_FORECAST, DEFAULT_LOOKBACK, DEFAULT_LEARNING_RATE,
-    DEFAULT_DATA_PATH, DEFAULT_MODEL_DIR,
+    DEFAULT_DATA_PATH, DEFAULT_MODEL_DIR, DEFAULT_BATCH_SIZE, DEFAULT_EPOCHS,
     
     # Model Architecture
     hybrid_lstm_transformer_model, CustomCosineDecay,
@@ -64,7 +64,8 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
                                              dropout=0.2,
                                              learning_rate=DEFAULT_LEARNING_RATE,
                                              data_path = DEFAULT_DATA_PATH,
-
+                                             batch_size=DEFAULT_BATCH_SIZE,
+                                             epochs=DEFAULT_EPOCHS
                                              ):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
@@ -189,9 +190,9 @@ def main_train_seasonal_residual_transformer(lookback, forecast,
     print("Training residual correction model...")
     train_given_model_and_data(
         residual_model, X_train_covs, Y_train_residual,
-        batch_size=32,
+        batch_size=batch_size,
         model_name=residual_model_name,
-        epochs=100,
+        epochs=epochs,
         save_model=True,
         save_memory=False,
         callbacks=None,

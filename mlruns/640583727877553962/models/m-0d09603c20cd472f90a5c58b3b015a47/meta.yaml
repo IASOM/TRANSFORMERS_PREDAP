@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/640583727877553962/models/m-0d09603c20cd472f90a5c58b3b015a47/artifacts
+creation_timestamp: 1762525999717
+experiment_id: '640583727877553962'
+last_updated_timestamp: 1762526017316
+model_id: m-0d09603c20cd472f90a5c58b3b015a47
+model_type: null
+name: polite-bug-197
+source_run_id: 3c1c9c8baa5341078cbf4e2b056bf86f
+status: 2
+status_message: null

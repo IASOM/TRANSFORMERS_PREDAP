@@ -5,6 +5,9 @@ Centralized configuration file for model parameters and settings.
 """
 
 
+import keras
+
+
 class TransformerConfig:
     """Configuration class for transformer model parameters."""
     
@@ -30,7 +33,7 @@ class TransformerConfig:
         
         # Training Parameters
         self.LEARNING_RATE = 5e-5     # initial learning rate
-        self.EPOCHS = 10             # maximum number of training epochs
+        self.EPOCHS = 100             # maximum number of training epochs
         self.BATCH_SIZE = 16           # batch size for training
         self.EARLY_STOP_PATIENCE = 20  # early stopping patience
         self.VALIDATION_SPLIT = 0.3    # validation data split ratio
@@ -61,11 +64,11 @@ class TransformerConfig:
         self.SAVE_TRAIN_HISTORY = True        # whether to save training history
 
         # Hyperparameter Search Lists
-        self.LOOKBACK_LIST = [7, 14, 30, 60]
-        self.FORECAST_LIST = [7, 14, 30, 60]
+        self.LOOKBACK_LIST = [7, 14, 30, 60, 182, 365]
+        self.FORECAST_LIST = [7, 14, 30, 60, 182, 365]
         self.HEAD_SIZE_LIST = [2, 4, 8]
         self.NUM_HEADS_LIST = [2, 4, 8]
-        self.ACTIVATIONS_LIST = ['tanh', 'relu']
+        self.ACTIVATIONS_LIST = [keras.activations.gelu, keras.activations.tanh, keras.activations.relu]
         self.COVID_TOKEN_LIST = [False, True]
         self.HEAD_SIZE_LIST = [2, 8, 16, 32]
         self.NUM_HEADS_LIST = [2, 4, 8]

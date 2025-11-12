@@ -31,7 +31,7 @@ import evaluation_plot_utils
 # Import from residual_multivariate_transformers module
 from residual_multivariate_transformers import (
     # Configuration
-    DEFAULT_FORECAST, DEFAULT_LOOKBACK, DEFAULT_MODEL_DIR,
+    DEFAULT_FORECAST, DEFAULT_LOOKBACK, DEFAULT_MODEL_DIR, DEFAULT_BATCH_SIZE,DEFAULT_EPOCHS,
 
     
     # Model Architecture
@@ -66,7 +66,10 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
                                                
                                                dropout=None,
                                                learning_rate= None,
-                                               data_path=None):
+                                               data_path=None,
+                                               batch_size=DEFAULT_BATCH_SIZE,
+                                               epochs=DEFAULT_EPOCHS
+                                               ):
     """Main function that orchestrates the residual multivariate transformer pipeline."""
     
     # Configuration Parameters
@@ -92,6 +95,7 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     HEAD_SIZE = head_size
     NUM_HEADS = num_heads
     FF_DIM = ff_dim
+    
 
 
     
@@ -199,9 +203,9 @@ def main_train_diagnostic_residual_transformer(forecast, lookback,
     print("Training residual correction model...")
     train_given_model_and_data(
         residual_model, X_train_covs, Y_train_residual,
-        batch_size=32,
+        batch_size=batch_size,
         model_name=residual_model_name,
-        epochs=100,
+        epochs=epochs,
         save_model=True,
         save_memory=False,
         callbacks=None,

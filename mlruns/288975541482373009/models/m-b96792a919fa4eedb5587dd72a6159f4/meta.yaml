@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/288975541482373009/models/m-b96792a919fa4eedb5587dd72a6159f4/artifacts
+creation_timestamp: 1762894158080
+experiment_id: '288975541482373009'
+last_updated_timestamp: 1762894176196
+model_id: m-b96792a919fa4eedb5587dd72a6159f4
+model_type: null
+name: residual_seasonal_model
+source_run_id: 8578696af82840b4be6b71eb79eb5f4a
+status: 2
+status_message: null

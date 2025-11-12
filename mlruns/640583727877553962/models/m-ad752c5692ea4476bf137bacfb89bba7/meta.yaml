@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/640583727877553962/models/m-ad752c5692ea4476bf137bacfb89bba7/artifacts
+creation_timestamp: 1762519490406
+experiment_id: '640583727877553962'
+last_updated_timestamp: 1762519513886
+model_id: m-ad752c5692ea4476bf137bacfb89bba7
+model_type: null
+name: charming-fox-598
+source_run_id: 0f3ad1e9e3a943c69b56bba6cb706127
+status: 2
+status_message: null

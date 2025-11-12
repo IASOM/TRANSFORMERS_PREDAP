@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/0/6a1b64acbd6d486386458e66b8779bff/artifacts
+end_time: 1762858861375
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 6a1b64acbd6d486386458e66b8779bff
+run_name: merciful-whale-565
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762858859415
+status: 3
+tags: []
+user_id: Sira

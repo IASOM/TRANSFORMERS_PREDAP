@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-043fea319ecf45b2a90a8aadabe56a80/artifacts
+creation_timestamp: 1762408992280
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762409010330
+model_id: m-043fea319ecf45b2a90a8aadabe56a80
+model_type: null
+name: sedate-fowl-408
+source_run_id: b35cd7b54cbc4fc0953fa01d75cf5feb
+status: 2
+status_message: null

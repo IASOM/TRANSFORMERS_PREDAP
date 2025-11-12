@@ -1,7 +1,6 @@
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # non-interactive backend (no GUI)
 import matplotlib.pyplot as plt
@@ -20,14 +19,39 @@ from src import data_preparation
 from src import main_train_diagnostic_residual_transformer
 from src import main_train_seasonal_residual_transformer
 
-from src import main_training_univ_transformer
+"""
+CLASS-BASED IMPORTS - IMPROVED ARCHITECTURE
+==========================================
+Using the new OOP approach from main_train_univ_transformer_class.py provides:
+- TransformerTrainingConfig: Clean configuration management with validation
+- UnivariateTransformerPipeline: Modular pipeline with state management  
+- Better error handling and debugging capabilities
+- Enhanced maintainability and reusability
+"""
+from src.main_train_univ_transformer_class import (
+    TransformerUnivConfig,
+    UnivariateTransformerPipeline,
+)
+
+from src.main_train_diagnostic_residual_transformer_class import(
+    DiagnosticResidualTransformerConfig,
+    DiagnosticResidualTransformerPipeline,
+)
+
+from src.main_train_seasonal_residual_transformer_class import(
+    SeasonalResidualTransformerConfig,
+    SeasonalResidualTransformerPipeline,
+)
+
 from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_history 
 #load and visualize data 
 
-from src.univariate_transformer import default_config
+
+from src.config.base_transformer_config import BaseTransformerConfig
+
 
 # MAIN TRANSFORMER MODEL WITH MLFLOW TRACKING
-
+default_config = BaseTransformerConfig()
 # Initialize MLflow
 mlflow.set_tracking_uri("file:./mlruns")
 experiment_name = f"TRANSFORMERS_PREDAP_{datetime.now().strftime('%Y%m%d')}"
@@ -53,11 +77,12 @@ def safe_float(value):
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
 FORECAST_LIST = default_config.FORECAST_LIST
 CODES_LIST = default_config.CODES_LIST
-CUTOFF_DATE = default_config.DATE_CUTOFF
+CUTOFF_DATE = default_config.cutoff_date
 ACTIVATIONS_LIST = default_config.ACTIVATIONS_LIST
 COVID_TOKEN_LIST = default_config.COVID_TOKEN_LIST
+data_path = default_config.data_path
 
-df = pd.read_csv(default_config.DATA_PATH)
+df = pd.read_csv(default_config.data_path)
 
 # Track overall experiment metrics
 total_runs = len(CODES_LIST) * len(LOOKBACK_LIST) * len(FORECAST_LIST)
@@ -81,6 +106,7 @@ for code in CODES_LIST:
         "best_metrics": None,
         "best_run_info": None
     }
+
 
 
 for CODE in CODES_LIST:
@@ -120,26 +146,39 @@ for CODE in CODES_LIST:
                         forecast = fh
                         code = CODE
 
-                        # ==================== PHASE 1: UNIVARIATE TRANSFORMER ====================
+                        # ==================== PHASE 1: UNIVARIATE TRANSFORMER (CLASS-BASED) ====================
                         univ_start_time = datetime.now()
                         mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
                         # Train univariate transformer and capture results
                         
-                        # compact parameter grouping for readability
-                        univariate_parameters = dict(  
+                        # Create configuration object
+                        transformer_config = TransformerUnivConfig(
                             lookback=lookback,
                             forecast=forecast,
                             code=code,
                             activation_function=ACTIVATION_FUNCTION,
                             covid_token= COVID_TOKEN,   
                             cutoff_date=CUTOFF_DATE,
-                            evaluate_model = True
+                            head_size = 4, 
+                            num_heads = 2, 
+                            ff_dim = 64, 
+                            mlp_units = 128,
+                            evaluate_model = True,
+                            positional_encoding = False,
+                            data_path = data_path,
+                            learning_rate = 1e-4
                         )
 
-                        model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
-                        mlflow.keras.log_model(model)
+                        # Create and run pipeline
+                        pipeline = UnivariateTransformerPipeline(transformer_config)
+                        model, model_name, loss, mae, mse = pipeline.run_complete_pipeline()
+                        
+                        # Log the model and configuration details
+                        mlflow.keras.log_model(model, artifact_path="univariate_transformer")
+                        
                         
                         load_mlflow_model_history(model_name)
+
 
                         univ_end_time = datetime.now()
                         univ_duration = (univ_end_time - univ_start_time).total_seconds()
@@ -163,7 +202,7 @@ for CODE in CODES_LIST:
                         mlflow.log_param("phase_2_start_time", diag_start_time.isoformat())
                         
                         # compact parameter grouping for readability
-                        diagnostic_parameters = dict(
+                        diagnostic_parameters = DiagnosticResidualTransformerConfig(
                             lookback=lookback,
                             forecast=forecast,
                             code=code,
@@ -171,10 +210,20 @@ for CODE in CODES_LIST:
                             covid_token=COVID_TOKEN,
                             cutoff_date=CUTOFF_DATE,
                             predictions_train_corrected=None,
-                            predictions_test_corrected=None 
+                            predictions_test_corrected=None,
+                            head_size = 4, 
+                            num_heads = 2, 
+                            ff_dim = 64, 
+                            mlp_units = 128,
+                            evaluate_model = True,
+                            positional_encoding = False,
+                            data_path = data_path,
+                            learning_rate = 1e-4
                         )
 
-                        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
+                        pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
+                        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = pipeline.run_complete_pipeline()
+                        #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
                                                                                                                                                                                                                                                                                                                        
                         mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
                         load_mlflow_model_history(residual_diagnostics_model_name)
@@ -194,7 +243,7 @@ for CODE in CODES_LIST:
                         mlflow.log_param("phase_3_start_time", seasonal_start_time.isoformat())
 
                         # compact parameter grouping for readability
-                        seasonal_params = dict(
+                        seasonal_params = SeasonalResidualTransformerConfig(
                             lookback=lookback,
                             forecast=forecast,
                             code=code,
@@ -204,10 +253,11 @@ for CODE in CODES_LIST:
                             predictions_train_corrected=predictions_train_corrected,
                             predictions_test_corrected=predictions_test_corrected,
                         )
-
-                        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
+                        pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
+                        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = pipeline.run_complete_pipeline()
+                        '''predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
                             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
-                        )
+                        )'''
 
                         mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
                         load_mlflow_model_history(residual_seasonal_model_name)

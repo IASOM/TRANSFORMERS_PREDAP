@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-82647fff6327446da87594ea1218eb62/artifacts
+creation_timestamp: 1762391442388
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762391461201
+model_id: m-82647fff6327446da87594ea1218eb62
+model_type: null
+name: likeable-hawk-188
+source_run_id: 65193698324a480080230f6a0ae583e7
+status: 2
+status_message: null

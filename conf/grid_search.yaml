@@ -4,22 +4,22 @@ defaults:
 # Complete self-contained configuration for grid search
 # Data configuration
 data:
-  data_path: "src/data/longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
+  data_path: "../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv"
 
 # Model configuration (base defaults that will be overridden by sweep parameters)
 model:
   target_code: "T14"
-  lookback: 7
-  forecast: 7
+  lookback: 1
+  forecast: 1
   num_transformer_blocks: 2
   head_size: 2
   num_heads: 2
-  activation: "tanh"
+  activation: 'leaky_relu'
   covid_token: false
   ff_dim: 8
   mlp_units: 32
   dropout: 0.1
-  learning_rate: 0.00001
+  learning_rate: 0.0001
   
 
 # Training configuration
@@ -59,7 +59,7 @@ hydra:
       model.mlp_units: 64
       
       # Training hyperparameters
-      model.activation: tanh,relu
+      model.activation: tanh, gelu
       model.covid_token: false
       model.dropout: 0.25,0.5
       model.learning_rate: 0.00001

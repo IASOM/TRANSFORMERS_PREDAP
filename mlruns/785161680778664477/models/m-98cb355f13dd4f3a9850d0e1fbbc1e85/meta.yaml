@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-98cb355f13dd4f3a9850d0e1fbbc1e85/artifacts
+creation_timestamp: 1762385517133
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762385536115
+model_id: m-98cb355f13dd4f3a9850d0e1fbbc1e85
+model_type: null
+name: adventurous-crab-470
+source_run_id: 1b31bdf336324c048dd4a68c8b8b9ed6
+status: 2
+status_message: null

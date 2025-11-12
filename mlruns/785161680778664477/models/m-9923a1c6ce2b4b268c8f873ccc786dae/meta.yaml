@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-9923a1c6ce2b4b268c8f873ccc786dae/artifacts
+creation_timestamp: 1762351987659
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762352005827
+model_id: m-9923a1c6ce2b4b268c8f873ccc786dae
+model_type: null
+name: omniscient-kit-784
+source_run_id: 8de944b413e44d16a83deb0cb1094022
+status: 2
+status_message: null

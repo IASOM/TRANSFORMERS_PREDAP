@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/640583727877553962/models/m-380db7c8f31a45babb04187a294f6f55/artifacts
+creation_timestamp: 1762518920462
+experiment_id: '640583727877553962'
+last_updated_timestamp: 1762518944312
+model_id: m-380db7c8f31a45babb04187a294f6f55
+model_type: null
+name: glamorous-cow-782
+source_run_id: 099ca3140d7b4723931da026215beee0
+status: 2
+status_message: null

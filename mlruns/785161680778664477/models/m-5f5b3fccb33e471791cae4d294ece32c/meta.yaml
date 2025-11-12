@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-5f5b3fccb33e471791cae4d294ece32c/artifacts
+creation_timestamp: 1762413139080
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762413157025
+model_id: m-5f5b3fccb33e471791cae4d294ece32c
+model_type: null
+name: peaceful-shrew-846
+source_run_id: aca44624f2614c49b5765fadc9c43daf
+status: 2
+status_message: null

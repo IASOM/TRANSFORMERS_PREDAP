@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-37f53645ebb543a5a4911d28702e636b/artifacts
+creation_timestamp: 1762346026219
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762346044208
+model_id: m-37f53645ebb543a5a4911d28702e636b
+model_type: null
+name: upbeat-snake-38
+source_run_id: 34533a175614497fb91958906bd69d2a
+status: 2
+status_message: null

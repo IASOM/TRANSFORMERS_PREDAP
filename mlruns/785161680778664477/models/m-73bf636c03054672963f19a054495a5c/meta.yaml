@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-73bf636c03054672963f19a054495a5c/artifacts
+creation_timestamp: 1762383192624
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762383210949
+model_id: m-73bf636c03054672963f19a054495a5c
+model_type: null
+name: legendary-shrew-625
+source_run_id: 54c4d71f82ec474b9a8363d399a2d38b
+status: 2
+status_message: null

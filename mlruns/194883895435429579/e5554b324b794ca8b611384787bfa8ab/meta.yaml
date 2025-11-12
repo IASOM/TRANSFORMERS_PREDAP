@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/194883895435429579/e5554b324b794ca8b611384787bfa8ab/artifacts
+end_time: 1762783534868
+entry_point_name: ''
+experiment_id: '194883895435429579'
+lifecycle_stage: active
+run_id: e5554b324b794ca8b611384787bfa8ab
+run_name: V2_Experiments_causal_masking_transformer_J00_lb7_fh7_150323
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762783403913
+status: 4
+tags: []
+user_id: Sira

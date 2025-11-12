@@ -6,6 +6,7 @@ This module contains visualization and plotting functions for residual multivari
 transformer models, including prediction plots, error analysis, and pandemic wave visualization.
 """
 
+import time
 import matplotlib.pyplot as plt
 import mlflow
 import pandas as pd
@@ -181,8 +182,7 @@ def plot_stepwise_errors_comparison(Y_test, original_predictions, corrected_pred
     
     print(f"{title_prefix} - Corrected Predictions Stepwise Errors:")
     evaluation_plot_utils.plot_stepwise_errors(Y_test, corrected_predictions, model_name = model_name)
-
-
+    
 def plot_predictions_with_pandemic_waves(Y_test, predictions, date_list, df_waves=None, title="Predictions with Pandemic Waves", model_name = "Model"):
     """
     Plot predictions overlaid with pandemic wave periods.

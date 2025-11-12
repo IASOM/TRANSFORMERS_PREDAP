@@ -19,15 +19,34 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.global_hydra import GlobalHydra
 
-from src import data_preparation
-from src import main_train_diagnostic_residual_transformer
-from src import main_train_seasonal_residual_transformer
 
-from src import main_training_univ_transformer
-from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_history 
 #load and visualize data 
 
-from src.univariate_transformer import default_config
+#from src.univariate_transformer import default_config
+from src import data_preparation
+
+
+
+from src.main_train_univ_transformer_class import (
+    TransformerUnivConfig,
+    UnivariateTransformerPipeline,
+)
+
+from src.main_train_diagnostic_residual_transformer_class import(
+    DiagnosticResidualTransformerConfig,
+    DiagnosticResidualTransformerPipeline,
+)
+
+from src.main_train_seasonal_residual_transformer_class import(
+    SeasonalResidualTransformerConfig,
+    SeasonalResidualTransformerPipeline,
+)
+
+from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_history 
+
+from src.config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
 
 # Utility function for safe float conversion
 def safe_float(value):
@@ -141,7 +160,7 @@ def main_experiment(cfg: DictConfig) -> None:
         mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
         
         # Train univariate transformer with parameters from config
-        univariate_parameters = dict(  
+        univariate_parameters = TransformerUnivConfig(  
             lookback=lookback,
             forecast=forecast,
             code=CODE,
@@ -160,7 +179,9 @@ def main_experiment(cfg: DictConfig) -> None:
             data_path=data_path
         )
 
-        model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
+        pipeline = UnivariateTransformerPipeline(univariate_parameters)
+        #model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
+        model, model_name, loss, mae, mse = pipeline.run_complete_pipeline()
         mlflow.keras.log_model(model, artifact_path="univariate_model")
         
         load_mlflow_model_history(model_name, model_type="univariate_transformer")
@@ -186,7 +207,7 @@ def main_experiment(cfg: DictConfig) -> None:
         diag_start_time = datetime.now()
         mlflow.log_param("phase_2_start_time", diag_start_time.isoformat())
         
-        diagnostic_parameters = dict(
+        diagnostic_parameters = DiagnosticResidualTransformerConfig(
             lookback=lookback,
             forecast=forecast,
             code=CODE,
@@ -198,13 +219,16 @@ def main_experiment(cfg: DictConfig) -> None:
             head_size=head_size,
             num_heads=num_heads,
             ff_dim=ff_dim,
+            mlp_units=mlp_units,
             dropout=dropout,
             learning_rate=learning_rate,
             data_path=data_path
         )
 
-        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
-                                                                                                                                                                                                                                                                                                                            
+        #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
+        pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
+        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
+       
         mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
         load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
         
@@ -223,7 +247,7 @@ def main_experiment(cfg: DictConfig) -> None:
         seasonal_start_time = datetime.now()
         mlflow.log_param("phase_3_start_time", seasonal_start_time.isoformat())
 
-        seasonal_params = dict(
+        seasonal_params = SeasonalResidualTransformerConfig(
             lookback=lookback,
             forecast=forecast,
             code=CODE,
@@ -235,14 +259,17 @@ def main_experiment(cfg: DictConfig) -> None:
             head_size=head_size,
             num_heads=num_heads,
             ff_dim=ff_dim,
+            mlp_units = mlp_units,
             dropout=dropout, #Only applyied to the transformer
             learning_rate=learning_rate,#Not applyied yet
             data_path=data_path
         )
 
-        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
+        '''predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
-        )
+        )'''
+        pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
+        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = pipeline.run_complete_pipeline()
 
         mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
         load_mlflow_model_history(residual_seasonal_model_name, model_type="residual_seasonal_transformer")

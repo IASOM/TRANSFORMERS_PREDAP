@@ -11,7 +11,8 @@ from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam
 
 
-def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_function='tanh', dropout=0):
+
+def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_function='tanh', dropout=0, causal_masking=False):
     """
     Transformer encoder block with multi-head attention and feed-forward layers.
     
@@ -29,7 +30,7 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_functio
     # Normalization and Attention
     x = layers.LayerNormalization(epsilon=1e-6)(inputs)  # to inputs to stabilize training
     x = layers.MultiHeadAttention(
-        key_dim=head_size, num_heads=num_heads, dropout=dropout)(x, x)  # self attention to normalized input 
+        key_dim=head_size, num_heads=num_heads, dropout=dropout)(x, x, use_causal_mask=causal_masking)  # self attention to normalized input 
     x = layers.Dropout(dropout)(x)  # (dropout to reduce overfitting)
     res = x + inputs  # attention output added to original inputs
 
@@ -43,7 +44,7 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_functio
     return x
 
 
-def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
+def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False, causal_masking=False):
     """
     Build complete transformer model for univariate time series forecasting.
     
@@ -70,9 +71,9 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
     '''
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
-        x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
+        x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout, causal_masking)  # uses previous defined trans_encoder layer
 
-    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
     
     

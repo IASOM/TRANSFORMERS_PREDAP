@@ -1,0 +1,181 @@
+"""
+Base Transformer Configuration Classes
+=====================================
+Abstract base classes and interfaces for all transformer configurations.
+"""
+
+from dataclasses import dataclass, field
+from typing import Optional, Dict, List, Tuple, Any
+from abc import ABC, abstractmethod
+import os
+from datetime import datetime
+
+
+@dataclass
+class BaseTransformerConfig(ABC):
+    """
+    Abstract base class for all transformer configurations.
+    Contains common parameters shared across all transformer types.
+    """
+    
+    # ==================== CORE MODEL PARAMETERS ====================
+    lookback: int = 14
+    forecast: int = 7
+    code: str = "J00"
+    
+    # ==================== MODEL ARCHITECTURE ====================
+    head_size: int = 64
+    num_heads: int = 2
+    ff_dim: int = 16
+    num_transformer_blocks: int = 2
+    mlp_units: int = 128
+    dropout: float = 0.5
+    activation_function: str = 'gelu'
+    
+    # ==================== TRAINING PARAMETERS ====================
+    learning_rate: float = 0.00001
+    lr_max_multiplier: float = 100
+    lr_min_multiplier: float = 10
+    lr_warmup_ratio: float = 0.2
+    epochs: int = 100
+    batch_size: int = 34
+    early_stop_patience: int = 10
+    shuffle_data: bool = True
+    save_train_history: bool = True
+    
+    # ==================== DATA PARAMETERS ====================
+    data_path: str = '../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv'
+    cutoff_date: str = "2008-01-01"
+    positional_encoding: bool = False
+    
+    # ==================== OPTIONAL PARAMETERS ====================
+    covid_token: bool = False
+    evaluate_model: bool = False
+    
+    # ==================== PATHS AND DIRECTORIES ====================
+    plots_dir: str = 'plots'
+    model_folder: str = '../transformer_outputs/models_covid_token'
+
+    # Hyperparameter Search Lists
+    CODES_LIST: List[str] = field(default_factory=lambda: ["J00", "T14"])
+    LOOKBACK_LIST: List[int] = field(default_factory=lambda: [7, 14, 30, 60, 182, 365])
+    FORECAST_LIST: List[int] = field(default_factory=lambda: [7, 14, 30, 60, 182, 365])
+    HEAD_SIZE_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
+    NUM_HEADS_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
+    ACTIVATIONS_LIST: List[Any] = field(default_factory=lambda: ["gelu", "tanh", "relu"])
+    COVID_TOKEN_LIST: List[bool] = field(default_factory=lambda: [False, True])
+    HEAD_SIZE_LIST: List[int] = field(default_factory=lambda: [2, 8, 16, 32])
+    NUM_HEADS_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
+    FF_DIM_LIST: List[int] = field(default_factory=lambda: [8, 16, 32, 64])
+    MLP_UNITS_LIST: List[int] = field(default_factory=lambda: [16, 32, 64, 128])
+    
+    def __post_init__(self):
+        """Validate parameters after initialization"""
+        self._validate_core_parameters()
+        self._validate_architecture_parameters()
+        self._validate_training_parameters()
+    
+    def _validate_core_parameters(self):
+        """Validate core model parameters"""
+        if self.lookback <= 0:
+            raise ValueError("lookback must be positive")
+        if self.forecast <= 0:
+            raise ValueError("forecast must be positive")
+        if not self.code:
+            raise ValueError("code cannot be empty")
+    
+    def _validate_architecture_parameters(self):
+        """Validate architecture parameters"""
+        if self.head_size <= 0:
+            raise ValueError("head_size must be positive")
+        if self.num_heads <= 0:
+            raise ValueError("num_heads must be positive")
+        if self.ff_dim <= 0:
+            raise ValueError("ff_dim must be positive")
+        if not 0 <= self.dropout <= 1:
+            raise ValueError("dropout must be between 0 and 1")
+    
+    def _validate_training_parameters(self):
+        """Validate training parameters"""
+        if self.learning_rate <= 0:
+            raise ValueError("learning_rate must be positive")
+        if self.epochs <= 0:
+            raise ValueError("epochs must be positive")
+        if self.batch_size <= 0:
+            raise ValueError("batch_size must be positive")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert configuration to dictionary"""
+        return {
+            "lookback": self.lookback,
+            "forecast": self.forecast,
+            "code": self.code,
+            "head_size": self.head_size,
+            "num_heads": self.num_heads,
+            "ff_dim": self.ff_dim,
+            "num_transformer_blocks": self.num_transformer_blocks,
+            "mlp_units": self.mlp_units,
+            "dropout": self.dropout,
+            "learning_rate": self.learning_rate,
+            "lr_max_multiplier": self.lr_max_multiplier,
+            "lr_min_multiplier": self.lr_min_multiplier,
+            "lr_warmup_ratio": self.lr_warmup_ratio,
+
+            "epochs": self.epochs,
+            "batch_size": self.batch_size,
+            "cutoff_date": self.cutoff_date,
+            "covid_token": self.covid_token,
+            "positional_encoding": self.positional_encoding,
+            "activation_function": self.activation_function,
+            "evaluate_model": self.evaluate_model,
+            "data_path": self.data_path,
+        }
+    
+    def print_config(self):
+        """Print configuration in a readable format"""
+        class_name = self.__class__.__name__
+        print(f"\n{'='*60}")
+        print(f"{class_name.upper()}")
+        print(f"{'='*60}")
+        for key, value in self.to_dict().items():
+            print(f"{key:25}: {value}")
+        print(f"{'='*60}")
+    
+    def get_model_name(self) -> str:
+        """Generate model name based on configuration"""
+        return (f'{self.code}_base_transformer_'
+               f'{self.forecast}fh_{self.ff_dim}ff_{self.lookback}lb_'
+               f'{self.learning_rate}lr.keras')
+
+    def get_diagnostic_residual_model_name(self) -> str:
+        """Generate residual model name based on configuration"""
+
+        return (f'{self.code}_DIAGNOSTIC_RESIDUALS_LEARNING_'
+                f'{self.forecast}fh_{self.ff_dim}ff_{self.lookback}lb_'
+                f'{self.learning_rate}initlr.keras')
+    
+    def get_seasonal_residual_model_name(self) -> str:
+        """Generate residual model name based on configuration"""
+
+        return (f'{self.code}_SEASONAL_RESIDUALS_LEARNING_'
+                f'{self.forecast}fh_{self.ff_dim}ff_{self.lookback}lb_'
+                f'{self.learning_rate}initlr.keras')
+    
+    def get_lr_schedule_params(self, learning_rate=None):
+        """Get learning rate schedule parameters."""
+        if learning_rate is not None:
+            lr_init = learning_rate
+        else:
+            lr_init = self.LEARNING_RATE
+        lr_max = lr_init * self.LR_MAX_MULTIPLIER
+        lr_min = lr_init * self.LR_MIN_MULTIPLIER
+        warmup_steps = int(self.EPOCHS * self.LR_WARMUP_RATIO)
+        
+        return {
+            'initial_lr': lr_init,
+            'max_lr': lr_max,
+            'min_lr': lr_min,
+            'warmup_steps': warmup_steps,
+            'total_steps': self.EPOCHS
+        }
+    

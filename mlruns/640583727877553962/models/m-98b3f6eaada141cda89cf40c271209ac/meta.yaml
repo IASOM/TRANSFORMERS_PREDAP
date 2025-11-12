@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/640583727877553962/models/m-98b3f6eaada141cda89cf40c271209ac/artifacts
+creation_timestamp: 1762521381904
+experiment_id: '640583727877553962'
+last_updated_timestamp: 1762521399565
+model_id: m-98b3f6eaada141cda89cf40c271209ac
+model_type: null
+name: nebulous-loon-888
+source_run_id: c2ea9b9d8fbc4bd7bb3476b9e6a1be5f
+status: 2
+status_message: null

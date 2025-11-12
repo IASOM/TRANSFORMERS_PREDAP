@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/785161680778664477/models/m-e533fd689087450fbf2eb196707eb0e1/artifacts
+creation_timestamp: 1762395974524
+experiment_id: '785161680778664477'
+last_updated_timestamp: 1762395995596
+model_id: m-e533fd689087450fbf2eb196707eb0e1
+model_type: null
+name: gregarious-duck-551
+source_run_id: dec3cbc3b9e54c4a8e3c6249bb7d03f6
+status: 2
+status_message: null

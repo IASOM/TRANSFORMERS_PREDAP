@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/0/c9e1f2c110524e3eaa296c4958a0b6e7/artifacts
+end_time: 1762861515040
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: c9e1f2c110524e3eaa296c4958a0b6e7
+run_name: charming-squid-811
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1762861513365
+status: 3
+tags: []
+user_id: Sira
