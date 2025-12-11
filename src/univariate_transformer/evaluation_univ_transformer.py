@@ -20,7 +20,7 @@ from univariate_transformer import plt_model, plot_predictions_with_waves, extra
 from residual_multivariate_transformers import load_base_model_transformer
 
 
-def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None):
+def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None, eliminate_covid_data=False, covid_dates=None):
     print(f"\n--- Evaluating model: {model_name} ---")
         
     # Extract parameters from filename
@@ -37,16 +37,16 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
 
     # Prepare test data
     X_test, Y_test = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date,max_date = max_date, train=False, debug=True, univariate=True, scaler=scaler
+        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date,max_date = max_date, train=False, debug=True, univariate=True, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
     )
 
     X_test_orig, Y_test_orig = data_preparation.prepare_data_not_normalized(
-        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date, max_date = max_date, train=False, debug=True, univariate=True
+        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date, max_date = max_date, train=False, debug=True, univariate=True, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
     )
 
 
 
-    date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False, cutoff_date=cutoff_date, max_date = max_date)
+    date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False, cutoff_date=cutoff_date, max_date = max_date, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
 
     original_scale_df = pd.read_csv(input_directory)
     # Get predictions
@@ -56,7 +56,7 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
     
       # Inverse transform predictions
     predictions_to_plot = data_preparation.inverse_transform_predictions(
-        predictions, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler
+        predictions, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
     )
     
     # Evaluate model

@@ -19,12 +19,12 @@ def split_train_test(df, split_ratio=0.8):
     Splits a dataframe into train and test sets using the given split ratio.
 
     Parameters:
-    df (pd.DataFrame): The input dataframe to split.
-    split_ratio (float): The fraction of data to be used for training (default is 0.8).
+    - df (pd.DataFrame): The input dataframe to split.
+    - split_ratio (float): The fraction of data to be used for training (default is 0.8).
 
     Returns:
-    train_df (pd.DataFrame): Training dataset.
-    test_df (pd.DataFrame): Testing dataset.
+    - train_df (pd.DataFrame): Training dataset.
+    - test_df (pd.DataFrame): Testing dataset.
     """
     split_idx = int(len(df) * split_ratio)  # Compute split index
     train_df = df.iloc[:split_idx].reset_index(drop=True)
@@ -33,11 +33,21 @@ def split_train_test(df, split_ratio=0.8):
     return train_df, test_df
 
 
-
-
-
-def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01',max_date = MAX_DATE, csv_file = None, save_data = False,  target_code=None, scaler=None):
-    # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
+def normalize_dataframe(train_df,test_df, csv_file = None, save_data = False,  target_code=None, scaler=None):
+    '''
+    Normalizes the train and test dataframes using the provided scaler. 
+    If no scaler is provided, a new MinMaxScaler is used by default.
+    Parameters:
+    - train_df (pd.DataFrame): Training dataframe.
+    - test_df (pd.DataFrame): Testing dataframe.
+    - csv_file (str): Path to the original CSV file (for saving normalized data).
+    - save_data (bool): Whether to save the normalized dataframes to CSV files.
+    - target_code (str): The column name of the target variable to scale separately.
+    - scaler: Pre-fitted scaler to use for normalization (optional).
+    Returns:
+    - train_df (pd.DataFrame): Normalized training dataframe.
+    - test_df (pd.DataFrame): Normalized testing dataframe.
+    '''
     if 'timestamp' not in train_df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     train_df['timestamp'] = pd.to_datetime(train_df['timestamp'], errors='coerce')
@@ -56,21 +66,9 @@ def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01',max_date = 
     test_df[codes] = scaler.transform(test_df[codes].values)
     if target_code is not None:
         # Min-max scale ONLY the target column (univariate)
-
         scaler_target = scaler_target.fit(train_df[[target_code]].values)
         test_df[[target_code]] = scaler_target.transform(test_df[[target_code]].values)
         train_df[[target_code]] = scaler_target.transform(train_df[[target_code]].values)
-    '''for code in df.columns:
-        if code != 'timestamp':
-            df[code] = pd.to_numeric(df[code], errors='coerce')
-            df = df.dropna(subset=[code]).reset_index(drop=True)
-
-            # Min-max scale ONLY the target column (univariate)
-            cmin, cmax = df[code].min(), df[code].max()
-            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
-                df[code] = 0.0
-            else:
-                df[code] = (df[code] - cmin) / (cmax - cmin)'''
 
     if save_data and csv_file is not None:
         input_path = Path(csv_file)
@@ -79,29 +77,25 @@ def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01',max_date = 
         train_df.to_csv(output_file, index=False)
         print(f"Normalized data saved to: {output_file}")
     
-
     return train_df, test_df
 
 
-def cut_dataframe(df, date_cutoff = '2010-01-01', max_date = MAX_DATE, csv_file = None, save_data = False):
+def cut_dataframe(df:pd.DataFrame, date_cutoff: str = '2010-01-01', max_date: str = MAX_DATE, csv_file: str = None, save_data: bool = False)-> pd.DataFrame:
     # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
+    '''
+    Cuts the dataframe to only include rows after the specified cutoff date and up to the max date.
+    Parameters:
+    - df (pd.DataFrame): The input dataframe to cut.
+    - date_cutoff (str): The cutoff date in 'YYYY-MM-DD' format.
+    - max_date (str): The maximum date in 'YYYY-MM-DD' format.
+    - csv_file (str): Path to the original CSV file (for saving cut data).
+    - save_data (bool): Whether to save the cut dataframe to a CSV file.
+    Returns:
+    - pd.DataFrame: The cut dataframe.
+    '''
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    '''for code in df.columns:
-        if code != 'timestamp':
-            df[code] = pd.to_numeric(df[code], errors='coerce')
-            df = df.dropna(subset=[code]).reset_index(drop=True)
-
-            # Min-max scale ONLY the target column (univariate)
-            cmin, cmax = df[code].min(), df[code].max()
-            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
-                df[code] = 0.0
-            else:
-                df[code] = (df[code] - cmin) / (cmax - cmin)'''
-
-    
-    
     cutoff = pd.Timestamp(date_cutoff)
     max_dt = pd.Timestamp(max_date)
     df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
@@ -131,7 +125,7 @@ def eliminate_covid_dates(df:pd.DataFrame, covid_periods:list) -> pd.DataFrame:
         df = df[~((df['timestamp'] >= start) & (df['timestamp'] <= end))].reset_index(drop=True)
     return df
 
-def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2021-06-30', scaler = None):
+def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2021-06-30', scaler = None, eliminate_covid_data=False, covid_dates=None):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -147,7 +141,11 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
 
     # Extract the original values for the target code
     #original_values = original_scale_df[code].values.reshape(-1, 1)
-    
+    if eliminate_covid_data:
+        assert covid_dates is not None
+        original_scale_df = eliminate_covid_dates(original_scale_df, covid_dates)
+
+
     # Fit scaler on original values
     original_scale_df['timestamp'] = pd.to_datetime(original_scale_df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
@@ -155,19 +153,6 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_date)].reset_index(drop=True)  # Subset the DataFrame
     
     train_df, test_df = split_train_test(original_scale_df)
-    '''codes = [code for code in train_df.columns if code != 'timestamp']
-    scaler = MinMaxScaler()
-    scaler.fit(train_df[code].values.reshape(-1, 1))
-
-    #pred_original_array = np.zeros_like(predictions)
-    # Inverse transform predictions
-    pred_flat_pred = predictions.reshape(-1,1)
-    pred_original_array = scaler.inverse_transform(pred_flat_pred)
-    pred_original_array = pred_original_array.reshape(predictions.shape)
-    for i, pred in enumerate(predictions):
-        pred = pred.reshape(-1, 1)
-        pred_orig = scaler.inverse_transform(pred)
-        pred_original_array[i] = pred_orig.flatten()'''
     
     train_df_seq = []
     
@@ -264,15 +249,17 @@ def add_covid_token(df):
 
     return df
 
-def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None):
+def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None, eliminate_covid_data = False, covid_dates = None):
     
     start_time =time.time()
     # Load CSV
     df = pd.read_csv(csv_file)
-
+    if eliminate_covid_data:
+        assert covid_dates is not None
+        df = eliminate_covid_dates(df, covid_dates)
     df = cut_dataframe(df, cutoff_date,max_date, csv_file)
     train_df, test_df = split_train_test(df)
-    train_df, test_df = normalize_dataframe(train_df,test_df, cutoff_date, max_date, csv_file, target_code=code, scaler = scaler)
+    train_df, test_df = normalize_dataframe(train_df,test_df, csv_file, target_code=code, scaler = scaler)
 
     if train:
         df = train_df
@@ -333,10 +320,10 @@ def prepare_causal_data(csv_file,code, lookback, forecast, cutoff_date = '2010-0
     start_time =time.time()
     # Load CSV
     df = pd.read_csv(csv_file)
-
+    
     df = cut_dataframe(df, cutoff_date, csv_file)
     train_df, test_df = split_train_test(df)
-    train_df, test_df = normalize_dataframe(train_df,test_df, cutoff_date, csv_file, target_code=code)
+    train_df, test_df = normalize_dataframe(train_df,test_df, csv_file, target_code=code)
 
     if train:
         df = train_df
@@ -389,10 +376,12 @@ def prepare_causal_data(csv_file,code, lookback, forecast, cutoff_date = '2010-0
     return X, Y
 
 
-def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True):
+def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, eliminate_covid_data=False, covid_dates=None):
     # Load CSV
     df = pd.read_csv(csv_file)
-
+    if eliminate_covid_data:
+        assert covid_dates is not None
+        df = eliminate_covid_dates(df, covid_dates)
     df = cut_dataframe(df, cutoff_date, max_date, csv_file)
     train_df, test_df = split_train_test(df)
     
@@ -505,7 +494,7 @@ def prepare_causal_data_not_normalized(csv_file,code, lookback, forecast, cutoff
     return X, Y
 
 
-def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = '2010-01-01', max_date = MAX_DATE):
+def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = '2010-01-01', max_date = MAX_DATE, eliminate_covid_data=False, covid_dates=None):
     """
     Extracts the 'date' column from the CSV file to align with the test dataset for plotting.
 
@@ -519,6 +508,10 @@ def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = 
     """
     df = pd.read_csv(csv_file)
     #df = df[code]
+
+    if eliminate_covid_data:
+        assert covid_dates is not None
+        df = eliminate_covid_dates(df, covid_dates)
 
     if 'timestamp' not in df.columns:
         raise ValueError("The dataset must contain a 'timestamp' column for plotting.")
@@ -576,7 +569,7 @@ def extract_causal_dates(csv_file,code,lookback, forecast, train = True, cutoff_
 
     return date_list.tolist()
 
-def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01', max_date = MAX_DATE, scaler = None):
+def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01', max_date = MAX_DATE, scaler = None, eliminate_covid_data=False, covid_dates=None):
     """
     Prepares a time series dataset by adding date-related features (holidays, school vacations, etc.)
     and dummifying categorical variables.
@@ -592,8 +585,11 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
     # Ensure 'timestamp' column is in datetime format
     
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    cutoff = pd.Timestamp(cutoff_date)
 
+    if eliminate_covid_data:
+        assert covid_dates is not None
+        df = eliminate_covid_dates(df, covid_dates)
+    cutoff = pd.Timestamp(cutoff_date)
     max_dt = pd.Timestamp(max_date)
     df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
     
@@ -604,9 +600,9 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
         scaler = MinMaxScaler()
     
     codes = [code for code in df.columns if code != 'timestamp']
-    train_df, test_df = split_train_test(df)
+    #train_df, test_df = split_train_test(df)
 
-    scaler.fit(train_df[codes])
+    scaler.fit(df[codes])
     df[codes] = scaler.transform(df[codes])
 
 
@@ -696,6 +692,8 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
 
     # Dummify categorical variables
     df_final = pd.get_dummies(df_dates, columns=categorical_vars, drop_first=False)
+    if eliminate_covid_data:
+        df_final = eliminate_covid_dates(df_final, covid_dates)
 
     return df_final
 

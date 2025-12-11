@@ -63,7 +63,7 @@ def split_train_test(df, split_ratio=0.8):
     return train_df, test_df
 
 
-def load_and_evaluate_models(model_folder='models', input_directory=None, code="T14", scaler=None):
+def load_and_evaluate_models(model_folder='models', input_directory=None, code="T14", scaler=None ):
     """
     Load all models in a folder and evaluate them with their respective parameters.
     
@@ -103,7 +103,7 @@ def load_and_evaluate_models(model_folder='models', input_directory=None, code="
             
             # Prepare data with extracted parameters
             X_test, Y_test = data_preparation.prepare_data(
-                input_directory, code, lookback, forecast, debug=True, univariate=True, scaler=scaler
+                input_directory, code, lookback, forecast, debug=True, univariate=True, scaler=scaler, train=False, covid_token=False, cutoff_date=default_config.cutoff_date, max_date=default_config.final_cutoff_date, eliminate_covid_data=default_config.eliminate_covid_data, covid_dates=default_config.covid_dates
             )
             
             # Evaluate model
