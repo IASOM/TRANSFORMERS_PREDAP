@@ -9,7 +9,7 @@ import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from sklearn.preprocessing import MinMaxScaler
+
 
 import mlflow
 import pickle
@@ -63,7 +63,7 @@ def split_train_test(df, split_ratio=0.8):
     return train_df, test_df
 
 
-def load_and_evaluate_models(model_folder='models', input_directory=None, code="T14"):
+def load_and_evaluate_models(model_folder='models', input_directory=None, code="T14", scaler=None):
     """
     Load all models in a folder and evaluate them with their respective parameters.
     
@@ -103,7 +103,7 @@ def load_and_evaluate_models(model_folder='models', input_directory=None, code="
             
             # Prepare data with extracted parameters
             X_test, Y_test = data_preparation.prepare_data(
-                input_directory, code, lookback, forecast, debug=True, univariate=True
+                input_directory, code, lookback, forecast, debug=True, univariate=True, scaler=scaler
             )
             
             # Evaluate model

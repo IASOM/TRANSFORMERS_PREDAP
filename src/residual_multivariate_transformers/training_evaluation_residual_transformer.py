@@ -8,10 +8,18 @@ transformer models, including model training, GPU memory management, and callbac
 
 import os
 import pickle
+import sys
 import tensorflow as tf
 from datetime import datetime
 import json
 import pandas as pd
+
+# Add the src directory to path for module imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(os.path.dirname(current_dir)) if 'residual_multivariate_transformers' in current_dir else os.path.dirname(current_dir)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
 
 from config.base_transformer_config import BaseTransformerConfig
 

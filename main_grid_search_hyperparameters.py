@@ -133,6 +133,7 @@ for CODE in CODES_LIST:
                             "total_runs": total_runs,
                             "activation_function": ACTIVATION_FUNCTION,
                             "covid_token": COVID_TOKEN,
+                            "causal_masking": False,
                         })
                         
                         # Log system information

@@ -1,16 +1,16 @@
 {
     "run_info": {
-        "run_id": "186ca9aae20f41e8801412028d36f1dd",
-        "run_name": "Grid_search_transformer_J00_lb7_fh7_163614",
-        "timestamp": "2025-11-11T16:42:44.597696",
+        "run_id": "3cd71947f5184652bd387d11643e5f99",
+        "run_name": "V2_Experiments_causal_masking_transformer_J00_lb365_fh182_085416",
+        "timestamp": "2025-11-20T09:18:27.919390",
         "run_counter": 1,
-        "total_runs": 72
+        "total_runs": 4
     },
     "hyperparameters": {
         "target_code": "J00",
-        "lookback": 7,
-        "forecast_horizon": 7,
-        "activation_function": "gelu",
+        "lookback": 365,
+        "forecast_horizon": 182,
+        "activation_function": "<function gelu at 0x000001F0F934B7E0>",
         "covid_token": false,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer"
@@ -22,32 +22,32 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 67.649035,
-        "phase_2_diagnostic_seconds": 162.808489,
-        "phase_3_seasonal_seconds": 159.326331,
-        "total_training_seconds": 389.796916,
-        "total_training_minutes": 6.496615266666667
+        "phase_1_univariate_seconds": 1014.516119,
+        "phase_2_diagnostic_seconds": 286.457002,
+        "phase_3_seasonal_seconds": 148.774399,
+        "total_training_seconds": 1449.765885,
+        "total_training_minutes": 24.16276475
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.07880818098783493,
-            "mae": 536.4142456054688,
-            "mse": 618170.5625
+            "loss": "tf.Tensor(18.868214, shape=(), dtype=float32)",
+            "mae": 702.7890625,
+            "mse": 1068747.625
         },
         "diagnostic_residual": {
-            "mae": 355.95794677734375,
-            "mse": 295162.28125,
-            "rmse": 543.2883960200144
+            "mae": 712.763671875,
+            "mse": 1056843.375,
+            "rmse": 1028.0288784854247
         },
         "seasonal_residual": {
-            "mae": 248.97384643554688,
-            "mse": 141583.5625,
-            "rmse": 376.27591272894415
+            "mae": 703.5546875,
+            "mse": 1035010.8125,
+            "rmse": 1017.354811508748
         }
     },
     "model_paths": {
-        "univariate_model": "J00_base_transformer_7fh_64ff_7lb_0.0001lr.keras",
-        "diagnostic_model": "J00_DIAGNOSTIC_RESIDUALS_LEARNING_7fh_64ff_7lb_0.0001initlr.keras",
-        "seasonal_model": "J00_SEASONAL_RESIDUALS_LEARNING_7fh_16ff_7lb_1e-05initlr.keras"
+        "univariate_model": "J00_base_transformer_182fh_8ff_365lb_1e-05lr.keras",
+        "diagnostic_model": "J00_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_8ff_365lb_1e-05initlr.keras",
+        "seasonal_model": "J00_SEASONAL_RESIDUALS_LEARNING_182fh_8ff_365lb_1e-05initlr.keras"
     }
 }

@@ -34,22 +34,29 @@ def split_train_test(df, split_ratio=0.8):
 
 
 
-def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE, target_code=None):
+
+
+def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01',max_date = MAX_DATE, csv_file = None, save_data = False,  target_code=None, scaler=None):
     # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
     if 'timestamp' not in train_df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     train_df['timestamp'] = pd.to_datetime(train_df['timestamp'], errors='coerce')
     test_df['timestamp'] = pd.to_datetime(test_df['timestamp'], errors='coerce')
     
-    
-    scaler = MinMaxScaler()
+    if scaler is None:
+        scaler = MinMaxScaler()
+        scaler_target = MinMaxScaler()
+
+    else:
+        scaler_target = scaler
+        
     codes = [code for code in train_df.columns if (code != 'timestamp' and code != target_code)]
     scaler.fit(train_df[codes].values)
     train_df[codes] = scaler.transform(train_df[codes].values)  
     test_df[codes] = scaler.transform(test_df[codes].values)
     if target_code is not None:
         # Min-max scale ONLY the target column (univariate)
-        scaler_target = MinMaxScaler()
+
         scaler_target = scaler_target.fit(train_df[[target_code]].values)
         test_df[[target_code]] = scaler_target.transform(test_df[[target_code]].values)
         train_df[[target_code]] = scaler_target.transform(train_df[[target_code]].values)
@@ -76,7 +83,7 @@ def normalize_dataframe(train_df,test_df, date_cutoff = '2010-01-01', csv_file =
     return train_df, test_df
 
 
-def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = False, max_date = MAX_DATE):
+def cut_dataframe(df, date_cutoff = '2010-01-01', max_date = MAX_DATE, csv_file = None, save_data = False):
     # Keep only rows STRICTLY after the cutoff date using the 'timestamp' column
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
@@ -108,9 +115,23 @@ def cut_dataframe(df, date_cutoff = '2010-01-01', csv_file = None, save_data = F
 
     return df
 
+def eliminate_covid_dates(df:pd.DataFrame, covid_periods:list) -> pd.DataFrame:
+    """
+    Subtracts the days specified in the covid periods list from the dataframe provided.
+    input:
+        - df (pd.DataFrame): DataFrame containing a 'timestamp' column.
+        - covid_periods (list): List of tuples with start and end dates of covid periods.
+    output:
+        - pd.DataFrame: DataFrame with covid periods removed.
+    """
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    for start_date, end_date in covid_periods:
+        start = pd.Timestamp(start_date)
+        end = pd.Timestamp(end_date)
+        df = df[~((df['timestamp'] >= start) & (df['timestamp'] <= end))].reset_index(drop=True)
+    return df
 
-
-def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_dt='2021-06-30'):
+def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2021-06-30', scaler = None):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -130,7 +151,8 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     # Fit scaler on original values
     original_scale_df['timestamp'] = pd.to_datetime(original_scale_df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
-    original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_dt)].reset_index(drop=True)  # Subset the DataFrame
+    max_date = pd.Timestamp(max_date)
+    original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_date)].reset_index(drop=True)  # Subset the DataFrame
     
     train_df, test_df = split_train_test(original_scale_df)
     '''codes = [code for code in train_df.columns if code != 'timestamp']
@@ -153,7 +175,10 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
         train_df_seq.append(train_df[[code]].values[i + lookback : i + lookback + forecast])  # Future `forecast` values
     train_df_seq = np.array(train_df_seq).squeeze()
     # Min-max scale ONLY the target column (univariate)
-    scaler_target = MinMaxScaler()
+    if scaler is None:
+        scaler_target = MinMaxScaler()
+    else:
+        scaler_target = scaler
     if len(train_df_seq.shape) < 2:
         train_df_seq = train_df_seq.reshape(-1,1)
     scaler_target.fit(train_df_seq)
@@ -164,7 +189,7 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     return pred_original_scale
 
 
-def inverse_causal_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_dt='2021-06-30'):
+def inverse_causal_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_dt='2021-06-30', scaler = None):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -204,8 +229,14 @@ def inverse_causal_transform_predictions(predictions, original_scale_df, code, l
     train_df_seq = []
     
     # Min-max scale ONLY the target column (univariate)
-    scaler_target = MinMaxScaler()
+    if scaler is None:
+        scaler_target = MinMaxScaler()
+    else:
+        scaler_target = scaler
+
     scaler_target.fit(train_df[[code]].values)
+    if len(predictions.shape) > 2:
+        predictions = np.squeeze(predictions, axis = 2)
     pred_original_scale = scaler_target.inverse_transform(predictions)
 
     #pred_original_scale = pred_original_scale.reshape(predictions.shape)
@@ -233,15 +264,15 @@ def add_covid_token(df):
 
     return df
 
-def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True):
+def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None):
     
     start_time =time.time()
     # Load CSV
     df = pd.read_csv(csv_file)
 
-    df = cut_dataframe(df, cutoff_date, csv_file)
+    df = cut_dataframe(df, cutoff_date,max_date, csv_file)
     train_df, test_df = split_train_test(df)
-    train_df, test_df = normalize_dataframe(train_df,test_df, cutoff_date, csv_file, target_code=code)
+    train_df, test_df = normalize_dataframe(train_df,test_df, cutoff_date, max_date, csv_file, target_code=code, scaler = scaler)
 
     if train:
         df = train_df
@@ -347,8 +378,8 @@ def prepare_causal_data(csv_file,code, lookback, forecast, cutoff_date = '2010-0
         
         X_raw = np.hstack((X_raw, covid_feature))
     # Convert to numpy arrays
-    X = X_raw
-    Y = Y_raw
+    X = X_raw[:lookback]
+    Y = Y_raw[lookback:lookback + forecast]
     X, Y = np.array(X), np.array(Y)
 
     if debug:
@@ -358,11 +389,11 @@ def prepare_causal_data(csv_file,code, lookback, forecast, cutoff_date = '2010-0
     return X, Y
 
 
-def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01',covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True):
+def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True):
     # Load CSV
     df = pd.read_csv(csv_file)
 
-    df = cut_dataframe(df, cutoff_date, csv_file)
+    df = cut_dataframe(df, cutoff_date, max_date, csv_file)
     train_df, test_df = split_train_test(df)
     
     if train:
@@ -545,7 +576,7 @@ def extract_causal_dates(csv_file,code,lookback, forecast, train = True, cutoff_
 
     return date_list.tolist()
 
-def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01', max_date = MAX_DATE):
+def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01', max_date = MAX_DATE, scaler = None):
     """
     Prepares a time series dataset by adding date-related features (holidays, school vacations, etc.)
     and dummifying categorical variables.
@@ -569,8 +600,9 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
     # Convert timestamp to datetime (optional)
     if 'timestamp' in df.columns:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-    scaler = MinMaxScaler()
+    if scaler is None:
+        scaler = MinMaxScaler()
+    
     codes = [code for code in df.columns if code != 'timestamp']
     train_df, test_df = split_train_test(df)
 
@@ -667,7 +699,7 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
 
     return df_final
 
-def generate_rolling_sequences_covariates(df_processed, lookback, forecast, predictions_train=None):
+def generate_rolling_sequences_covariates(df_processed, lookback, forecast, predictions_train=None, generate_y = False):
     """
     Generates rolling sequences for multivariate time series forecasting.
     
@@ -689,6 +721,7 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
     # Generate rolling sequences
     X = [X_raw[i+lookback : i + lookback + forecast] for i in range(len(X_raw) - lookback - forecast + 1)]
     
+    
     # Convert to NumPy array
     X_train_covs = np.array(X)
 
@@ -703,8 +736,18 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
         X_train_covs = np.concatenate([X_train_covs, predictions_train], axis=-1)  # Add as extra feature
 
         print(f"Processed covariate Shapes + predictions: X={X_train_covs.shape}")
+    
 
-    return X_train_covs
+    if generate_y == True:
+        Y = [X_raw[i : i + lookback ] for i in range(len(X_raw) - lookback - forecast + 1)]
+        Y_train_covs = np.array(Y)
+        print(f"Processed covariate data Shapes: Y={Y_train_covs.shape}")
+        return Y_train_covs
+    else:
+        return X_train_covs
+
+
+
 
 def shift_covariates(df, forecast):
     """
@@ -795,12 +838,12 @@ def compute_dynamic_batch_size(lookback, forecast):
     
     if lookback <= 30 and forecast <= 30:
         batch_size = 1024
-    elif (30 <= lookback <= 128) and forecast <= 60:
+    elif (30 <= lookback <= 60) and forecast <= 60:
         batch_size = 512
-    elif 128 <= lookback <= 365 and forecast<= 128:
-        batch_size = 256
-    elif 128 < lookback <= 365 and forecast <=365:
+    elif 60 <= lookback <= 128 and forecast<= 128:
         batch_size = 128
+    elif 128 < lookback <= 365 and forecast <=365:
+        batch_size = 64
 
     if len(gpus) == 0:
         batch_size = 32

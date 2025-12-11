@@ -1,0 +1,53 @@
+{
+    "run_info": {
+        "run_id": "efc00cc6ee95436699651c86b2921d9d",
+        "run_name": "V2_Experiments_Guillem_transformer_M54_lb7_fh7_155841",
+        "timestamp": "2025-11-26T16:05:19.884199",
+        "run_counter": 1,
+        "total_runs": 60
+    },
+    "hyperparameters": {
+        "target_code": "M54",
+        "lookback": 7,
+        "forecast_horizon": 7,
+        "activation_function": "<function tanh at 0x000001D930721CF0>",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer"
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.0",
+        "gpu_available": false,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 55.607886,
+        "phase_2_diagnostic_seconds": 173.338523,
+        "phase_3_seasonal_seconds": 168.522034,
+        "total_training_seconds": 397.529303,
+        "total_training_minutes": 6.625488383333334
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.3388717472553253,
+            "mae": 603.74609375,
+            "mse": 501272.0625
+        },
+        "diagnostic_residual": {
+            "mae": 209.1323699951172,
+            "mse": 73613.2734375,
+            "rmse": 271.31766149202303
+        },
+        "seasonal_residual": {
+            "mae": 155.1492462158203,
+            "mse": 38038.5625,
+            "rmse": 195.03477254069338
+        }
+    },
+    "model_paths": {
+        "univariate_model": "M54_base_transformer_7fh_8ff_7lb_1e-05lr.keras",
+        "diagnostic_model": "M54_DIAGNOSTIC_RESIDUALS_LEARNING_7fh_8ff_7lb_1e-05initlr.keras",
+        "seasonal_model": "M54_SEASONAL_RESIDUALS_LEARNING_7fh_8ff_7lb_1e-05initlr.keras"
+    }
+}

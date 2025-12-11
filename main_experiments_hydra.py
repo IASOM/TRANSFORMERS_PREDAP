@@ -6,7 +6,6 @@ import matplotlib
 matplotlib.use('Agg')  # non-interactive backend (no GUI)
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import MinMaxScaler
 import mlflow
 import mlflow.tensorflow
 import mlflow.keras
@@ -128,7 +127,7 @@ def main_experiment(cfg: DictConfig) -> None:
     num_transformer_blocks = cfg.model.num_transformer_blocks
     dropout = cfg.model.dropout
     learning_rate = cfg.model.learning_rate
-    data_path = cfg.data.data_path
+    scaler = default_config.scaler
 
     
     # Load data
@@ -158,6 +157,8 @@ def main_experiment(cfg: DictConfig) -> None:
             "dropout": dropout,
             "learning_rate": learning_rate ,
             "positional_encoding": positional_encoding,
+            "causal_masking": False,
+            "scaler": scaler,
         })
         
         # Log system information
@@ -192,6 +193,7 @@ def main_experiment(cfg: DictConfig) -> None:
             learning_rate=learning_rate,
             data_path=data_path,
             batch_size = batch_size,
+            
         )
 
         pipeline = UnivariateTransformerPipeline(univariate_parameters)
@@ -244,6 +246,7 @@ def main_experiment(cfg: DictConfig) -> None:
             learning_rate=learning_rate,
             data_path=data_path,
             batch_size = batch_size,
+            
         )
 
         #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
@@ -289,6 +292,7 @@ def main_experiment(cfg: DictConfig) -> None:
             learning_rate=learning_rate,#Not applyied yet
             data_path=data_path,
             batch_size = batch_size,
+            
         )
 
         '''predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
@@ -341,6 +345,7 @@ def main_experiment(cfg: DictConfig) -> None:
                 "num_transformer_blocks": num_transformer_blocks,
                 "dropout": dropout,
                 "learning_rate": learning_rate,
+                
             },
             "system_info": {
                 "tensorflow_version": tf.__version__,

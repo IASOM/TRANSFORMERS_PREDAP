@@ -30,7 +30,7 @@ from config.base_transformer_config import BaseTransformerConfig
 default_config = BaseTransformerConfig()
 
 
-def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
+def split_train_test(df, split_ratio=None, cutoff_date='2010-01-01', scaler = None, max_date = '2021-06-30'):
     """
     Splits a dataframe into train and test sets using the given split ratio.
     
@@ -56,10 +56,10 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     # Use default parameters if not provided
     if split_ratio is None:
         split_ratio = default_config.default_split_ratio
-    if init_date is None:
-        init_date = default_config.cutoff_date
+    if cutoff_date is None:
+        cutoff_date = default_config.cutoff_date
     
-    # Keep only rows STRICTLY after init_date using the 'timestamp' column
+    # Keep only rows STRICTLY after cutoff_date using the 'timestamp' column
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     
@@ -88,16 +88,19 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
 
 
     
-    cutoff = pd.Timestamp(init_date)
-    df = df[df['timestamp'] > cutoff].reset_index(drop=True)
+    cutoff = pd.Timestamp(cutoff_date)
+    max_dt = pd.Timestamp(max_date)
+    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
     
-    print(f"Data filtered from {init_date}. Remaining records: {len(df)}")
+    print(f"Data filtered from {cutoff_date}. Remaining records: {len(df)}")
     # Split the data
     split_idx = int(len(df) * split_ratio)
     train_df = df.iloc[:split_idx].reset_index(drop=True)
     test_df = df.iloc[split_idx:].reset_index(drop=True)
 
-    scaler = MinMaxScaler()
+    if scaler is None:
+        scaler = MinMaxScaler()
+
     columns = [column for column in df.columns if column != 'timestamp']
     scaler.fit(train_df[columns])
     df[columns] = scaler.transform(df[columns])
@@ -354,7 +357,8 @@ def extract_model_params_from_filename(model_filename):
         print(f"Warning: Could not extract parameters from filename: {model_filename}")
         return None
 
-def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', univariate=True):
+
+def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', max_date='2021-06-30', univariate=True, scaler = None):
     """
     Prepare training and testing data for the base transformer model.
     
@@ -404,16 +408,16 @@ def prepare_base_model_data(input_directory, code, lookback, forecast, covid_tok
     """
     start_time = time.perf_counter()
     X_test, Y_test = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,
-        train=False, debug=True, univariate=univariate
+        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,max_date = max_date,
+        train=False, debug=True, univariate=univariate, scaler = scaler
     )
-    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date, train=False)
+    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date,max_date = max_date, train=False)
     
     X_train, Y_train = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,
-        train=True, debug=True, univariate=univariate
+        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,max_date = max_date,
+        train=True, debug=True, univariate=univariate, scaler = scaler
     )
-    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date, train=True)
+    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date,max_date = max_date, train=True)
 
     finish_preparing = time.perf_counter()
     time_data_preparation = finish_preparing - start_time
@@ -469,7 +473,7 @@ def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
     # Get predictions from the base transformer model
     print("\nGenerating predictions from base model...")
     
-    predictions_train = model.predict(X_train, verbose=1)
-    predictions_test = model.predict(X_test, verbose=1)
+    predictions_train = model.predict(X_train)
+    predictions_test = model.predict(X_test)
     
     return predictions_train, predictions_test

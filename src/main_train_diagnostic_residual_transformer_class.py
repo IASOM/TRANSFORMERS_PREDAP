@@ -162,7 +162,8 @@ class DiagnosticResidualTransformerPipeline:
             self.config.lookback, 
             self.config.forecast, 
             covid_token=self.config.covid_token, 
-            cutoff_date=self.config.cutoff_date
+            cutoff_date=self.config.cutoff_date,
+            max_date=self.config.final_cutoff_date,
         )
         
         # Load base model predictions or use provided corrected predictions
@@ -197,7 +198,9 @@ class DiagnosticResidualTransformerPipeline:
         train_split, test_split = split_train_test(
             pd.read_csv(self.data_path), 
             split_ratio=0.8, 
-            init_date='2010-01-01'
+            cutoff_date = self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
+            scaler = self.config.scaler
         )
         
         self.diagnostic_covariates_list = self.load_diagnostic_covariates()
@@ -213,9 +216,11 @@ class DiagnosticResidualTransformerPipeline:
             self.config.forecast,
             covid_token=self.config.covid_token, 
             cutoff_date=self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
             relevant_feature_cols=self.diagnostic_covariates_list, 
             train=True, 
-            univariate=False
+            univariate=False,
+            scaler = self.config.scaler
         )
         
         print(f"Training covariates shape: {self.X_train_covs.shape}")
@@ -230,12 +235,14 @@ class DiagnosticResidualTransformerPipeline:
             self.config.forecast, 
             covid_token=self.config.covid_token, 
             cutoff_date=self.config.cutoff_date, 
+            max_date = self.config.final_cutoff_date,
             relevant_feature_cols=self.diagnostic_covariates_list, 
             train=False, 
             univariate=False
         )
         
         print(f"Test covariates shape: {self.X_test_covs.shape}")
+        return self.X_train_covs, self.X_test_covs
         
     def build_residual_model(self) -> tf.keras.Model:
         """Build the hybrid LSTM + Transformer model for residuals"""
@@ -331,6 +338,7 @@ class DiagnosticResidualTransformerPipeline:
             self.config.forecast,
             covid_token=self.config.covid_token, 
             cutoff_date=self.config.cutoff_date, 
+            max_date = self.config.final_cutoff_date,
             train=False, 
             univariate=True
         )
@@ -342,7 +350,9 @@ class DiagnosticResidualTransformerPipeline:
             self.config.code, 
             lookback=self.config.lookback, 
             forecast=self.config.forecast, 
-            cutoff_date=self.config.cutoff_date
+            cutoff_date=self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
+            scaler=self.config.scaler
         )
         
         predictions_test_orig = data_preparation.inverse_transform_predictions(
@@ -351,7 +361,9 @@ class DiagnosticResidualTransformerPipeline:
             self.config.code, 
             lookback=self.config.lookback, 
             forecast=self.config.forecast, 
-            cutoff_date=self.config.cutoff_date
+            cutoff_date=self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
+            scaler = self.config.scaler
         )
         
         print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")
@@ -519,7 +531,7 @@ class DiagnosticResidualTransformerPipeline:
         self.prepare_base_model_data()
         
         # Phase 2: Prepare covariate data for residual model
-        self.prepare_covariate_data()
+        X_train_covs, X_test_covs = self.prepare_covariate_data()
         
         # Phase 3: Build and train residual model
         self.train_residual_model()

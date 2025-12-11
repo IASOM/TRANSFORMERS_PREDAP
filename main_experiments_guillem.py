@@ -20,8 +20,6 @@ import time
 
 
 
-
-
 from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_history 
 #load and visualize data 
 
@@ -72,7 +70,7 @@ def safe_float(value):
 
 # MAIN TRANSFORMER MODEL 
 COVID_TOKEN = False
-ACTIVATION_FUNCTION = keras.activations.gelu
+ACTIVATION_FUNCTION = keras.activations.tanh
 POSITIONAL_ENCODING  = False
 
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
@@ -147,6 +145,7 @@ for CODE in CODES_LIST:
                                     "num_heads": num_heads, 
                                     "ff_dim": ff_dim,
                                     "mlp_units": mlp_units,
+                                    "causal_masking": False,
                                 })
                                
                                 
@@ -175,6 +174,7 @@ for CODE in CODES_LIST:
                                     activation_function=ACTIVATION_FUNCTION,
                                     covid_token= COVID_TOKEN,   
                                     cutoff_date=CUTOFF_DATE,
+
                                     head_size = head_size, 
                                     num_heads = num_heads, 
                                     ff_dim = ff_dim, 
@@ -184,6 +184,8 @@ for CODE in CODES_LIST:
                                     data_path = DATA_PATH,
                                     learning_rate = LEARNING_RATE,
                                     batch_size = batch_size,
+
+                                    
                                 )
 
                                 model, model_name, loss, mae, mse = UnivariateTransformerPipeline(univariate_parameters).run_complete_pipeline()

@@ -1,0 +1,2 @@
+[2025-11-28 15:40:28,536][absl][WARNING] - Found untraced functions such as _jit_compiled_convolution_op, _jit_compiled_convolution_op, _jit_compiled_convolution_op, _jit_compiled_convolution_op, query_layer_call_fn while saving (showing 5 of 28). These functions will not be directly callable after loading.
+[2025-11-28 15:40:30,126][tensorflow][INFO] - Assets written to: C:\Users\Sira\AppData\Local\Temp\tmpgjok39b0\model\data\model\assets

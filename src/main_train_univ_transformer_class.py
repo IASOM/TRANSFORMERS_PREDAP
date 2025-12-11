@@ -14,6 +14,7 @@ from typing import Optional, Dict, List, Tuple, Any
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
 
@@ -126,7 +127,7 @@ class UnivariateTransformerPipeline:
         create_model_directories()
         print("Environment setup complete!")
     
-    def prepare_data(self) -> Tuple[np.ndarray, np.ndarray]:
+    def prepare_data(self, train: bool=True) -> Tuple[np.ndarray, np.ndarray]:
         """
         Prepare training data using the configuration parameters.
         
@@ -146,9 +147,11 @@ class UnivariateTransformerPipeline:
             self.config.forecast,
             covid_token=self.config.covid_token, 
             cutoff_date=self.config.cutoff_date,
-            train=True, 
+            max_date = self.config.final_cutoff_date,
+            train=train, 
             debug=True, 
-            univariate=True
+            univariate=True,
+            scaler = self.config.scaler
         )
         
         finish_time = time.perf_counter()
@@ -159,6 +162,41 @@ class UnivariateTransformerPipeline:
         print(f"Data shapes - X: {X.shape}, Y: {Y.shape}")
         
         return X, Y
+    
+    '''def prepare_data_not_normalized(self, train: bool=True) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Prepare training data using the configuration parameters.
+        
+        Returns:
+            Tuple of (X, Y) training data arrays
+        """
+        print("\n" + "="*50)
+        print("DATA PREPARATION PHASE")
+        print("="*50)
+        
+        start_time = time.perf_counter()
+        
+        X, Y = data_preparation.prepare_data_not_normalized(
+            self.data_path, 
+            self.config.code, 
+            self.config.lookback, 
+            self.config.forecast,
+            covid_token=self.config.covid_token, 
+            cutoff_date=self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
+            train=train, 
+            debug=True, 
+            univariate=True,
+        )
+        
+        finish_time = time.perf_counter()
+        self.data_prep_time = finish_time - start_time
+        
+        print(f"Data preparation completed!")
+        print(f"Time taken: {self.data_prep_time:.2f} seconds")
+        print(f"Data shapes - X: {X.shape}, Y: {Y.shape}")
+        
+        return X, Y'''
     
     def build_model(self, input_shape: Tuple[int, ...]) -> tf.keras.Model:
         """
@@ -235,10 +273,12 @@ class UnivariateTransformerPipeline:
             loss='MAE', 
             metrics=['mae', 'mse'], 
             optimizer=Adam(
-                clipnorm=2.0, 
-                learning_rate=self.config.learning_rate, 
-                weight_decay=1e-4
-            )
+                clipnorm = 2.0,
+                learning_rate=self.config.learning_rate,
+                
+            ),
+           
+
         )
         return model
     
@@ -278,7 +318,8 @@ class UnivariateTransformerPipeline:
             save_memory=False,
             callbacks=callbacks,
             save_history=self.config.save_train_history,
-            shuffle=self.config.shuffle_data
+            shuffle=self.config.shuffle_data,
+            patience = self.config.early_stop_patience,
         )
         
         self.training_history = training_results
@@ -314,9 +355,11 @@ class UnivariateTransformerPipeline:
             self.config.data_path,
             self.config.code,
             cutoff_date=self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
             covid_token=self.config.covid_token,
             MODEL_FOLDER=self.config.model_folder,
-            df_waves=df_waves
+            df_waves=df_waves,
+            scaler = self.config.scaler,
         )
         
         self.evaluation_results = {

@@ -11,7 +11,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import math
 
-from src.config.base_transformer_config import BaseTransformerConfig
+from config.base_transformer_config import BaseTransformerConfig
 
 default_config = BaseTransformerConfig()
 

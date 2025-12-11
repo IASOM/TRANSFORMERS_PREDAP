@@ -9,6 +9,7 @@ from typing import Optional, Dict, List, Tuple, Any
 from abc import ABC, abstractmethod
 import os
 from datetime import datetime
+from sklearn.preprocessing import RobustScaler, MinMaxScaler
 
 
 @dataclass
@@ -21,7 +22,7 @@ class BaseTransformerConfig(ABC):
     # ==================== CORE MODEL PARAMETERS ====================
     lookback: int = 14
     forecast: int = 7
-    code: str = "J00"
+    code: str = "T14"
     
     # ==================== MODEL ARCHITECTURE ====================
     head_size: int = 64
@@ -30,15 +31,15 @@ class BaseTransformerConfig(ABC):
     num_transformer_blocks: int = 2
     mlp_units: int = 128
     dropout: float = 0.5
-    activation_function: str = 'gelu'
+    activation_function: str = 'tanh'
     
     # ==================== TRAINING PARAMETERS ====================
-    learning_rate: float = 0.00001
+    learning_rate: float = 1e-4
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
     epochs: int = 100
-    batch_size: int = 34
+    batch_size: int = 32
     early_stop_patience: int = 10
     shuffle_data: bool = True
     save_train_history: bool = True
@@ -46,28 +47,34 @@ class BaseTransformerConfig(ABC):
     # ==================== DATA PARAMETERS ====================
     data_path: str = '../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv'
     cutoff_date: str = "2008-01-01"
-    positional_encoding: bool = False
+    final_cutoff_date: str = "2019-12-30"#"2021-06-30"#
+    positional_encoding: bool = True
     default_split_ratio: float = 0.8
-    
+    covid_dates: List[Tuple[str, str]] = field(default_factory=lambda: [
+        ("2020-03-01", "2020-06-30"),
+        ("2020-10-01", "2020-12-31"),
+        ("2021-01-01", "2021-03-31"),
+        ("2021-04-01", "2021-06-30"),
+    ])
+
     # ==================== OPTIONAL PARAMETERS ====================
     covid_token: bool = False
     evaluate_model: bool = False
+    scaler = MinMaxScaler()
     
     # ==================== PATHS AND DIRECTORIES ====================
     plots_dir: str = 'plots'
     model_folder: str = '../transformer_outputs/models_covid_token'
 
     # Hyperparameter Search Lists
-    CODES_LIST: List[str] = field(default_factory=lambda: ["J00", "T14"])
-    LOOKBACK_LIST: List[int] = field(default_factory=lambda: [7, 14, 30, 60, 182, 365])
-    FORECAST_LIST: List[int] = field(default_factory=lambda: [7, 14, 30, 60, 182, 365])
-    HEAD_SIZE_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
-    NUM_HEADS_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
-    ACTIVATIONS_LIST: List[Any] = field(default_factory=lambda: ["gelu", "tanh", "relu"])
+    CODES_LIST: List[str] = field(default_factory=lambda: ["J00", "T14","M54"])
+    LOOKBACK_LIST: List[int] = field(default_factory=lambda: [7,14,30,182])
+    FORECAST_LIST: List[int] = field(default_factory=lambda: [7,14,30,182, 365])
+    HEAD_SIZE_LIST: List[int] = field(default_factory=lambda: [2,4,8])
+    NUM_HEADS_LIST: List[int] = field(default_factory=lambda: [4,8])
+    ACTIVATIONS_LIST: List[Any] = field(default_factory=lambda: ["gelu", "tanh","leaky_relu"])
     COVID_TOKEN_LIST: List[bool] = field(default_factory=lambda: [False, True])
-    HEAD_SIZE_LIST: List[int] = field(default_factory=lambda: [2, 8, 16, 32])
-    NUM_HEADS_LIST: List[int] = field(default_factory=lambda: [2, 4, 8])
-    FF_DIM_LIST: List[int] = field(default_factory=lambda: [8, 16, 32, 64])
+    FF_DIM_LIST: List[int] = field(default_factory=lambda: [32, 64])
     MLP_UNITS_LIST: List[int] = field(default_factory=lambda: [16, 32, 64, 128])
 
     #Hyperparameters residual transformer

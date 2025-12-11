@@ -18,7 +18,7 @@ default_config = BaseTransformerConfig()
 
 def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, epochs=100, 
                                save_history=False, save_model=True, save_memory=True, 
-                               shuffle=False, callbacks=None):
+                               shuffle=False, callbacks=None, patience = 10):
     """
     Train a given model with provided data and save results.
     
@@ -46,7 +46,7 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
                 print(e)
                 
     if callbacks is None:  # define callbacks (If no callbacks are provided, it automatically enables Early Stopping)
-        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=5, restore_best_weights=True)
+        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', patience=patience, restore_best_weights=True)
         callbacks = [early_stop]
 
     if not os.path.exists(f'{model_name}'):  # check if model exist and run if not
