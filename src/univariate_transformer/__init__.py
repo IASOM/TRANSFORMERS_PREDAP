@@ -34,7 +34,6 @@ Example usage:
 """
 
 # Import key components for easy access
-from .config_univ_transformer import default_config, TransformerConfig, create_config
 from .model_architecture_univ_transformer import build_model, transformer_encoder, CustomCosineDecay
 from .training_evaluation_univ_transformer import train_given_model_and_data, evaluate_model_sliding_window
 from .visualization_univ_transformer import plt_model, plot_predictions_with_waves, plot_example
@@ -44,11 +43,7 @@ __version__ = "1.0.0"
 __author__ = "TRANSFORMERS_PREDAP Team"
 
 __all__ = [
-    # Configuration
-    'default_config',
-    'TransformerConfig', 
-    'create_config',
-    
+
     # Model Architecture
     'build_model',
     'transformer_encoder',
@@ -73,4 +68,5 @@ __all__ = [
 
     # Evaluation
     'evaluate_univ_transformer'
+    
 ]

@@ -9,12 +9,22 @@ import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+<<<<<<< HEAD
 from sklearn.preprocessing import MinMaxScaler
+=======
+
+>>>>>>> samper_cleaning
 
 import mlflow
 import pickle
 import matplotlib.pyplot as plt
 
+<<<<<<< HEAD
+=======
+from src.config.base_transformer_config import BaseTransformerConfig
+default_config = BaseTransformerConfig()
+PLOTS_DIR = default_config.plots_dir
+>>>>>>> samper_cleaning
 
 def extract_model_params(model_name):
     """
@@ -60,7 +70,11 @@ def split_train_test(df, split_ratio=0.8):
     return train_df, test_df
 
 
+<<<<<<< HEAD
 def load_and_evaluate_models(model_folder='models', input_directory=None, code="T14"):
+=======
+def load_and_evaluate_models(model_folder='models', input_directory=None, code="T14", scaler=None ):
+>>>>>>> samper_cleaning
     """
     Load all models in a folder and evaluate them with their respective parameters.
     
@@ -100,7 +114,11 @@ def load_and_evaluate_models(model_folder='models', input_directory=None, code="
             
             # Prepare data with extracted parameters
             X_test, Y_test = data_preparation.prepare_data(
+<<<<<<< HEAD
                 input_directory, code, lookback, forecast, debug=True, univariate=True
+=======
+                input_directory, code, lookback, forecast, debug=True, univariate=True, scaler=scaler, train=False, covid_token=False, cutoff_date=default_config.cutoff_date, max_date=default_config.final_cutoff_date, eliminate_covid_data=default_config.eliminate_covid_data, covid_dates=default_config.covid_dates
+>>>>>>> samper_cleaning
             )
             
             # Evaluate model
@@ -278,7 +296,11 @@ def calculate_forecast_metrics(y_true, y_pred):
         'Directional_Accuracy': directional_accuracy
     }
 
+<<<<<<< HEAD
 def load_mlflow_model_history(model_name):
+=======
+def load_mlflow_model_history(model_name, model_type="univariate_transformer"):
+>>>>>>> samper_cleaning
 
     """
     Load training history from an MLflow Keras model.
@@ -288,8 +310,13 @@ def load_mlflow_model_history(model_name):
     Returns:
         dict: Training history  
     """
+<<<<<<< HEAD
 
     history_path = f"{model_name}_history.pkl"
+=======
+    raw_model_name = model_name.replace(".keras", "")
+    history_path = f"../history/{raw_model_name}_history.pkl"
+>>>>>>> samper_cleaning
 
     if os.path.exists(history_path):
         print(f" Found saved history at: {history_path}")
@@ -307,7 +334,11 @@ def load_mlflow_model_history(model_name):
         for epoch, row in history_df.iterrows():
             for metric, value in row.items():
                 if metric != "epoch":
+<<<<<<< HEAD
                     mlflow.log_metric(metric, float(value), step=int(row["epoch"]))
+=======
+                    mlflow.log_metric(metric + "_" + model_type, float(value), step=int(row["epoch"]))
+>>>>>>> samper_cleaning
         
         # --- Create and log plots ---
         metric_groups = {
@@ -322,7 +353,11 @@ def load_mlflow_model_history(model_name):
 
             plt.figure(figsize=(8, 4))
             for k in available:
+<<<<<<< HEAD
                 plt.plot(history_df["epoch"], history_df[k], label=k, linewidth=2)
+=======
+                plt.plot(history_df["epoch"], history_df[k], label=k+ "_" + model_type, linewidth=2)
+>>>>>>> samper_cleaning
             plt.xlabel("Epoch")
             plt.ylabel(group_name.capitalize())
             plt.title(f"Training vs Validation {group_name.capitalize()}")
@@ -330,10 +365,18 @@ def load_mlflow_model_history(model_name):
             plt.grid(True, linestyle="--", alpha=0.6)
             plt.tight_layout()
 
+<<<<<<< HEAD
             plot_path = f"{model_name}_{group_name}_curve.png"
             plt.savefig(plot_path)
             plt.close()
 
+=======
+            plot_path = f"../{PLOTS_DIR}/{model_name}_{group_name}_curve.png"
+            
+            plt.close()
+            os.makedirs('../' + PLOTS_DIR, exist_ok=True)
+            plt.savefig(plot_path)
+>>>>>>> samper_cleaning
             # Log as artifact
             mlflow.log_artifact(plot_path, artifact_path="plots")
 

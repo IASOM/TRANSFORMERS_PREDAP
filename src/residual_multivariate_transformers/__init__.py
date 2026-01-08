@@ -15,7 +15,6 @@ Modules:
     - main_training_residual_transformer: Main training and evaluation pipeline
 """
 
-from .config_residual_transformer import *
 from .model_architecture_residual_transformer import *
 from .training_evaluation_residual_transformer import *
 from .utils_residual_transformer import *

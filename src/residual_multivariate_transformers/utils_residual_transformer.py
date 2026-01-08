@@ -24,6 +24,7 @@ if src_dir not in sys.path:
 
 import data_preparation
 
+<<<<<<< HEAD
 from .config_residual_transformer import (
     DEFAULT_SPLIT_RATIO, 
     DEFAULT_INIT_DATE, 
@@ -33,6 +34,15 @@ from .config_residual_transformer import (
 
 
 def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
+=======
+
+from config.base_transformer_config import BaseTransformerConfig
+
+default_config = BaseTransformerConfig()
+
+
+def split_train_test(df, split_ratio=None, cutoff_date='2010-01-01', scaler = None, max_date = '2021-06-30'):
+>>>>>>> samper_cleaning
     """
     Splits a dataframe into train and test sets using the given split ratio.
     
@@ -57,11 +67,19 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     """
     # Use default parameters if not provided
     if split_ratio is None:
+<<<<<<< HEAD
         split_ratio = DEFAULT_SPLIT_RATIO
     if init_date is None:
         init_date = DEFAULT_INIT_DATE
     
     # Keep only rows STRICTLY after init_date using the 'timestamp' column
+=======
+        split_ratio = default_config.default_split_ratio
+    if cutoff_date is None:
+        cutoff_date = default_config.cutoff_date
+    
+    # Keep only rows STRICTLY after cutoff_date using the 'timestamp' column
+>>>>>>> samper_cleaning
     if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     
@@ -69,9 +87,13 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     
 
+<<<<<<< HEAD
     scaler = MinMaxScaler()
     columns = [column for column in df.columns if column != 'timestamp']
     df[columns] = scaler.fit_transform(df[columns])
+=======
+    
+>>>>>>> samper_cleaning
     '''# Process each column (except timestamp)
     for code in df.columns:
         if code != 'timestamp':
@@ -92,14 +114,32 @@ def split_train_test(df, split_ratio=None, init_date='2010-01-01'):
 
 
     
+<<<<<<< HEAD
     cutoff = pd.Timestamp(init_date)
     df = df[df['timestamp'] > cutoff].reset_index(drop=True)
     
     print(f"Data filtered from {init_date}. Remaining records: {len(df)}")
+=======
+    cutoff = pd.Timestamp(cutoff_date)
+    max_dt = pd.Timestamp(max_date)
+    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    
+    print(f"Data filtered from {cutoff_date}. Remaining records: {len(df)}")
+>>>>>>> samper_cleaning
     # Split the data
     split_idx = int(len(df) * split_ratio)
     train_df = df.iloc[:split_idx].reset_index(drop=True)
     test_df = df.iloc[split_idx:].reset_index(drop=True)
+<<<<<<< HEAD
+=======
+
+    if scaler is None:
+        scaler = MinMaxScaler()
+
+    columns = [column for column in df.columns if column != 'timestamp']
+    scaler.fit(train_df[columns])
+    df[columns] = scaler.transform(df[columns])
+>>>>>>> samper_cleaning
     
     print(f"Data split - Train: {len(train_df)} records, Test: {len(test_df)} records")
     
@@ -158,7 +198,11 @@ def learn_covariates(df_split, categorical_vars=None):
     """
     # Use default categorical variables if not provided
     if categorical_vars is None:
+<<<<<<< HEAD
         categorical_vars = DEFAULT_CATEGORICAL_VARS.copy()
+=======
+        categorical_vars = default_config.DEFAULT_SEASONAL_CATEGORICAL_VARS.copy()
+>>>>>>> samper_cleaning
     
     print(f"Learning covariates with variables: {categorical_vars}")
     
@@ -220,7 +264,11 @@ def create_pandemic_waves_df():
         DataFrame with pandemic wave periods
     """
     # Convert waves dictionary to DataFrame
+<<<<<<< HEAD
     df_waves = pd.DataFrame(PANDEMIC_WAVES).T.reset_index()
+=======
+    df_waves = pd.DataFrame(default_config.PANDEMIC_WAVES).T.reset_index()
+>>>>>>> samper_cleaning
     df_waves.columns = ["Onada", "Inici", "Final"]
     df_waves["Inici"] = pd.to_datetime(df_waves["Inici"])
     df_waves["Final"] = pd.to_datetime(df_waves["Final"])
@@ -353,7 +401,12 @@ def extract_model_params_from_filename(model_filename):
         print(f"Warning: Could not extract parameters from filename: {model_filename}")
         return None
 
+<<<<<<< HEAD
 def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', univariate=True):
+=======
+
+def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', max_date='2021-06-30', univariate=True, scaler = None, eliminate_covid_data=False, covid_dates=None):
+>>>>>>> samper_cleaning
     """
     Prepare training and testing data for the base transformer model.
     
@@ -403,6 +456,7 @@ def prepare_base_model_data(input_directory, code, lookback, forecast, covid_tok
     """
     start_time = time.perf_counter()
     X_test, Y_test = data_preparation.prepare_data(
+<<<<<<< HEAD
         input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,
         train=False, debug=True, univariate=univariate
     )
@@ -413,6 +467,18 @@ def prepare_base_model_data(input_directory, code, lookback, forecast, covid_tok
         train=True, debug=True, univariate=univariate
     )
     date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date, train=True)
+=======
+        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,max_date = max_date,
+        train=False, debug=True, univariate=univariate, scaler = scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+    )
+    date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date,max_date = max_date, train=False, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+    
+    X_train, Y_train = data_preparation.prepare_data(
+        input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,max_date = max_date,
+        train=True, debug=True, univariate=univariate, scaler = scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+    )
+    date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date,max_date = max_date, train=True, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+>>>>>>> samper_cleaning
 
     finish_preparing = time.perf_counter()
     time_data_preparation = finish_preparing - start_time
@@ -452,7 +518,10 @@ def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
         If the model file does not exist
     """
    # Load the base transformer model
+<<<<<<< HEAD
     
+=======
+>>>>>>> samper_cleaning
     available_models = os.listdir(base_path) if os.path.exists(base_path) else []
     
     if base_model_name in available_models:
@@ -468,7 +537,13 @@ def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
     
     # Get predictions from the base transformer model
     print("\nGenerating predictions from base model...")
+<<<<<<< HEAD
     predictions_test = model.predict(X_test, verbose=1)
     predictions_train = model.predict(X_train, verbose=1)
+=======
+    
+    predictions_train = model.predict(X_train)
+    predictions_test = model.predict(X_test)
+>>>>>>> samper_cleaning
     
     return predictions_train, predictions_test

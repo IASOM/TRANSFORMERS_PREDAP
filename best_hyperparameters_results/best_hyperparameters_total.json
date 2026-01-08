@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "7df67d246e25433a8c675e2ae9751072",
+        "run_name": "HYDRA_transformer_total_lb30_fh7_134643",
+        "timestamp": "2026-01-08T13:51:13.755631",
+        "hydra_job_num": 36
+    },
+    "hyperparameters": {
+        "target_code": "total",
+        "lookback": 30,
+        "forecast_horizon": 7,
+        "activation_function": "leaky_relu",
+        "covid_token": true,
+        "cutoff_date": "2007-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": 512,
+        "num_transformer_blocks": 8,
+        "dropout": 0.5,
+        "learning_rate": 5e-06
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 89.88128,
+        "phase_2_diagnostic_seconds": 73.37344,
+        "phase_3_seasonal_seconds": 106.864931,
+        "total_training_seconds": 270.124435,
+        "total_training_minutes": 4.502073916666666
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.26275521516799927,
+            "mae": 27622.29200243628,
+            "mse": 912307700.5277376
+        },
+        "diagnostic_residual": {
+            "mae": 30321.692102539684,
+            "mse": 1048566856.5934755,
+            "rmse": 32381.582058223707
+        },
+        "seasonal_residual": {
+            "mae": 13606.68081002119,
+            "mse": 253229551.87052247,
+            "rmse": 15913.18798577213
+        }
+    },
+    "model_paths": {
+        "univariate_model": "total_base_transformer_7fh_512ff_30lb_5e-06lr.keras",
+        "diagnostic_model": "total_DIAGNOSTIC_RESIDUALS_LEARNING_7fh_512ff_30lb_5e-06initlr.keras",
+        "seasonal_model": "total_SEASONAL_RESIDUALS_LEARNING_7fh_512ff_30lb_5e-06initlr.keras"
+    }
+}

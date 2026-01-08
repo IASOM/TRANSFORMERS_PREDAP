@@ -1,0 +1,12 @@
+- model.target_code=T14
+- model.lookback=7
+- model.forecast=14
+- model.num_transformer_blocks=4
+- model.head_size=4
+- model.num_heads=4
+- model.ff_dim=32
+- model.mlp_units=64
+- model.activation=relu
+- model.covid_token=False
+- model.dropout=0.25
+- model.learning_rate=1e-05
