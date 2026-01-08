@@ -1,9 +1,9 @@
 {
     "run_info": {
-        "run_id": "494aed204c284ee0a5051f7a7bfc1148",
-        "run_name": "HYDRA_transformer_total_lb14_fh60_122608",
-        "timestamp": "2026-01-08T12:51:38.663744",
-        "hydra_job_num": 30
+        "run_id": "ae8c32562981492e881b81aec64c22f3",
+        "run_name": "HYDRA_transformer_total_lb14_fh60_125139",
+        "timestamp": "2026-01-08T13:28:05.221416",
+        "hydra_job_num": 31
     },
     "hyperparameters": {
         "target_code": "total",
@@ -14,7 +14,7 @@
         "cutoff_date": "2007-01-01",
         "model_type": "transformer",
         "head_size": 64,
-        "num_heads": 8,
+        "num_heads": 16,
         "ff_dim": 512,
         "mlp_units": 512,
         "num_transformer_blocks": 8,
@@ -28,27 +28,27 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 199.000423,
-        "phase_2_diagnostic_seconds": 301.876437,
-        "phase_3_seasonal_seconds": 1028.871066,
-        "total_training_seconds": 1529.753655,
-        "total_training_minutes": 25.49589425
+        "phase_1_univariate_seconds": 328.05357,
+        "phase_2_diagnostic_seconds": 323.564715,
+        "phase_3_seasonal_seconds": 1534.221504,
+        "total_training_seconds": 2185.8442,
+        "total_training_minutes": 36.43073666666667
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.2692597508430481,
-            "mae": 29872.999082769133,
-            "mse": 1005495921.4187974
+            "loss": 0.2573801577091217,
+            "mae": 28610.385934839614,
+            "mse": 948090454.8092531
         },
         "diagnostic_residual": {
-            "mae": 22143.653307208282,
-            "mse": 623437956.4793575,
-            "rmse": 24968.739585316627
+            "mae": 21310.32705092585,
+            "mse": 613998367.0555005,
+            "rmse": 24778.990436567437
         },
         "seasonal_residual": {
-            "mae": 18790.468981784557,
-            "mse": 506411447.58059496,
-            "rmse": 22503.587438019633
+            "mae": 19574.37327874896,
+            "mse": 554935733.8666242,
+            "rmse": 23557.0739665737
         }
     },
     "model_paths": {
