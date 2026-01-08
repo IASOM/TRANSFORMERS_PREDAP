@@ -60,7 +60,7 @@ def aggregate_dataframe(df):
     return agg_df
 
 if __name__ == "__main__":
-    df = pd.read_parquet('../data/diagnostics_subchapters_CAT_aggregated.parquet')  # Example CSV file
+    df = pd.read_parquet('../data/final_data/FINAL_diagnostics_CAT1.parquet')  # Example CSV file
     aggregated_df = aggregate_dataframe(df)
     representative_codes = find_code_percentile_diagnostics(aggregated_df, percentile=95)
     
