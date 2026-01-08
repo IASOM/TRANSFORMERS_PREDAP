@@ -1,7 +1,22 @@
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-import pandas as pd
+_original_read_csv = pd.read_csv
+def smart_read(file_path, **kwargs):
+    """
+    Función que sustituye a pd.read_csv.
+    Detecta automáticamente si la extensión es .parquet o .csv
+    y llama a la función de lectura apropiada.
+    """
+    if str(file_path).lower().endswith('.parquet'):
+        print(f"-> INFO: Leyendo {file_path} como PARQUET.")
+        # Aquí puedes añadir parámetros específicos para Parquet si los necesitas
+        return pd.read_parquet(file_path, **kwargs)
+    else:
+        # Llama a la función original pd.read_csv para CSVs y otros
+        print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
+        return _original_read_csv(file_path, **kwargs)
+pd.read_csv = smart_read
 import matplotlib
 matplotlib.use('Agg')  # non-interactive backend (no GUI)
 import matplotlib.pyplot as plt

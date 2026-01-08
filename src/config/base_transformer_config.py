@@ -38,18 +38,19 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 100
+    epochs: int = 500
     batch_size: int = 32
     early_stop_patience: int = 10
     shuffle_data: bool = True
     save_train_history: bool = True
     
     # ==================== DATA PARAMETERS ====================
-    data_path: str = '../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv'
+    data_path: str = '../data/diagnostics_CAT_aggregated.parquet'
     cutoff_date: str = "2008-01-01"
-    final_cutoff_date: str = "2019-12-30"#"2021-06-30"#
+    final_cutoff_date: str = "2025-09-30"#"2021-06-30"#
     positional_encoding: bool = True
     default_split_ratio: float = 0.8
+    eliminate_covid_data: bool = False
     covid_dates: List[Tuple[str, str]] = field(default_factory=lambda: [
         ("2020-03-01", "2020-06-30"),
         ("2020-10-01", "2020-12-31"),

@@ -10,6 +10,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import math
+from tensorflow.keras.losses import Huber
 
 from config.base_transformer_config import BaseTransformerConfig
 
@@ -98,13 +99,15 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     # LSTM Block
     x = layers.LSTM(
         lstm_params['units_1'], 
-        return_sequences=lstm_params['return_sequences']
+        return_sequences=lstm_params['return_sequences'],
+        recurrent_activation='tanh'
     )(input_layer)
     x = layers.Dropout(lstm_params['dropout'])(x)  # Dropout to reduce overfitting
     
     x = layers.LSTM(
         lstm_params['units_2'], 
-        return_sequences=lstm_params['return_sequences']
+        return_sequences=lstm_params['return_sequences'],
+        recurrent_activation='tanh'
     )(x)
     x = layers.Dropout(lstm_params['dropout'])(x)
 
@@ -120,6 +123,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # GlobalAveragePooling1D Layer
     x = layers.GlobalAveragePooling1D()(x) # May be changed to Flatten() if needed
+    #x = layers.Flatten()(x)
     # Output Layer
     outputs = layers.Dense(forecast, activation=activation_function)(x)
 

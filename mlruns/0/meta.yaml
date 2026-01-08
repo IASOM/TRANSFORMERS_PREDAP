@@ -1,6 +1,6 @@
-artifact_location: file:///C:/Users/Sira/Escritorio/predapProject/TRANSFORMERS_PREDAP/mlruns/0
-creation_time: 1762177388114
+artifact_location: file:///workspace/predapProject/TRANSFORMERS_PREDAP/mlruns/0
+creation_time: 1766502010828
 experiment_id: '0'
-last_update_time: 1762177388114
+last_update_time: 1766502010828
 lifecycle_stage: active
 name: Default

@@ -151,7 +151,9 @@ class UnivariateTransformerPipeline:
             train=train, 
             debug=True, 
             univariate=True,
-            scaler = self.config.scaler
+            scaler = self.config.scaler,
+            eliminate_covid_data = self.config.eliminate_covid_data,
+            covid_dates = self.config.covid_dates,
         )
         
         finish_time = time.perf_counter()
@@ -163,41 +165,7 @@ class UnivariateTransformerPipeline:
         
         return X, Y
     
-    '''def prepare_data_not_normalized(self, train: bool=True) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Prepare training data using the configuration parameters.
-        
-        Returns:
-            Tuple of (X, Y) training data arrays
-        """
-        print("\n" + "="*50)
-        print("DATA PREPARATION PHASE")
-        print("="*50)
-        
-        start_time = time.perf_counter()
-        
-        X, Y = data_preparation.prepare_data_not_normalized(
-            self.data_path, 
-            self.config.code, 
-            self.config.lookback, 
-            self.config.forecast,
-            covid_token=self.config.covid_token, 
-            cutoff_date=self.config.cutoff_date,
-            max_date = self.config.final_cutoff_date,
-            train=train, 
-            debug=True, 
-            univariate=True,
-        )
-        
-        finish_time = time.perf_counter()
-        self.data_prep_time = finish_time - start_time
-        
-        print(f"Data preparation completed!")
-        print(f"Time taken: {self.data_prep_time:.2f} seconds")
-        print(f"Data shapes - X: {X.shape}, Y: {Y.shape}")
-        
-        return X, Y'''
-    
+
     def build_model(self, input_shape: Tuple[int, ...]) -> tf.keras.Model:
         """
         Build the transformer model based on configuration.
@@ -270,7 +238,7 @@ class UnivariateTransformerPipeline:
             Compiled model
         """
         model.compile(
-            loss='MAE', 
+            loss='mae', 
             metrics=['mae', 'mse'], 
             optimizer=Adam(
                 clipnorm = 2.0,
@@ -360,6 +328,8 @@ class UnivariateTransformerPipeline:
             MODEL_FOLDER=self.config.model_folder,
             df_waves=df_waves,
             scaler = self.config.scaler,
+            eliminate_covid_data = self.config.eliminate_covid_data,
+            covid_dates = self.config.covid_dates,
         )
         
         self.evaluation_results = {

@@ -159,6 +159,10 @@ class SeasonalResidualTransformerPipeline:
             covid_token=self.config.covid_token, 
             cutoff_date=self.config.cutoff_date,
             max_date = self.config.final_cutoff_date,
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data,
+            covid_dates=self.config.covid_dates,
+
         )
         
         # Load base model predictions or use provided corrected predictions
@@ -189,20 +193,24 @@ class SeasonalResidualTransformerPipeline:
         print("PHASE 2: PREPARING COVARIATE DATA FOR RESIDUAL MODEL")
         print("="*50)
         
-        # Load and split the original data for covariate extraction
-        train_split, test_split = split_train_test(
-            pd.read_csv(self.data_path), 
-            split_ratio=0.8, 
-            cutoff_date=self.config.cutoff_date,
-            max_date = self.config.final_cutoff_date,
-            scaler = self.config.scaler
-        )
         
+        df = pd.read_csv(self.data_path)
         # Prepare seasonal features for training data
         print("Preparing seasonal features for training data...")
-        df_train_processed = data_preparation.prepare_time_series_features(
-            train_split, 
+        df_processed = data_preparation.prepare_time_series_features(
+            df, 
             self.config.categorical_vars, 
+            cutoff_date=self.config.cutoff_date,
+            max_date = self.config.final_cutoff_date,
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates,
+        )
+
+        # Load and split the original data for covariate extraction
+        df_train_processed, df_test_processed = split_train_test(
+            df_processed, 
+            split_ratio=self.config.default_split_ratio, 
             cutoff_date=self.config.cutoff_date,
             max_date = self.config.final_cutoff_date,
             scaler = self.config.scaler
@@ -220,16 +228,6 @@ class SeasonalResidualTransformerPipeline:
         
         print(f"Training covariates shape: {self.X_train_covs.shape}")
         print(f"Expected shape: (num_samples, {self.config.lookback}, num_features)")
-        
-        # Prepare seasonal features for test data
-        print("Preparing seasonal features for test data...")
-        df_test_processed = data_preparation.prepare_time_series_features(
-            test_split, 
-            self.config.categorical_vars, 
-            cutoff_date=self.config.cutoff_date, 
-            max_date = self.config.final_cutoff_date,
-            scaler = self.config.scaler
-        )
         
         # Generate rolling sequences for test data
         print("Generating rolling sequences with seasonal covariates for test data...")
@@ -340,7 +338,9 @@ class SeasonalResidualTransformerPipeline:
             cutoff_date=self.config.cutoff_date, 
             max_date=self.config.final_cutoff_date,
             train=False, 
-            univariate=True
+            univariate=True,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates
         )
         
         # Inverse transform predictions
@@ -352,7 +352,10 @@ class SeasonalResidualTransformerPipeline:
             lookback=self.config.lookback, 
             cutoff_date=self.config.cutoff_date,
             max_date=self.config.final_cutoff_date,
-            scaler = self.config.scaler
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates
+
         )
         
         predictions_test_orig = data_preparation.inverse_transform_predictions(
@@ -363,7 +366,9 @@ class SeasonalResidualTransformerPipeline:
             lookback=self.config.lookback, 
             cutoff_date=self.config.cutoff_date,
             max_date=self.config.final_cutoff_date,
-            scaler = self.config.scaler
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates
         )
         
         print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")

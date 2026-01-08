@@ -164,6 +164,9 @@ class DiagnosticResidualTransformerPipeline:
             covid_token=self.config.covid_token, 
             cutoff_date=self.config.cutoff_date,
             max_date=self.config.final_cutoff_date,
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data,
+            covid_dates=self.config.covid_dates
         )
         
         # Load base model predictions or use provided corrected predictions
@@ -172,7 +175,8 @@ class DiagnosticResidualTransformerPipeline:
                 X_train = self.X_train, 
                 X_test = self.X_test, 
                 base_path = self.config.model_folder, 
-                base_model_name = self.base_model_name
+                base_model_name = self.base_model_name,
+
             )
         else:
             self.predictions_train = self.config.predictions_train_corrected
@@ -220,7 +224,9 @@ class DiagnosticResidualTransformerPipeline:
             relevant_feature_cols=self.diagnostic_covariates_list, 
             train=True, 
             univariate=False,
-            scaler = self.config.scaler
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data,
+            covid_dates=self.config.covid_dates
         )
         
         print(f"Training covariates shape: {self.X_train_covs.shape}")
@@ -238,7 +244,10 @@ class DiagnosticResidualTransformerPipeline:
             max_date = self.config.final_cutoff_date,
             relevant_feature_cols=self.diagnostic_covariates_list, 
             train=False, 
-            univariate=False
+            univariate=False,
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data,
+            covid_dates=self.config.covid_dates,
         )
         
         print(f"Test covariates shape: {self.X_test_covs.shape}")
@@ -340,7 +349,9 @@ class DiagnosticResidualTransformerPipeline:
             cutoff_date=self.config.cutoff_date, 
             max_date = self.config.final_cutoff_date,
             train=False, 
-            univariate=True
+            univariate=True,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates
         )
         
         # Inverse transform predictions
@@ -352,7 +363,9 @@ class DiagnosticResidualTransformerPipeline:
             forecast=self.config.forecast, 
             cutoff_date=self.config.cutoff_date,
             max_date = self.config.final_cutoff_date,
-            scaler=self.config.scaler
+            scaler=self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates
         )
         
         predictions_test_orig = data_preparation.inverse_transform_predictions(
@@ -363,7 +376,9 @@ class DiagnosticResidualTransformerPipeline:
             forecast=self.config.forecast, 
             cutoff_date=self.config.cutoff_date,
             max_date = self.config.final_cutoff_date,
-            scaler = self.config.scaler
+            scaler = self.config.scaler,
+            eliminate_covid_data=self.config.eliminate_covid_data, 
+            covid_dates=self.config.covid_dates
         )
         
         print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")

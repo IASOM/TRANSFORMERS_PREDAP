@@ -1,7 +1,32 @@
 import pandas as pd
+import os
+
+def smart_read(file_path, **kwargs):
+    """
+    Función que sustituye a pd.read_csv.
+    Detecta automáticamente si la extensión es .parquet o .csv
+    y llama a la función de lectura apropiada.
+    """
+    if str(file_path).lower().endswith('.parquet'):
+        print(f"-> INFO: Leyendo {file_path} como PARQUET.")
+        # Aquí puedes añadir parámetros específicos para Parquet si los necesitas
+        return pd.read_parquet(file_path, **kwargs)
+    else:
+        # Llama a la función original pd.read_csv para CSVs y otros
+        print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
+        return _original_read_csv(file_path, **kwargs)
+
+# --- REEMPLAZO (MONKEY PATCHING) ---
+
+# 1. Guardar la función original de lectura de CSV
+#    (Usaremos esta referencia dentro de nuestro wrapper)
+_original_read_csv = pd.read_csv
+
+# 2. Reemplazar la función original con nuestra función "inteligente"
+pd.read_csv = smart_read
+
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # non-interactive backend (no GUI)
 import matplotlib.pyplot as plt
@@ -10,7 +35,7 @@ import mlflow
 import mlflow.tensorflow
 import mlflow.keras
 from datetime import datetime
-import os
+
 import tempfile
 import json
 import pickle
@@ -93,7 +118,7 @@ def initialize_results_tracking():
             "best_run_info": None
         }
 
-@hydra.main(version_base=None, config_path="conf", config_name="grid_search")
+@hydra.main(version_base=None, config_path="conf", config_name="grid_search.yaml")
 def main_experiment(cfg: DictConfig) -> None:
     """Main experiment function decorated with Hydra for parameter sweeping."""
     
@@ -246,6 +271,7 @@ def main_experiment(cfg: DictConfig) -> None:
             learning_rate=learning_rate,
             data_path=data_path,
             batch_size = batch_size,
+            num_transformer_blocks=num_transformer_blocks,
             
         )
 
@@ -287,6 +313,7 @@ def main_experiment(cfg: DictConfig) -> None:
             head_size=head_size,
             num_heads=num_heads,
             ff_dim=ff_dim,
+            num_transformer_blocks=num_transformer_blocks,
             mlp_units = mlp_units,
             dropout=dropout, #Only applyied to the transformer
             learning_rate=learning_rate,#Not applyied yet
@@ -437,3 +464,5 @@ def main_experiment(cfg: DictConfig) -> None:
 
 if __name__ == "__main__":
     main_experiment()
+    K.clear_session()
+    gc.collect()
