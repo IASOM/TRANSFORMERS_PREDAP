@@ -118,6 +118,16 @@ def initialize_results_tracking():
             "best_run_info": None
         }
 
+def load_json_codes_list(json_path: str) -> str:
+    """Load a list from JSON and return as comma-separated string for Hydra sweep."""
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+    #codes_list = data[key]
+    # Return comma-separated string for Hydra sweep parameters
+    return ','.join(data)
+
+OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
+
 @hydra.main(version_base=None, config_path="conf", config_name="grid_search_V1.yaml")
 def main_experiment(cfg: DictConfig) -> None:
     """Main experiment function decorated with Hydra for parameter sweeping."""

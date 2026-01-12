@@ -1,14 +1,14 @@
 {
     "run_info": {
-        "run_id": "452eb924000c43468f34f5bb010f6867",
-        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INF_lb60_fh60_132726",
-        "timestamp": "2026-01-09T13:38:37.601095",
-        "hydra_job_num": 15
+        "run_id": "a5615648037245e1aa72a0a7226913a7",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INF_lb7_fh14_102019",
+        "timestamp": "2026-01-12T10:23:02.655924",
+        "hydra_job_num": 1
     },
     "hyperparameters": {
         "target_code": "demanda__SERVEI_CODI__INF",
-        "lookback": 60,
-        "forecast_horizon": 60,
+        "lookback": 7,
+        "forecast_horizon": 14,
         "activation_function": "tanh",
         "covid_token": false,
         "cutoff_date": "2008-01-01",
@@ -28,32 +28,32 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 38.814755,
-        "phase_2_diagnostic_seconds": 112.581882,
-        "phase_3_seasonal_seconds": 519.416728,
-        "total_training_seconds": 670.816354,
-        "total_training_minutes": 11.180272566666668
+        "phase_1_univariate_seconds": 34.835721,
+        "phase_2_diagnostic_seconds": 61.219073,
+        "phase_3_seasonal_seconds": 67.410916,
+        "total_training_seconds": 163.468362,
+        "total_training_minutes": 2.7244727
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.2086912840604782,
-            "mae": 31208.324424725513,
-            "mse": 1315682786.4021933
+            "loss": 0.18977181613445282,
+            "mae": 28379.047500987595,
+            "mse": 1533321046.0888693
         },
         "diagnostic_residual": {
-            "mae": 34447.290048360905,
-            "mse": 1434730581.0130632,
-            "rmse": 37877.8375968463
+            "mae": 11657.36563097713,
+            "mse": 369963849.3845599,
+            "rmse": 19234.444348214478
         },
         "seasonal_residual": {
-            "mae": 17312.969005138257,
-            "mse": 445068718.9774181,
-            "rmse": 21096.651842826104
+            "mae": 11172.367044986238,
+            "mse": 313224447.94761884,
+            "rmse": 17698.148150233654
         }
     },
     "model_paths": {
-        "univariate_model": "demanda__SERVEI_CODI__INF_base_transformer_60fh_256ff_60lb_1e-05lr.keras",
-        "diagnostic_model": "demanda__SERVEI_CODI__INF_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras",
-        "seasonal_model": "demanda__SERVEI_CODI__INF_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras"
+        "univariate_model": "demanda__SERVEI_CODI__INF_base_transformer_14fh_256ff_7lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__INF_DIAGNOSTIC_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__INF_SEASONAL_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras"
     }
 }

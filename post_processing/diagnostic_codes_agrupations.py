@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -622,6 +623,10 @@ if __name__ == "__main__":
     df = pd.read_csv('../data/date_2008-01-01_longitudinalitat_DIAGNOSTICS_GROUPED_timestamp.csv')
     df_CAT = pd.read_parquet('../data/FINAL_DB/full_CAT.parquet')
     df_CAT['timestamp'] = pd.to_datetime(df_CAT.index)
+    json_path = '../data/FINAL_DB/targets_CAT.json'
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+    
     print("Original DataFrame:")
     print(df_CAT['timestamp'])
     df_CAT.to_parquet('../data/FINAL_DB/full_CAT1.parquet', index=False)
