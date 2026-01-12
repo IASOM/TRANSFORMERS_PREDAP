@@ -63,14 +63,14 @@ hydra:
      
       
       # Model architecture parameters
-      model.num_transformer_blocks: 2
-      model.head_size: 8
-      model.num_heads: 4
+      model.num_transformer_blocks: 4
+      model.head_size: 16
+      model.num_heads: 16
       model.ff_dim: 256
-      model.mlp_units: 256
+      model.mlp_units: 512
       
       # Training hyperparameters
-      model.activation: tanh
+      model.activation: tanh, leaky_relu
       model.covid_token: false
       model.dropout: 0.25
       model.learning_rate: 0.00001

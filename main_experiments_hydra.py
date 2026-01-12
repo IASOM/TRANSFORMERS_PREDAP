@@ -227,8 +227,7 @@ def main_experiment(cfg: DictConfig) -> None:
             dropout=dropout,
             learning_rate=learning_rate,
             data_path=data_path,
-            batch_size = batch_size,
-            
+            batch_size = batch_size,     
         )
 
         pipeline = UnivariateTransformerPipeline(univariate_parameters)
@@ -282,7 +281,6 @@ def main_experiment(cfg: DictConfig) -> None:
             data_path=data_path,
             batch_size = batch_size,
             num_transformer_blocks=num_transformer_blocks,
-            
         )
 
         #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)

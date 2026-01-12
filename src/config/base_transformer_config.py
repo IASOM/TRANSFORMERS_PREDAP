@@ -46,6 +46,7 @@ class BaseTransformerConfig(ABC):
     
     # ==================== DATA PARAMETERS ====================
     data_path: str = '../data/diagnostics_CAT_aggregated.parquet'
+    diagnostic_covariates_path: str = f'../data/best_features/BEST_features_NOSMOOTH_'
     cutoff_date: str = "2008-01-01"
     final_cutoff_date: str = "2025-09-30"#"2021-06-30"#
     positional_encoding: bool = True

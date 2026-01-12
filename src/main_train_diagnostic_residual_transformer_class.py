@@ -61,7 +61,8 @@ class DiagnosticResidualTransformerConfig(BaseTransformerConfig):
         # Set diagnostic_covariates_path using the code from parent
         if self.diagnostic_covariates_path is None:
             self.diagnostic_covariates_path = f'../data/best_features/BEST_features_NOSMOOTH_{self.code}.xlsx'
-    
+        else:
+            self.diagnostic_covariates_path = self.diagnostic_covariates_path + f'_{self.code}.xlsx'
     
     def print_config(self):
         """Print configuration in a readable format"""
