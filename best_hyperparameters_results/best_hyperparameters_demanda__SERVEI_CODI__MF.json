@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "e9133166045245d08fbd009b76dd5c93",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__MF_lb60_fh60_201922",
+        "timestamp": "2026-01-09T20:51:50.700130",
+        "hydra_job_num": 47
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__MF",
+        "lookback": 60,
+        "forecast_horizon": 60,
+        "activation_function": "tanh",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 8,
+        "num_heads": 4,
+        "ff_dim": 256,
+        "mlp_units": 256,
+        "num_transformer_blocks": 2,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 32.12882,
+        "phase_2_diagnostic_seconds": 1031.585134,
+        "phase_3_seasonal_seconds": 884.54897,
+        "total_training_seconds": 1948.265772,
+        "total_training_minutes": 32.4710962
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.28791552782058716,
+            "mae": 33657.614626938754,
+            "mse": 1805448833.352822
+        },
+        "diagnostic_residual": {
+            "mae": 12278.420771857282,
+            "mse": 361974485.4353079,
+            "rmse": 19025.627070751383
+        },
+        "seasonal_residual": {
+            "mae": 11697.136361454306,
+            "mse": 284927066.10025746,
+            "rmse": 16879.782762235343
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__MF_base_transformer_60fh_256ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__MF_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__MF_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras"
+    }
+}

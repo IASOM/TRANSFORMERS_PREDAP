@@ -118,13 +118,13 @@ def initialize_results_tracking():
             "best_run_info": None
         }
 
-@hydra.main(version_base=None, config_path="conf", config_name="grid_search.yaml")
+@hydra.main(version_base=None, config_path="conf", config_name="grid_search_V1.yaml")
 def main_experiment(cfg: DictConfig) -> None:
     """Main experiment function decorated with Hydra for parameter sweeping."""
     
     # Initialize MLflow
     mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
-    experiment_name = f"{cfg.mlflow.experiment_name}_{datetime.now().strftime('%Y%m%d')}"
+    experiment_name = f"NEW_CODES_{cfg.mlflow.experiment_name}_{datetime.now().strftime('%Y%m%d')}"
     mlflow.set_experiment(experiment_name)
     
     print(f"🎯 MLflow tracking initialized")

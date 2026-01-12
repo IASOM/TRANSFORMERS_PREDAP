@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "e245220e5fe74b13b0ff98bcb627db7a",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__C9C_lb60_fh60_035650",
+        "timestamp": "2026-01-10T04:07:56.820344",
+        "hydra_job_num": 111
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__C9C",
+        "lookback": 60,
+        "forecast_horizon": 60,
+        "activation_function": "tanh",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 8,
+        "num_heads": 4,
+        "ff_dim": 256,
+        "mlp_units": 256,
+        "num_transformer_blocks": 2,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 36.487581,
+        "phase_2_diagnostic_seconds": 422.198437,
+        "phase_3_seasonal_seconds": 207.56676,
+        "total_training_seconds": 666.256287,
+        "total_training_minutes": 11.10427145
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.24070094525814056,
+            "mae": 44581.67377009497,
+            "mse": 3605512155.115993
+        },
+        "diagnostic_residual": {
+            "mae": 35431.65688060366,
+            "mse": 2102291504.6064923,
+            "rmse": 45850.752497712536
+        },
+        "seasonal_residual": {
+            "mae": 33443.83171580056,
+            "mse": 1844731490.1334143,
+            "rmse": 42950.33748567541
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__C9C_base_transformer_60fh_256ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__C9C_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__C9C_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras"
+    }
+}

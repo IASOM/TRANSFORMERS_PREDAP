@@ -151,7 +151,7 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     original_scale_df['timestamp'] = pd.to_datetime(original_scale_df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
     max_date = pd.Timestamp(max_date)
-    original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_date)].reset_index(drop=True)  # Subset the DataFrame
+    original_scale_df = original_scale_df[(original_scale_df['timestamp'] >= cutoff)&(original_scale_df['timestamp'] <= max_date)].reset_index(drop=True)  # Subset the DataFrame
     
     train_df, test_df = split_train_test(original_scale_df)
     

@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "9cbf6d4fb618454c8963cb28c21c663a",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__URG_lb60_fh60_003512",
+        "timestamp": "2026-01-10T00:44:11.152594",
+        "hydra_job_num": 79
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__URG",
+        "lookback": 60,
+        "forecast_horizon": 60,
+        "activation_function": "tanh",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 8,
+        "num_heads": 4,
+        "ff_dim": 256,
+        "mlp_units": 256,
+        "num_transformer_blocks": 2,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 39.137631,
+        "phase_2_diagnostic_seconds": 364.179595,
+        "phase_3_seasonal_seconds": 135.716302,
+        "total_training_seconds": 539.037493,
+        "total_training_minutes": 8.983958216666668
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.16065330803394318,
+            "mae": 3134.0249758000964,
+            "mse": 22926770.24762286
+        },
+        "diagnostic_residual": {
+            "mae": 3059.854852236201,
+            "mse": 16014776.68289834,
+            "rmse": 4001.846659093567
+        },
+        "seasonal_residual": {
+            "mae": 3060.689365399484,
+            "mse": 18301121.469372246,
+            "rmse": 4277.981003858274
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__URG_base_transformer_60fh_256ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__URG_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__URG_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras"
+    }
+}

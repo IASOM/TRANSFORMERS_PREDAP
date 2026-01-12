@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "375158ba8aee4c3985833644cdf2642b",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__CALTRE_lb60_fh60_073046",
+        "timestamp": "2026-01-10T07:40:27.600305",
+        "hydra_job_num": 143
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__CALTRE",
+        "lookback": 60,
+        "forecast_horizon": 60,
+        "activation_function": "tanh",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 8,
+        "num_heads": 4,
+        "ff_dim": 256,
+        "mlp_units": 256,
+        "num_transformer_blocks": 2,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 43.22216,
+        "phase_2_diagnostic_seconds": 254.862386,
+        "phase_3_seasonal_seconds": 282.980006,
+        "total_training_seconds": 581.067995,
+        "total_training_minutes": 9.684466583333334
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.030711961910128593,
+            "mae": 6447.023732871718,
+            "mse": 75624141.07671109
+        },
+        "diagnostic_residual": {
+            "mae": 8440.919874738016,
+            "mse": 125011956.63477853,
+            "rmse": 11180.874591675667
+        },
+        "seasonal_residual": {
+            "mae": 8419.679519154914,
+            "mse": 122719463.91968021,
+            "rmse": 11077.881743351489
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__CALTRE_base_transformer_60fh_256ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__CALTRE_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__CALTRE_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras"
+    }
+}

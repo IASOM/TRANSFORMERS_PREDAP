@@ -4,11 +4,11 @@ defaults:
 # Complete self-contained configuration for grid search
 # Data configuration
 data:
-  data_path: '../data/diagnostics_CAT_working_days_only.parquet'
+  data_path: '../data/FINAL_DB/full_CAT1.parquet'
 
 # Model configuration (base defaults that will be overridden by sweep parameters)
 model:
-  target_code: "T14"
+  target_code: "demanda__SERVEI_CODI__INF"
   lookback: 14
   forecast: 14
   num_transformer_blocks: 2
@@ -45,18 +45,18 @@ hydra:
   sweeper:
     params:
       # Target codes to evaluate
-      model.target_code: T14,J00,M54
+      model.target_code: demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
       
       # Temporal parameters - lookback and forecast horizons
-      model.lookback: 7,14,30,60,182,365
-      model.forecast: 7,14,30,60,182,365
+      model.lookback: 7,14,30,60
+      model.forecast: 7,14,30,60
       
       # Model architecture parameters
-      model.num_transformer_blocks: 2,8
-      model.head_size: 2,8
-      model.num_heads: 2,8
-      model.ff_dim: 32,128
-      model.mlp_units: 64,128
+      model.num_transformer_blocks: 2
+      model.head_size: 8
+      model.num_heads: 4
+      model.ff_dim: 256
+      model.mlp_units: 256
       
       # Training hyperparameters
       model.activation: tanh
