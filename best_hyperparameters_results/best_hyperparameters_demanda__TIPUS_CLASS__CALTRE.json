@@ -1,23 +1,23 @@
 {
     "run_info": {
-        "run_id": "375158ba8aee4c3985833644cdf2642b",
-        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__CALTRE_lb60_fh60_073046",
-        "timestamp": "2026-01-10T07:40:27.600305",
-        "hydra_job_num": 143
+        "run_id": "d555f3d82d6c48399195b735ab268c5a",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__CALTRE_lb7_fh14_171748",
+        "timestamp": "2026-01-12T17:20:23.943756",
+        "hydra_job_num": 53
     },
     "hyperparameters": {
         "target_code": "demanda__TIPUS_CLASS__CALTRE",
-        "lookback": 60,
-        "forecast_horizon": 60,
-        "activation_function": "tanh",
+        "lookback": 7,
+        "forecast_horizon": 14,
+        "activation_function": "leaky_relu",
         "covid_token": false,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer",
-        "head_size": 8,
-        "num_heads": 4,
+        "head_size": 16,
+        "num_heads": 16,
         "ff_dim": 256,
-        "mlp_units": 256,
-        "num_transformer_blocks": 2,
+        "mlp_units": 512,
+        "num_transformer_blocks": 4,
         "dropout": 0.25,
         "learning_rate": 1e-05
     },
@@ -28,32 +28,32 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 43.22216,
-        "phase_2_diagnostic_seconds": 254.862386,
-        "phase_3_seasonal_seconds": 282.980006,
-        "total_training_seconds": 581.067995,
-        "total_training_minutes": 9.684466583333334
+        "phase_1_univariate_seconds": 43.63909,
+        "phase_2_diagnostic_seconds": 47.271693,
+        "phase_3_seasonal_seconds": 64.217323,
+        "total_training_seconds": 155.131811,
+        "total_training_minutes": 2.5855301833333333
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.030711961910128593,
-            "mae": 6447.023732871718,
-            "mse": 75624141.07671109
+            "loss": 0.02306230738759041,
+            "mae": 4834.482087756139,
+            "mse": 35053575.56596938
         },
         "diagnostic_residual": {
-            "mae": 8440.919874738016,
-            "mse": 125011956.63477853,
-            "rmse": 11180.874591675667
+            "mae": 5094.191197887899,
+            "mse": 38083009.32371436,
+            "rmse": 6171.143275254137
         },
         "seasonal_residual": {
-            "mae": 8419.679519154914,
-            "mse": 122719463.91968021,
-            "rmse": 11077.881743351489
+            "mae": 5822.127761586292,
+            "mse": 52225335.09588558,
+            "rmse": 7226.709838916018
         }
     },
     "model_paths": {
-        "univariate_model": "demanda__TIPUS_CLASS__CALTRE_base_transformer_60fh_256ff_60lb_1e-05lr.keras",
-        "diagnostic_model": "demanda__TIPUS_CLASS__CALTRE_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras",
-        "seasonal_model": "demanda__TIPUS_CLASS__CALTRE_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_60lb_1e-05initlr.keras"
+        "univariate_model": "demanda__TIPUS_CLASS__CALTRE_base_transformer_14fh_256ff_7lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__CALTRE_DIAGNOSTIC_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__CALTRE_SEASONAL_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras"
     }
 }

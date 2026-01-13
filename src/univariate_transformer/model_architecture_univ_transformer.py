@@ -67,14 +67,19 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     
     x = inputs  # initial input
     d_model = max(head_size * num_heads, 32)
-    x = layers.Dense(d_model, activation=activation_function)(inputs)#, activation=activation_function
+    x = layers.Dense(d_model)(inputs)
+    #x = layers.Dense(d_model)(inputs)
+    #x = layers.LayerNormalization(epsilon=1e-6)(x)
+    #x = layers.Activation(activation_function)(x)
     if pos_encoding == True:
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
     
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
-    x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    #x2 = layers.GlobalMaxPooling1D(data_format="channels_first")(x)
+    #x = layers.Concatenate()([x1, x2])
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
     #x = layers.Flatten()(x)
     
@@ -122,7 +127,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
         decayed = (self.max_lr - self.min_lr) * cosine_decay + self.min_lr
         return decayed
 
-
+@keras.saving.register_keras_serializable(package="predap")
 class PositionalEncoding(layers.Layer):
     def __init__(self, sequence_length, d_model, **kwargs):
         super().__init__(**kwargs)

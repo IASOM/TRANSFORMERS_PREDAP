@@ -38,9 +38,9 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 500
+    epochs: int = 300
     batch_size: int = 32
-    early_stop_patience: int = 10
+    early_stop_patience: int = 25
     shuffle_data: bool = True
     save_train_history: bool = True
     

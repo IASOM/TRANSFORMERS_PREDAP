@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "bca3c372599048fc842b5a52b51c481e",
+        "run_name": "HYDRA_transformer_demanda__VISI_LLOC_VISITA__D_lb7_fh14_181909",
+        "timestamp": "2026-01-12T18:22:55.800189",
+        "hydra_job_num": 77
+    },
+    "hyperparameters": {
+        "target_code": "demanda__VISI_LLOC_VISITA__D",
+        "lookback": 7,
+        "forecast_horizon": 14,
+        "activation_function": "leaky_relu",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 16,
+        "num_heads": 16,
+        "ff_dim": 256,
+        "mlp_units": 512,
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 36.449137,
+        "phase_2_diagnostic_seconds": 77.826443,
+        "phase_3_seasonal_seconds": 112.166399,
+        "total_training_seconds": 226.445673,
+        "total_training_minutes": 3.77409455
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.24800486862659454,
+            "mae": 2857.511951283089,
+            "mse": 10563608.438113749
+        },
+        "diagnostic_residual": {
+            "mae": 1291.9922612061478,
+            "mse": 3661845.2479804154,
+            "rmse": 1913.5948494862791
+        },
+        "seasonal_residual": {
+            "mae": 1144.1858084358178,
+            "mse": 2768608.1874966347,
+            "rmse": 1663.9135156301347
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__VISI_LLOC_VISITA__D_base_transformer_14fh_256ff_7lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__VISI_LLOC_VISITA__D_DIAGNOSTIC_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__VISI_LLOC_VISITA__D_SEASONAL_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras"
+    }
+}

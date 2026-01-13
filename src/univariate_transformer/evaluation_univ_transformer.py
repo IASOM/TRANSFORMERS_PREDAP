@@ -64,8 +64,10 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
     
     loss, mae, mse = model.evaluate(X_test, Y_test, verbose=0)
 
-    original_mae = mean_absolute_error(Y_test_orig, predictions_to_plot)
-    original_mse = mean_squared_error(Y_test_orig, predictions_to_plot)
+    non_negative_predictions_to_plot = np.maximum(predictions_to_plot, 0)  # Ensure no negative predictions
+
+    original_mae = mean_absolute_error(Y_test_orig, non_negative_predictions_to_plot)
+    original_mse = mean_squared_error(Y_test_orig, non_negative_predictions_to_plot)
     original_rmse = np.sqrt(original_mse)
     print(f"Test Results - Loss: {loss:.4f}, MAE: {original_mae:.4f}, MSE: {original_mse:.4f}, RMSE: {original_rmse:.4f}")
     

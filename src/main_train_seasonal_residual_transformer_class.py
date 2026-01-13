@@ -357,6 +357,7 @@ class SeasonalResidualTransformerPipeline:
             covid_dates=self.config.covid_dates
 
         )
+        corrected_forecast_orig = np.maximum(corrected_forecast_orig, 0)  # Ensure no negative predictions
         
         predictions_test_orig = data_preparation.inverse_transform_predictions(
             self.predictions_test, 
@@ -370,6 +371,7 @@ class SeasonalResidualTransformerPipeline:
             eliminate_covid_data=self.config.eliminate_covid_data, 
             covid_dates=self.config.covid_dates
         )
+        predictions_test_orig = np.maximum(predictions_test_orig, 0)  # Ensure no negative predictions
         
         print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")
         
@@ -553,6 +555,9 @@ class SeasonalResidualTransformerPipeline:
         # Phase 5: Generate visualizations
         predictions_to_plot, corrected_to_plot, Y_test_to_plot = self.generate_visualizations()
         
+        predictions_to_plot = np.maximum(predictions_to_plot, 0)  # Ensure no negative predictions
+        corrected_to_plot = np.maximum(corrected_to_plot, 0)  # Ensure no negative predictions
+        Y_test_to_plot = np.maximum(Y_test_to_plot, 0)  # Ensure no negative predictions
         # Phase 6: Calculate performance metrics
         corrected_mae, corrected_mse, corrected_rmse = self.calculate_performance_metrics(
             predictions_to_plot, corrected_to_plot, Y_test_to_plot

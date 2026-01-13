@@ -5,10 +5,13 @@ defaults:
 # Data configuration
 data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
+  codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "7_14"
+experiment_setup: "30_60"
+
 
 experiment_pairs:
+  3_3:   { lb: 3,   fc: 3 }
   "7_7":   { lb: 7,   fc: 7 }
   "7_14": { lb: 7,  fc: 14 }
   "7_30": { lb: 7,  fc: 30 }
@@ -23,19 +26,19 @@ model:
   forecast: ${experiment_pairs.${experiment_setup}.fc}
   num_transformer_blocks: 2
   head_size: 32
-  num_heads: 4
+  num_heads: 8
   activation: "leaky_relu"
-  covid_token: false
-  ff_dim: 128
-  mlp_units: 128
-  dropout: 0.5
-  learning_rate: 5e-6
+  covid_token: true
+  ff_dim: 512
+  mlp_units: 512
+  dropout: 0.25
+  learning_rate: 1e-6
   
 
 # Training configuration
 training:
   cutoff_date: "2008-01-01"  # Fixed: Use a date that ensures sufficient training data
-  positional_encoding: false
+  positional_encoding: true
   evaluate_model: true
 
 # System configuration  
@@ -59,7 +62,7 @@ hydra:
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 7_7, "7_14", "7_30", "30_60", "182_60", "365_182"
+      experiment_setup: 3_3, "7_7", "7_14" #, "7_30", "30_60", "182_60", "365_182"
      
       
       # Model architecture parameters

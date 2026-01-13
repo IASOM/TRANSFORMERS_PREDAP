@@ -1,0 +1,59 @@
+{
+    "run_info": {
+        "run_id": "ef22c78f23b74806b0e90f5e99e81a2a",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__DALTRE_lb7_fh14_174218",
+        "timestamp": "2026-01-12T17:44:55.249431",
+        "hydra_job_num": 65
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__DALTRE",
+        "lookback": 7,
+        "forecast_horizon": 14,
+        "activation_function": "leaky_relu",
+        "covid_token": false,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 16,
+        "num_heads": 16,
+        "ff_dim": 256,
+        "mlp_units": 512,
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 33.054238,
+        "phase_2_diagnostic_seconds": 66.221874,
+        "phase_3_seasonal_seconds": 57.836442,
+        "total_training_seconds": 157.116476,
+        "total_training_minutes": 2.6186079333333336
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.07942573726177216,
+            "mae": 177.87496940876125,
+            "mse": 50290.900184011334
+        },
+        "diagnostic_residual": {
+            "mae": 126.64241401577624,
+            "mse": 24624.894778039517,
+            "rmse": 156.92321299935048
+        },
+        "seasonal_residual": {
+            "mae": 130.6353722787941,
+            "mse": 25930.54182268782,
+            "rmse": 161.0296302631532
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__DALTRE_base_transformer_14fh_256ff_7lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__DALTRE_DIAGNOSTIC_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__DALTRE_SEASONAL_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras"
+    }
+}

@@ -307,7 +307,7 @@ class DiagnosticResidualTransformerPipeline:
         # Generate corrected training predictions
         predicted_residuals_train = self.residual_model.predict(self.X_train_covs, verbose=1)
         predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
-        self.predictions_train_corrected = self.predictions_train + predicted_residuals_train
+        self.predictions_train_corrected = np.maximum(self.predictions_train + predicted_residuals_train, 0)
         
     def evaluate_residual_model(self):
         """Evaluate the residual correction model on test data"""
@@ -327,7 +327,7 @@ class DiagnosticResidualTransformerPipeline:
         
         # Correct the original forecast
         print("Computing corrected forecasts...")
-        self.predictions_test_corrected = self.predictions_test + predicted_residuals
+        self.predictions_test_corrected = np.maximum(self.predictions_test + predicted_residuals, 0)
         
         return self.predictions_test_corrected
         
@@ -368,6 +368,7 @@ class DiagnosticResidualTransformerPipeline:
             eliminate_covid_data=self.config.eliminate_covid_data, 
             covid_dates=self.config.covid_dates
         )
+        corrected_forecast_orig = np.maximum(corrected_forecast_orig, 0)  # Ensure no negative predictions
         
         predictions_test_orig = data_preparation.inverse_transform_predictions(
             self.predictions_test, 
@@ -381,9 +382,10 @@ class DiagnosticResidualTransformerPipeline:
             eliminate_covid_data=self.config.eliminate_covid_data, 
             covid_dates=self.config.covid_dates
         )
+        predictions_test_orig = np.maximum(predictions_test_orig, 0)  # Ensure no negative predictions
         
         print(f"Corrected forecast shape: {corrected_forecast_orig.shape}")
-        
+
         if self.config.plot_stepwise_errors:
             print("Plotting stepwise errors comparison...")
             plot_stepwise_errors_comparison(
@@ -558,6 +560,9 @@ class DiagnosticResidualTransformerPipeline:
         # Phase 5: Generate visualizations
         predictions_to_plot, corrected_to_plot, Y_test_to_plot = self.generate_visualizations()
         
+        predictions_to_plot = np.maximum(predictions_to_plot, 0)  # Ensure no negative predictions
+        corrected_to_plot = np.maximum(corrected_to_plot, 0)  # Ensure no negative predictions
+        Y_test_to_plot = np.maximum(Y_test_to_plot, 0)  # Ensure no negative predictions
         # Phase 6: Calculate performance metrics
         corrected_mae, corrected_mse, corrected_rmse = self.calculate_performance_metrics(
             predictions_to_plot, corrected_to_plot, Y_test_to_plot

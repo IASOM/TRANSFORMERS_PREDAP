@@ -1,26 +1,6 @@
 import pandas as pd
 import os
-
-def smart_read(file_path, **kwargs):
-    """
-    Función que sustituye a pd.read_csv.
-    Detecta automáticamente si la extensión es .parquet o .csv
-    y llama a la función de lectura apropiada.
-    """
-    if str(file_path).lower().endswith('.parquet'):
-        print(f"-> INFO: Leyendo {file_path} como PARQUET.")
-        # Aquí puedes añadir parámetros específicos para Parquet si los necesitas
-        return pd.read_parquet(file_path, **kwargs)
-    else:
-        # Llama a la función original pd.read_csv para CSVs y otros
-        print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
-        return _original_read_csv(file_path, **kwargs)
-
-# --- REEMPLAZO (MONKEY PATCHING) ---
-
-# 1. Guardar la función original de lectura de CSV
-#    (Usaremos esta referencia dentro de nuestro wrapper)
-_original_read_csv = pd.read_csv
+from src.experiments_utils import smart_read, safe_float, initialize_results_tracking, load_json_codes_list
 
 # 2. Reemplazar la función original con nuestra función "inteligente"
 pd.read_csv = smart_read
@@ -45,8 +25,6 @@ from hydra.core.global_hydra import GlobalHydra
 from tensorflow.keras import backend as K
 import gc
 
-
-#load and visualize data 
 
 #from src.univariate_transformer import default_config
 from src import data_preparation
@@ -73,10 +51,6 @@ from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_
 from src.config.base_transformer_config import BaseTransformerConfig
 
 default_config = BaseTransformerConfig()
-
-
-
-
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
     try:
@@ -85,47 +59,11 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-
-# Utility function for safe float conversion
-def safe_float(value):
-    """Convert value to float, handling numpy types and NaN values"""
-    try:
-        if pd.isna(value):
-            return None
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
 # Global variables for tracking results across runs
-best_results_per_code = {}
 results_dir = "best_hyperparameters_results"
 
-def initialize_results_tracking():
-    """Initialize result tracking directories and structures."""
-    global best_results_per_code, results_dir
-    
-    os.makedirs(results_dir, exist_ok=True)
-    print(f"📁 Results will be saved in: {results_dir}/")
-    
-    # Get all possible target codes from default config for initialization
-    codes_list = default_config.CODES_LIST
-    best_results_per_code = {}
-    for code in codes_list:
-        best_results_per_code[code] = {
-            "best_mse": float('inf'),
-            "best_config": None,
-            "best_metrics": None,
-            "best_run_info": None
-        }
 
-def load_json_codes_list(json_path: str) -> str:
-    """Load a list from JSON and return as comma-separated string for Hydra sweep."""
-    with open(json_path, 'r') as f:
-        data = json.load(f)
-    #codes_list = data[key]
-    # Return comma-separated string for Hydra sweep parameters
-    return ','.join(data)
-
+# Register custom resolver for loading JSON codes list
 OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
 
 @hydra.main(version_base=None, config_path="conf", config_name="grid_search_V1.yaml")
@@ -143,7 +81,8 @@ def main_experiment(cfg: DictConfig) -> None:
     print(f"   • View results at: http://localhost:5000")
     
     # Initialize results tracking (only once per sweep)
-    initialize_results_tracking()
+    codes_list = load_json_codes_list(cfg.data.codes_path)
+    best_results_per_code = initialize_results_tracking(results_dir, codes_list=codes_list)
     
     # Extract parameters from Hydra config
     CODE = cfg.model.target_code
@@ -207,7 +146,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
         # ==================== PHASE 1: UNIVARIATE TRANSFORMER ====================
         univ_start_time = datetime.now()
-        mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
+        mlflow.log_param("phase_1_univariate_transformer_start_time", univ_start_time.isoformat())
         batch_size = data_preparation.compute_dynamic_batch_size(lookback, forecast)
         # Train univariate transformer with parameters from config
         univariate_parameters = TransformerUnivConfig(  
@@ -246,8 +185,8 @@ def main_experiment(cfg: DictConfig) -> None:
         univ_duration = (univ_end_time - univ_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_1_duration_seconds": univ_duration,
-            "duration/phase_1_duration_minutes": univ_duration / 60,
+            "duration/phase_1_univariate_transformer_duration_seconds": univ_duration,
+            "duration/phase_1_univariate_transformer_duration_minutes": univ_duration / 60,
         })
 
         if loss is not None and mae is not None and mse is not None:
@@ -261,7 +200,7 @@ def main_experiment(cfg: DictConfig) -> None:
         
         # ==================== PHASE 2: RESIDUAL DIAGNOSTICS TRANSFORMER ====================
         diag_start_time = datetime.now()
-        mlflow.log_param("phase_2_start_time", diag_start_time.isoformat())
+        mlflow.log_param("phase_2_residual_diagnostics_transformer_start_time", diag_start_time.isoformat())
         
         diagnostic_parameters = DiagnosticResidualTransformerConfig(
             lookback=lookback,
@@ -298,8 +237,8 @@ def main_experiment(cfg: DictConfig) -> None:
         diag_duration = (diag_end_time - diag_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_2_duration_seconds": diag_duration,
-            "duration/phase_2_duration_minutes": diag_duration / 60,
+            "duration/phase_2_residual_diagnostics_transformer_duration_seconds": diag_duration,
+            "duration/phase_2_residual_diagnostics_transformer_duration_minutes": diag_duration / 60,
             "eval/residual_diagnostics_model_mae": corrected_diagnostics_mae,
             "eval/residual_diagnostics_model_mse": corrected_diagnostics_mse,    
             "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
@@ -307,7 +246,7 @@ def main_experiment(cfg: DictConfig) -> None:
         
         # ==================== PHASE 3: RESIDUAL SEASONAL TRANSFORMER ====================
         seasonal_start_time = datetime.now()
-        mlflow.log_param("phase_3_start_time", seasonal_start_time.isoformat())
+        mlflow.log_param("phase_3_residual_seasonal_transformer_start_time", seasonal_start_time.isoformat())
 
         seasonal_params = SeasonalResidualTransformerConfig(
             lookback=lookback,
@@ -348,8 +287,8 @@ def main_experiment(cfg: DictConfig) -> None:
         total_duration = (seasonal_end_time - univ_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_3_duration_seconds": seasonal_duration,
-            "duration/phase_3_duration_minutes": seasonal_duration / 60,
+            "duration/phase_3_residual_seasonal_transformer_duration_seconds": seasonal_duration,
+            "duration/phase_3_residual_seasonal_transformer_duration_minutes": seasonal_duration / 60,
             "total_training_duration_seconds": total_duration,
             "total_training_duration_minutes": total_duration / 60,
             "eval/residual_seasonal_model_mae": corrected_seasonal_mae,
