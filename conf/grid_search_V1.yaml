@@ -62,7 +62,7 @@ hydra:
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 3_3, "7_7", "7_14" #, "7_30", "30_60", "182_60", "365_182"
+      experiment_setup: 3_3, "7_7", "7_14", "7_30", "30_60", "182_60", "365_182"
      
       
       # Model architecture parameters

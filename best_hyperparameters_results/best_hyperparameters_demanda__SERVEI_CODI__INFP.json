@@ -1,8 +1,8 @@
 {
     "run_info": {
-        "run_id": "4b63073e6e5d482da55ace886290b676",
-        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INFP_lb7_fh14_152920",
-        "timestamp": "2026-01-12T15:36:19.728140",
+        "run_id": "27867a9b0d6244f28917ec24cc941cdd",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INFP_lb7_fh14_124206",
+        "timestamp": "2026-01-13T12:48:11.932847",
         "hydra_job_num": 11
     },
     "hyperparameters": {
@@ -28,27 +28,27 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 28.000602,
-        "phase_2_diagnostic_seconds": 71.028604,
-        "phase_3_seasonal_seconds": 319.863454,
-        "total_training_seconds": 418.896121,
-        "total_training_minutes": 6.981602016666667
+        "phase_1_univariate_seconds": 113.726303,
+        "phase_2_diagnostic_seconds": 45.584054,
+        "phase_3_seasonal_seconds": 206.306987,
+        "total_training_seconds": 365.621662,
+        "total_training_minutes": 6.093694366666667
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.24898579716682434,
-            "mae": 1544.2097863208958,
-            "mse": 3896605.73202235
+            "loss": 0.08303053677082062,
+            "mae": 512.5404719968907,
+            "mse": 843017.9157473005
         },
         "diagnostic_residual": {
-            "mae": 775.7315932083636,
-            "mse": 1245934.3585791627,
-            "rmse": 1116.214297784777
+            "mae": 539.6589017283953,
+            "mse": 861226.2549865145,
+            "rmse": 928.0227664160586
         },
         "seasonal_residual": {
-            "mae": 451.07213113871296,
-            "mse": 437630.3116732599,
-            "rmse": 661.5363267979014
+            "mae": 419.62439723637755,
+            "mse": 439285.29341661494,
+            "rmse": 662.7860087664909
         }
     },
     "model_paths": {

@@ -1,15 +1,15 @@
 {
     "run_info": {
-        "run_id": "a6049ec36c5641839750f8f34e8adfbc",
-        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__PED_lb7_fh14_161111",
-        "timestamp": "2026-01-12T16:14:39.656650",
-        "hydra_job_num": 23
+        "run_id": "d48cf02ce97c4c8c8e912dca76a81b93",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__PED_lb7_fh14_131632",
+        "timestamp": "2026-01-13T13:21:22.963960",
+        "hydra_job_num": 22
     },
     "hyperparameters": {
         "target_code": "demanda__SERVEI_CODI__PED",
         "lookback": 7,
         "forecast_horizon": 14,
-        "activation_function": "leaky_relu",
+        "activation_function": "tanh",
         "covid_token": false,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer",
@@ -28,27 +28,27 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 39.160797,
-        "phase_2_diagnostic_seconds": 98.81704,
-        "phase_3_seasonal_seconds": 69.979502,
-        "total_training_seconds": 207.96105,
-        "total_training_minutes": 3.4660175
+        "phase_1_univariate_seconds": 62.122953,
+        "phase_2_diagnostic_seconds": 87.561505,
+        "phase_3_seasonal_seconds": 141.197886,
+        "total_training_seconds": 290.885978,
+        "total_training_minutes": 4.848099633333334
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.18351157009601593,
-            "mae": 5426.804258567399,
-            "mse": 56510428.29427724
+            "loss": 0.05716116726398468,
+            "mae": 1636.5150451395373,
+            "mse": 11402302.017417341
         },
         "diagnostic_residual": {
-            "mae": 1899.0615898607452,
-            "mse": 12192435.429107908,
-            "rmse": 3491.766806232614
+            "mae": 2083.52115169042,
+            "mse": 13124624.545991203,
+            "rmse": 3622.792368600663
         },
         "seasonal_residual": {
-            "mae": 1808.2578189510557,
-            "mse": 8800749.137632336,
-            "rmse": 2966.6056592732943
+            "mae": 1690.6588087180692,
+            "mse": 7259674.516983396,
+            "rmse": 2694.378317345839
         }
     },
     "model_paths": {
