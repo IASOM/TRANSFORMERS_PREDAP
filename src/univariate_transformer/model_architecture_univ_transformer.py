@@ -127,7 +127,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
         decayed = (self.max_lr - self.min_lr) * cosine_decay + self.min_lr
         return decayed
 
-@keras.saving.register_keras_serializable(package="predap")
+#@keras.saving.register_keras_serializable(package="predap")
 class PositionalEncoding(layers.Layer):
     def __init__(self, sequence_length, d_model, **kwargs):
         super().__init__(**kwargs)

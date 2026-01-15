@@ -7,7 +7,7 @@ data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "30_60"
+experiment_setup: "7_7"  # Default experiment setup
 
 
 experiment_pairs:
@@ -38,7 +38,7 @@ model:
 # Training configuration
 training:
   cutoff_date: "2008-01-01"  # Fixed: Use a date that ensures sufficient training data
-  positional_encoding: true
+  positional_encoding: false
   evaluate_model: true
 
 # System configuration  
@@ -66,17 +66,17 @@ hydra:
      
       
       # Model architecture parameters
-      model.num_transformer_blocks: 4
-      model.head_size: 16
-      model.num_heads: 16
-      model.ff_dim: 256
+      model.num_transformer_blocks: 2
+      model.head_size: 32
+      model.num_heads: 8
+      model.ff_dim: 512
       model.mlp_units: 512
       
       # Training hyperparameters
-      model.activation: tanh, leaky_relu
-      model.covid_token: false
+      model.activation: leaky_relu
+      model.covid_token: true
       model.dropout: 0.25
-      model.learning_rate: 0.00001
+      model.learning_rate: 1e-6
      
       
       # Optional: Add training configuration parameters to grid search
