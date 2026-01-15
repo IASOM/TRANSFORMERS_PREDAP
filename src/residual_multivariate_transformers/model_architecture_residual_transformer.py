@@ -11,6 +11,8 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import math
 from tensorflow.keras.losses import Huber
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.constraints import MaxNorm
 
 from config.base_transformer_config import BaseTransformerConfig
 
@@ -95,23 +97,38 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     
     input_layer = keras.Input(shape=input_shape)
+    
+    '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
+    x = layers.Dense(d_model)(input_layer)
+    # Transformer Block
+    x = PositionalEncoding(input_shape[0], d_model)(x)'''
 
+    x = layers.LayerNormalization(epsilon=1e-6)(input_layer)
     # LSTM Block
     x = layers.LSTM(
         lstm_params['units_1'], 
         return_sequences=lstm_params['return_sequences'],
-        recurrent_activation='tanh'
+        recurrent_activation='tanh',
+        #recurrent_dropout = 0.2,
+        #recurrent_constraint=MaxNorm(1.0),
     )(input_layer)
+    x = layers.LayerNormalization(epsilon=1e-6)(x)
     x = layers.Dropout(lstm_params['dropout'])(x)  # Dropout to reduce overfitting
     
     x = layers.LSTM(
         lstm_params['units_2'], 
         return_sequences=lstm_params['return_sequences'],
-        recurrent_activation='tanh'
-    )(x)
+        recurrent_activation='tanh',
+        #recurrent_dropout = 0.2,
+        #recurrent_constraint=MaxNorm(1.0),
+     )(x)
+    x = layers.LayerNormalization(epsilon=1e-6)(x)
     x = layers.Dropout(lstm_params['dropout'])(x)
 
-    # Transformer Block
+    # Transformer Encoder Block
+    '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
+    x = layers.Dense(d_model)(input_layer)'''
+    x = PositionalEncoding(x.shape[1], x.shape[2])(x)
     x = transformer_encoder(
         x, 
         head_size=transformer_params['head_size'],
@@ -122,10 +139,14 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     )
 
     # GlobalAveragePooling1D Layer
-    x = layers.GlobalAveragePooling1D()(x) # May be changed to Flatten() if needed
+    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # May be changed to Flatten() if needed 
     #x = layers.Flatten()(x)
+    '''x = layers.Dense(256, activation=activation_function)(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(128, activation=activation_function)(x)
+    x = layers.Dropout(0.2)(x)'''
     # Output Layer
-    outputs = layers.Dense(forecast, activation=activation_function)(x)
+    outputs = layers.Dense(forecast, activation='linear')(x)
 
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)
@@ -135,7 +156,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     model = keras.Model(inputs=input_layer, outputs=outputs)
 
     # Compile Model
-    model.compile(optimizer='adam', loss='mse')
+    #model.compile(optimizer='adam', loss='mse')
 
     return model
 
@@ -206,3 +227,30 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
             'warmup_steps': self.warmup_steps,
             'total_steps': self.total_steps
         }
+    
+@keras.saving.register_keras_serializable(package="predap")
+class PositionalEncoding(layers.Layer):
+    def __init__(self, sequence_length, d_model, **kwargs):
+        super().__init__(**kwargs)
+        self.sequence_length = sequence_length
+        self.d_model = d_model
+
+        # Create the positional encoding matrix once
+        pos = tf.range(start=0, limit=sequence_length, delta=1, dtype=tf.float32)[:, tf.newaxis]  # (seq_len, 1)
+        i = tf.range(start=0, limit=d_model, delta=1, dtype=tf.float32)[tf.newaxis, :]             # (1, d_model)
+        # compute the angle rates
+        angle_rates = 1 / (10000 ** ( (2 * (i//2)) / tf.cast(d_model, tf.float32) ))                  # (1, d_model)
+        angle_rads = pos * angle_rates                                                              # (seq_len, d_model)
+
+        # apply sin to even indices in the array; cos to odd indices
+        sines = tf.sin(angle_rads[:, 0::2])
+        coses = tf.cos(angle_rads[:, 1::2])
+        # now interleave sines & coses into one matrix
+        pos_encoding = tf.concat([sines, coses], axis=-1)                                           # (seq_len, d_model)
+        pos_encoding = pos_encoding[tf.newaxis, ...]                                                # (1, seq_len, d_model)
+        self.pos_encoding = tf.cast(pos_encoding, dtype=tf.float32)
+
+    def call(self, x):
+        # x shape: (batch_size, seq_len, d_model)
+        seq_len = tf.shape(x)[1]
+        return x + self.pos_encoding[:, :seq_len, :]

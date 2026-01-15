@@ -1,14 +1,14 @@
 {
     "run_info": {
-        "run_id": "3ddbb80ffe5b420f9be34402eaaf5e2c",
-        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_lb7_fh14_163800",
-        "timestamp": "2026-01-12T16:40:09.109429",
-        "hydra_job_num": 35
+        "run_id": "27b9187e3ce84dcabc701bab7f8a3c96",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_lb60_fh182_192637",
+        "timestamp": "2026-01-14T19:35:26.489779",
+        "hydra_job_num": 40
     },
     "hyperparameters": {
         "target_code": "demanda__TIPUS_CLASS__9T",
-        "lookback": 7,
-        "forecast_horizon": 14,
+        "lookback": 60,
+        "forecast_horizon": 182,
         "activation_function": "leaky_relu",
         "covid_token": false,
         "cutoff_date": "2008-01-01",
@@ -16,7 +16,7 @@
         "head_size": 16,
         "num_heads": 16,
         "ff_dim": 256,
-        "mlp_units": 512,
+        "mlp_units": "[512, 256]",
         "num_transformer_blocks": 4,
         "dropout": 0.25,
         "learning_rate": 1e-05
@@ -28,32 +28,36 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 38.996894,
-        "phase_2_diagnostic_seconds": 45.381934,
-        "phase_3_seasonal_seconds": 44.691866,
-        "total_training_seconds": 129.073898,
-        "total_training_minutes": 2.1512316333333334
+        "phase_1_univariate_seconds": 105.169573,
+        "phase_2_diagnostic_seconds": 148.945491,
+        "phase_3_seasonal_seconds": 275.164856,
+        "total_training_seconds": 529.283582,
+        "total_training_minutes": 8.821393033333333
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.12686194479465485,
-            "mae": 15732.532167732776,
-            "mse": 278199011.2330296
+            "loss": 0.2961716651916504,
+            "mae": 3534.3874569072586,
+            "mse": 39100121.84942665,
+            "rmse": 6253.009023616282,
+            "mape": 215.89620787466615
         },
         "diagnostic_residual": {
-            "mae": 17225.698552122478,
-            "mse": 392303044.054162,
-            "rmse": 19806.641412772686
+            "mae": 24417.57927842955,
+            "mse": 700938931.2720613,
+            "rmse": 26475.251297618714,
+            "mape": 1665.645876478006
         },
         "seasonal_residual": {
-            "mae": 17118.345987767178,
-            "mse": 387636976.3914961,
-            "rmse": 19688.49858144333
+            "mae": 24371.633682369113,
+            "mse": 701991560.7505695,
+            "rmse": 26495.12333903297,
+            "mape": 1663.0613260918558
         }
     },
     "model_paths": {
-        "univariate_model": "demanda__TIPUS_CLASS__9T_base_transformer_14fh_256ff_7lb_1e-05lr.keras",
-        "diagnostic_model": "demanda__TIPUS_CLASS__9T_DIAGNOSTIC_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras",
-        "seasonal_model": "demanda__TIPUS_CLASS__9T_SEASONAL_RESIDUALS_LEARNING_14fh_256ff_7lb_1e-05initlr.keras"
+        "univariate_model": "demanda__TIPUS_CLASS__9T_base_transformer_182fh_256ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_256ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_SEASONAL_RESIDUALS_LEARNING_182fh_256ff_60lb_1e-05initlr.keras"
     }
 }

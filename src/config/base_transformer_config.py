@@ -62,7 +62,7 @@ class BaseTransformerConfig(ABC):
     # ==================== OPTIONAL PARAMETERS ====================
     covid_token: bool = False
     evaluate_model: bool = False
-    scaler = MinMaxScaler()
+    scaler = RobustScaler()
     
     # ==================== PATHS AND DIRECTORIES ====================
     plots_dir: str = 'plots'
@@ -89,8 +89,8 @@ class BaseTransformerConfig(ABC):
     })
 
     DEFAULT_RESIDUAL_LSTM_PARAMS: dict = field(default_factory=lambda: {
-        'units_1': 64,
-        'units_2': 32,
+        'units_1': 128,
+        'units_2': 64,
         'dropout': 0.2,
         'return_sequences': True
     })
@@ -114,7 +114,8 @@ class BaseTransformerConfig(ABC):
         "Month", 
         "Season", 
         "Holiday", 
-        "School_Vacation"
+        "School_Vacation",
+        "Is_Weekend",
     ])
 
     PANDEMIC_WAVES: dict = field(default_factory=lambda: {

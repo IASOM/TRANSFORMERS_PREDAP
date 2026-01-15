@@ -171,7 +171,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
         pipeline = UnivariateTransformerPipeline(univariate_parameters)
         #model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
-        model, model_name, loss, mae, mse = pipeline.run_complete_pipeline()
+        model, model_name, loss, mae, mse, rmse, mape = pipeline.run_complete_pipeline()
         
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
@@ -193,7 +193,9 @@ def main_experiment(cfg: DictConfig) -> None:
             mlflow.log_metrics({
                 "eval/univ_transformer_loss": loss,
                 "eval/univ_transformer_mae": mae,
-                "eval/univ_transformer_mse": mse
+                "eval/univ_transformer_mse": mse,
+                "eval/univ_transformer_rmse": rmse,
+                "eval/univ_transformer_mape": mape
             })
         
         print(f"\n\nRunning for Lookback: {lookback}, Forecast: {forecast}, Code: {CODE}\n")
@@ -224,7 +226,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
         #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
         pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
-        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
+        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse, corrected_diagnostics_mape = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
         
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
@@ -242,6 +244,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "eval/residual_diagnostics_model_mae": corrected_diagnostics_mae,
             "eval/residual_diagnostics_model_mse": corrected_diagnostics_mse,    
             "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
+            "eval/residual_diagnostics_model_mape": corrected_diagnostics_mape,
         })
         
         # ==================== PHASE 3: RESIDUAL SEASONAL TRANSFORMER ====================
@@ -273,7 +276,7 @@ def main_experiment(cfg: DictConfig) -> None:
             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
         )'''
         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
-        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = pipeline.run_complete_pipeline()
+        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse, corrected_seasonal_mape = pipeline.run_complete_pipeline()
         
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
@@ -293,7 +296,8 @@ def main_experiment(cfg: DictConfig) -> None:
             "total_training_duration_minutes": total_duration / 60,
             "eval/residual_seasonal_model_mae": corrected_seasonal_mae,
             "eval/residual_seasonal_model_mse": corrected_seasonal_mse,
-            "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse
+            "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse,
+            "eval/residual_seasonal_model_mape": corrected_seasonal_mape,
         })
         
         # ==================== COLLECT AND SAVE BEST RESULTS ====================
@@ -338,17 +342,21 @@ def main_experiment(cfg: DictConfig) -> None:
                 "univariate_transformer": {
                     "loss": loss,
                     "mae": mae,
-                    "mse": mse
+                    "mse": mse,
+                    "rmse": rmse,
+                    "mape": mape
                 },
                 "diagnostic_residual": {
                     "mae": corrected_diagnostics_mae,
                     "mse": corrected_diagnostics_mse,
-                    "rmse": corrected_diagnostics_rmse
+                    "rmse": corrected_diagnostics_rmse,
+                    "mape": corrected_diagnostics_mape
                 },
                 "seasonal_residual": {
                     "mae": corrected_seasonal_mae,
                     "mse": corrected_seasonal_mse,
-                    "rmse": corrected_seasonal_rmse
+                    "rmse": corrected_seasonal_rmse,
+                    "mape": corrected_seasonal_mape
                 }
             },
             "model_paths": {
@@ -403,6 +411,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "final/seasonal_mse": current_mse,
             "final/seasonal_mae": corrected_seasonal_mae,
             "final/seasonal_rmse": corrected_seasonal_rmse,
+            "final/seasonal_mape": corrected_seasonal_mape,
         })
         
         print(f"✅ Completed run for {CODE} - lb:{lookback} fh:{forecast}")
