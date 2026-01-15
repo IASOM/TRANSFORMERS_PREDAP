@@ -3,7 +3,7 @@ import os
 import sys 
 import mlflow
 import tensorflow as tf
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 import pandas as pd
 import numpy as np
 import time
@@ -69,14 +69,16 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
     original_mae = mean_absolute_error(Y_test_orig, non_negative_predictions_to_plot)
     original_mse = mean_squared_error(Y_test_orig, non_negative_predictions_to_plot)
     original_rmse = np.sqrt(original_mse)
-    print(f"Test Results - Loss: {loss:.4f}, MAE: {original_mae:.4f}, MSE: {original_mse:.4f}, RMSE: {original_rmse:.4f}")
+    original_mape = np.mean(np.abs((Y_test_orig - non_negative_predictions_to_plot) / Y_test_orig)) * 100
+    print(f"Test Results - Loss: {loss:.4f}, MAE: {original_mae:.4f}, MSE: {original_mse:.4f}, RMSE: {original_rmse:.4f}, MAPE: {original_mape:.4f}%")
     
 
     mlflow.log_metrics({
         "eval/univ_transformer_loss": loss,
         "eval/univ_transformer_mae": original_mae,
         "eval/univ_transformer_mse": original_mse,
-        "eval/univ_transformer_rmse": original_rmse
+        "eval/univ_transformer_rmse": original_rmse,
+        "eval/univ_transformer_mape": original_mape
     })
 
 
@@ -91,5 +93,5 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
 
     # Sliding window evaluation (optional)
     # evaluate_model_sliding_window(model, model_display_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
-    return loss, original_mae, original_mse
+    return loss, original_mae, original_mse, original_rmse, original_mape
 

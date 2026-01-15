@@ -8,6 +8,7 @@ data:
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
 experiment_setup: "7_7"  # Default experiment setup
+experiment_setup: "7_7"  # Default experiment setup
 
 
 experiment_pairs:
@@ -21,7 +22,7 @@ experiment_pairs:
 
 # Model configuration (base defaults that will be overridden by sweep parameters)
 model:
-  target_code: "demanda__SERVEI_CODI__INF"
+  target_code: "demanda__SERVEI_CODI__INF" #"demanda__TIPUS_CLASS__9T"
   lookback: ${experiment_pairs.${experiment_setup}.lb}
   forecast: ${experiment_pairs.${experiment_setup}.fc}
   num_transformer_blocks: 2
@@ -30,9 +31,9 @@ model:
   activation: "leaky_relu"
   covid_token: true
   ff_dim: 512
-  mlp_units: 512
+  mlp_units: [512,256]
   dropout: 0.25
-  learning_rate: 1e-6
+  learning_rate: 1e-5
   
 
 # Training configuration
@@ -66,11 +67,11 @@ hydra:
      
       
       # Model architecture parameters
-      model.num_transformer_blocks: 2
-      model.head_size: 32
-      model.num_heads: 8
-      model.ff_dim: 512
-      model.mlp_units: 512
+      model.num_transformer_blocks: 4
+      model.head_size: 16
+      model.num_heads: 16
+      model.ff_dim: 256
+      model.mlp_units: [512,256]
       
       # Training hyperparameters
       model.activation: leaky_relu

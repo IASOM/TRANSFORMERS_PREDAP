@@ -12,6 +12,8 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Tuple, Any
 
+
+from tensorflow.keras.losses import Huber
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -33,7 +35,7 @@ from evaluation_plot_utils import (
     plot_errors_over_time_with_waves,
     evaluate_error_significance_pandemic_waves
 )
-
+from univariate_transformer import CustomCosineDecay
 
 @dataclass
 class DiagnosticResidualTransformerConfig(BaseTransformerConfig):
@@ -75,6 +77,24 @@ class DiagnosticResidualTransformerConfig(BaseTransformerConfig):
             else:
                 print(f"{key:35}: {value}")
         print("="*60)
+
+    def get_lr_schedule_params(self, learning_rate=None):
+        """Get learning rate schedule parameters."""
+        if learning_rate is not None:
+            lr_init = learning_rate
+        else:
+            lr_init = self.learning_rate
+        lr_max = lr_init * self.lr_max_multiplier
+        lr_min = lr_init * self.lr_min_multiplier
+        warmup_steps = int(self.epochs * self.lr_warmup_ratio)
+        
+        return {
+            'initial_lr': lr_init,
+            'max_lr': lr_max,
+            'min_lr': lr_min,
+            'warmup_steps': warmup_steps,
+            'total_steps': self.epochs
+        }
 
 
 class DiagnosticResidualTransformerPipeline:
@@ -277,11 +297,46 @@ class DiagnosticResidualTransformerPipeline:
             activation_function=self.config.activation_function,
             transformer_params=transformer_params
         )
-        
+        self.residual_model.compile(
+            optimizer=tf.keras.optimizers.Adam(
+                learning_rate=self.config.learning_rate,
+                clipnorm = 1.0,
+                use_ema=True), 
+            loss='mse', 
+            metrics=['mae', 'mse']
+        )
         print("Residual model architecture:")
         self.residual_model.summary()
         
         return self.residual_model
+    
+    def setup_callbacks(self) -> List[tf.keras.callbacks.Callback]:
+        """
+        Setup training callbacks including learning rate scheduler and early stopping.
+
+        Returns:
+            List of Keras callbacks
+        """
+        callbacks = []
+        
+        # Learning rate scheduler
+        '''lr_params = self.config.get_lr_schedule_params(learning_rate=self.config.learning_rate)
+        scheduler = CustomCosineDecay(**lr_params)
+        
+        lr_callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
+        callbacks.append(lr_callback)'''
+        
+        # Early stopping
+        early_stop = tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            mode='min',
+            patience=self.config.early_stop_patience,
+            restore_best_weights=True,
+            verbose=1
+        )
+        callbacks.append(early_stop)
+        
+        return callbacks
         
     def train_residual_model(self):
         """Train the residual correction model"""
@@ -290,6 +345,7 @@ class DiagnosticResidualTransformerPipeline:
             
         print("Training residual correction model...")
         
+        callbacks = self.setup_callbacks()
         # Train the residual model
         self.training_history = train_given_model_and_data(
             self.residual_model, 
@@ -300,14 +356,14 @@ class DiagnosticResidualTransformerPipeline:
             epochs=self.config.epochs,
             save_model=True,
             save_memory=False,
-            callbacks=None,
+            callbacks=callbacks,
             save_history=True,
         )
         
         # Generate corrected training predictions
         predicted_residuals_train = self.residual_model.predict(self.X_train_covs, verbose=1)
         predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
-        self.predictions_train_corrected = np.maximum(self.predictions_train + predicted_residuals_train, 0)
+        self.predictions_train_corrected = self.predictions_train + predicted_residuals_train
         
     def evaluate_residual_model(self):
         """Evaluate the residual correction model on test data"""
@@ -327,7 +383,7 @@ class DiagnosticResidualTransformerPipeline:
         
         # Correct the original forecast
         print("Computing corrected forecasts...")
-        self.predictions_test_corrected = np.maximum(self.predictions_test + predicted_residuals, 0)
+        self.predictions_test_corrected = self.predictions_test + predicted_residuals
         
         return self.predictions_test_corrected
         
@@ -478,23 +534,28 @@ class DiagnosticResidualTransformerPipeline:
         original_mae = mean_absolute_error(Y_test_to_plot, predictions_to_plot)
         original_mse = mean_squared_error(Y_test_to_plot, predictions_to_plot)
         original_rmse = np.sqrt(original_mse)
+        original_mape = np.mean(np.abs((Y_test_to_plot - predictions_to_plot) / Y_test_to_plot)) * 100
         
         # Corrected model metrics
         corrected_mae = mean_absolute_error(Y_test_to_plot, corrected_to_plot)
         corrected_mse = mean_squared_error(Y_test_to_plot, corrected_to_plot)
         corrected_rmse = np.sqrt(corrected_mse)
+        corrected_mape = np.mean(np.abs((Y_test_to_plot - corrected_to_plot) / Y_test_to_plot)) * 100
         
         # Store metrics
         self.evaluation_metrics = {
             "original_mae": original_mae,
             "original_mse": original_mse,
             "original_rmse": original_rmse,
+            "original_mape": original_mape,
             "corrected_mae": corrected_mae,
             "corrected_mse": corrected_mse,
             "corrected_rmse": corrected_rmse,
+            "corrected_mape": corrected_mape,
             "mae_improvement": ((original_mae - corrected_mae) / original_mae * 100),
             "mse_improvement": ((original_mse - corrected_mse) / original_mse * 100),
-            "rmse_improvement": ((original_rmse - corrected_rmse) / original_rmse * 100)
+            "rmse_improvement": ((original_rmse - corrected_rmse) / original_rmse * 100),
+            "mape_improvement": ((original_mape - corrected_mape) / original_mape * 100)
         }
         
         print("PERFORMANCE COMPARISON:")
@@ -503,16 +564,19 @@ class DiagnosticResidualTransformerPipeline:
         print(f"  MAE:  {original_mae:.6f}")
         print(f"  MSE:  {original_mse:.6f}")
         print(f"  RMSE: {original_rmse:.6f}")
+        print(f"  MAPE: {original_mape:.6f}")
         print()
         print(f"Residual Corrected Model:")
         print(f"  MAE:  {corrected_mae:.6f}")
         print(f"  MSE:  {corrected_mse:.6f}")
         print(f"  RMSE: {corrected_rmse:.6f}")
+        print(f"  MAPE: {corrected_mape:.6f}")
         print()
         print(f"IMPROVEMENT:")
         print(f"  MAE:  {self.evaluation_metrics['mae_improvement']:+.2f}%")
         print(f"  MSE:  {self.evaluation_metrics['mse_improvement']:+.2f}%")
         print(f"  RMSE: {self.evaluation_metrics['rmse_improvement']:+.2f}%")
+        print(f"  MAPE: {self.evaluation_metrics['mape_improvement']:+.2f}%")
         
         # Save performance results to JSON
         if self.config.save_performance_results:
@@ -521,15 +585,17 @@ class DiagnosticResidualTransformerPipeline:
                 original_mae=original_mae,
                 original_mse=original_mse, 
                 original_rmse=original_rmse,
+                original_mape=original_mape,
                 corrected_mae=corrected_mae,
                 corrected_mse=corrected_mse,
                 corrected_rmse=corrected_rmse,
+                corrected_mape=corrected_mape,
                 forecast=self.config.forecast,
                 lookback=self.config.lookback,
                 code=self.config.code
             )
         
-        return corrected_mae, corrected_mse, corrected_rmse
+        return corrected_mae, corrected_mse, corrected_rmse, corrected_mape
         
     def run_complete_pipeline(self) -> Tuple[np.ndarray, np.ndarray, tf.keras.Model, str, float, float, float]:
         """
@@ -564,7 +630,7 @@ class DiagnosticResidualTransformerPipeline:
         corrected_to_plot = np.maximum(corrected_to_plot, 0)  # Ensure no negative predictions
         Y_test_to_plot = np.maximum(Y_test_to_plot, 0)  # Ensure no negative predictions
         # Phase 6: Calculate performance metrics
-        corrected_mae, corrected_mse, corrected_rmse = self.calculate_performance_metrics(
+        corrected_mae, corrected_mse, corrected_rmse, corrected_mape = self.calculate_performance_metrics(
             predictions_to_plot, corrected_to_plot, Y_test_to_plot
         )
         
@@ -574,7 +640,7 @@ class DiagnosticResidualTransformerPipeline:
         
         return (self.predictions_train_corrected, self.predictions_test_corrected, 
                 self.residual_model, self.residual_model_name, 
-                corrected_mae, corrected_mse, corrected_rmse)
+                corrected_mae, corrected_mse, corrected_rmse, corrected_mape)
     
     def get_results_summary(self) -> Dict[str, Any]:
         """

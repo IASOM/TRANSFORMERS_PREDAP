@@ -11,6 +11,7 @@ import time
 from dateutil.easter import easter
 from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler 
+from sklearn.base import clone
 
 MAX_DATE = '2021-06-30'
 # Define function for train-test split
@@ -58,7 +59,7 @@ def normalize_dataframe(train_df,test_df, csv_file = None, save_data = False,  t
         scaler_target = MinMaxScaler()
 
     else:
-        scaler_target = scaler
+        scaler_target = clone(scaler)   
         
     codes = [code for code in train_df.columns if (code != 'timestamp' and code != target_code)]
     scaler.fit(train_df[codes].values)
@@ -140,7 +141,6 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     """
 
     # Extract the original values for the target code
-    #original_values = original_scale_df[code].values.reshape(-1, 1)
     code = code.replace("#", ":")
     if eliminate_covid_data:
         assert covid_dates is not None
@@ -164,7 +164,7 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     if scaler is None:
         scaler_target = MinMaxScaler()
     else:
-        scaler_target = scaler
+        scaler_target = clone(scaler)
     if len(train_df_seq.shape) < 2:
         train_df_seq = train_df_seq.reshape(-1,1)
     scaler_target.fit(train_df_seq)
@@ -188,9 +188,6 @@ def inverse_causal_transform_predictions(predictions, original_scale_df, code, l
     Returns:
     - np.array: Predictions in the original scale.
     """
-
-    # Extract the original values for the target code
-    #original_values = original_scale_df[code].values.reshape(-1, 1)
     
     # Fit scaler on original values
     original_scale_df['timestamp'] = pd.to_datetime(original_scale_df['timestamp'], errors='coerce')
@@ -198,21 +195,6 @@ def inverse_causal_transform_predictions(predictions, original_scale_df, code, l
     original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_dt)].reset_index(drop=True)  # Subset the DataFrame
     
     train_df, test_df = split_train_test(original_scale_df)
-    '''codes = [code for code in train_df.columns if code != 'timestamp']
-    scaler = MinMaxScaler()
-    scaler.fit(train_df[code].values.reshape(-1, 1))
-
-    #pred_original_array = np.zeros_like(predictions)
-    # Inverse transform predictions
-    pred_flat_pred = predictions.reshape(-1,1)
-    pred_original_array = scaler.inverse_transform(pred_flat_pred)
-    pred_original_array = pred_original_array.reshape(predictions.shape)
-    for i, pred in enumerate(predictions):
-        pred = pred.reshape(-1, 1)
-        pred_orig = scaler.inverse_transform(pred)
-        pred_original_array[i] = pred_orig.flatten()'''
-    
-    train_df_seq = []
     
     # Min-max scale ONLY the target column (univariate)
     if scaler is None:
@@ -225,13 +207,17 @@ def inverse_causal_transform_predictions(predictions, original_scale_df, code, l
         predictions = np.squeeze(predictions, axis = 2)
     pred_original_scale = scaler_target.inverse_transform(predictions)
 
-    #pred_original_scale = pred_original_scale.reshape(predictions.shape)
 
     return pred_original_scale
 
 def add_covid_token(df):
     """
-    Add a column to the dataframe indicating COVID-19 period. The covid token is 1 during the pandemic period and 0 otherwise."""
+    Add a column to the dataframe indicating COVID-19 period. The covid token is 1 during the pandemic period and 0 otherwise.
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing a 'timestamp' column.
+    Returns:
+    - pd.DataFrame: DataFrame with an added 'covid_token' column.
+    """
 
     waves = {
         "Primera Onada": ("2020-03-01", "2020-06-30"),
@@ -270,8 +256,6 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
     if univariate:
         # univariate scenario ...................................................
         # Only use the target column as input (Univariate Forecasting)
-        #feature_col = df.columns[-1]   # Use the target itself as input
-        #target_col = df.columns[-1]    # The future target to predict
         idx_code = df.columns.get_loc(code)
         feature_cols = df.columns[idx_code]  
         target_col = df.columns[idx_code]  # Get the target column 
@@ -284,12 +268,8 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
         idx_code = df.columns.get_loc(code)
-        
         df_features = df.drop(columns = ['timestamp'])
-
-        
         target_col = df.columns[idx_code]  # Target code column
-    
         # Convert DataFrame to numpy arrays
         if relevant_feature_cols is not None:
             X_raw = df_features[relevant_feature_cols].values  
@@ -395,8 +375,6 @@ def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date =
     if univariate:
         # univariate scenario ...................................................
         # Only use the target column as input (Univariate Forecasting)
-        #feature_col = df.columns[-1]   # Use the target itself as input
-        #target_col = df.columns[-1]    # The future target to predict
         idx_code = df.columns.get_loc(code)
         feature_cols = df.columns[idx_code]  # Ignore timestamp, exclude target
         target_col = df.columns[idx_code]  # Target is the last column
@@ -409,12 +387,8 @@ def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date =
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
         idx_code = df.columns.get_loc(code)
-        
         df_features = df.drop(columns = ['timestamp'])
-
-        
         target_col = df.columns[idx_code]  # Target code column
-    
         # Convert DataFrame to numpy arrays
         if relevant_feature_cols is not None:
             X_raw = df_features[relevant_feature_cols].values  
@@ -509,8 +483,6 @@ def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = 
         list: A list of datetime values corresponding to the test predictions.
     """
     df = pd.read_csv(csv_file)
-    #df = df[code]
-
     if eliminate_covid_data:
         assert covid_dates is not None
         df = eliminate_covid_dates(df, covid_dates)
@@ -549,8 +521,6 @@ def extract_causal_dates(csv_file,code,lookback, forecast, train = True, cutoff_
         list: A list of datetime values corresponding to the test predictions.
     """
     df = pd.read_csv(csv_file)
-    #df = df[code]
-
     if 'timestamp' not in df.columns:
         raise ValueError("The dataset must contain a 'timestamp' column for plotting.")
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
@@ -585,7 +555,6 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
     """
 
     # Ensure 'timestamp' column is in datetime format
-    
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
 
     if eliminate_covid_data:
@@ -655,6 +624,27 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
                                                     "Spring" if m in [3, 4, 5] else
                                                     "Summer" if m in [6, 7, 8] else "Autumn")
     })
+
+    # numeric calendar fields
+    dow = df_dates["timestamp"].dt.dayofweek.astype(float)          # 0..6
+    month = (df_dates["timestamp"].dt.month - 1).astype(float)      # 0..11
+
+    df_dates["dow_sin"] = np.sin(2*np.pi*dow/7.0)
+    df_dates["dow_cos"] = np.cos(2*np.pi*dow/7.0)
+    df_dates["month_sin"] = np.sin(2*np.pi*month/12.0)
+    df_dates["month_cos"] = np.cos(2*np.pi*month/12.0)
+
+    # optional: day-of-year (handles leap years)
+    doy = (df_dates["timestamp"].dt.dayofyear - 1)
+    days_in_year = np.where(df_dates["timestamp"].dt.is_leap_year, 366.0, 365.0).astype(float)
+    df_dates["doy_sin"] = np.sin(2*np.pi*doy/days_in_year)
+    df_dates["doy_cos"] = np.cos(2*np.pi*doy/days_in_year)
+
+    # if you use cyclical encoding, you usually DROP these one-hot candidates:
+    df_dates = df_dates.drop(columns=["Day_of_Week", "Month", "Season"], errors="ignore")
+    categorical_vars = [var for var in categorical_vars if var not in ["Day_of_Week", "Month", "Season"]]
+
+    # Weekend indicator
     df_dates["Is_Weekend"] = (df_dates["timestamp"].dt.dayofweek >= 5).astype(bool)
     # Merge with holidays
     df_dates = df_dates.merge(public_holidays_df, on="timestamp", how="left")
@@ -731,13 +721,10 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
     if predictions_train is not None:
         # Ensure predictions are correctly shaped
         predictions_train = predictions_train.reshape(X_train_covs.shape[0],forecast, 1)
-        
-        #repeated_predictions_train = np.repeat(predictions_train, lookback, axis=1)  # Repeat to match lookback length
         X_train_covs = np.concatenate([X_train_covs, predictions_train], axis=-1)  # Add as extra feature
-
+        X_train_covs = X_train_covs.astype(np.float32)
         print(f"Processed covariate Shapes + predictions: X={X_train_covs.shape}")
     
-
     if generate_y == True:
         Y = [X_raw[i : i + lookback ] for i in range(len(X_raw) - lookback - forecast + 1)]
         Y_train_covs = np.array(Y)
@@ -745,9 +732,6 @@ def generate_rolling_sequences_covariates(df_processed, lookback, forecast, pred
         return Y_train_covs
     else:
         return X_train_covs
-
-
-
 
 def shift_covariates(df, forecast):
     """
