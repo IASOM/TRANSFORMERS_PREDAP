@@ -82,9 +82,10 @@ class BaseTransformerConfig(ABC):
     #Hyperparameters residual transformer
     # Model Architecture Parameters
     DEFAULT_RESIDUAL_TRANSFORMER_PARAMS: dict = field(default_factory=lambda:  {
-        'head_size': 2,
-        'num_heads': 2,
-        'ff_dim': 8,
+        'head_size': 16,
+        'num_heads': 8,
+        'ff_dim': 256,
+        'num_transformer_blocks': 2,
         'dropout': 0.2
     })
 

@@ -261,8 +261,8 @@ def calculate_forecast_metrics(y_true, y_pred):
     mse = mean_squared_error(y_true, y_pred)
     rmse = np.sqrt(mse)
     
-    # MAPE (Mean Absolute Percentage Error)
-    mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    # WAPE (Weighted Absolute Percentage Error)
+    wape = np.sum(np.abs(y_true - y_pred)) / np.sum(np.abs(y_true)) * 100
     
     # R-squared
     r2 = r2_score(y_true, y_pred)
@@ -276,7 +276,7 @@ def calculate_forecast_metrics(y_true, y_pred):
         'MAE': mae,
         'MSE': mse,
         'RMSE': rmse,
-        'MAPE': mape,
+        'WAPE': wape,
         'R2': r2,
         'Directional_Accuracy': directional_accuracy
     }

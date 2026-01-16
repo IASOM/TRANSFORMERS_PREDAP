@@ -128,15 +128,18 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     # Transformer Encoder Block
     '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(input_layer)'''
+
+    
     x = PositionalEncoding(x.shape[1], x.shape[2])(x)
-    x = transformer_encoder(
-        x, 
-        head_size=transformer_params['head_size'],
-        num_heads=transformer_params['num_heads'],
-        ff_dim=transformer_params['ff_dim'],
-        activation_function=activation_function,
-        dropout=transformer_params['dropout']
-    )
+    for _ in range(transformer_params['num_transformer_blocks']):
+        x = transformer_encoder(
+            x, 
+            head_size=transformer_params['head_size'],
+            num_heads=transformer_params['num_heads'],
+            ff_dim=transformer_params['ff_dim'],
+            activation_function=activation_function,
+            dropout=transformer_params['dropout']
+        )
 
     # GlobalAveragePooling1D Layer
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # May be changed to Flatten() if needed 

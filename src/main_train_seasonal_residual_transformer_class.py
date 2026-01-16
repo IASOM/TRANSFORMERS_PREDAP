@@ -271,19 +271,19 @@ class SeasonalResidualTransformerPipeline:
         print("Building residual correction model...")
         
         # Define transformer parameters
-        transformer_params = {
+        '''transformer_params = {
             'head_size': self.config.head_size,
             'num_heads': self.config.num_heads,
             'ff_dim': self.config.ff_dim,
             'dropout': self.config.dropout
-        }
+        }'''
         
         # Build the residual model
         self.residual_model = hybrid_lstm_transformer_model(
             input_shape=(self.config.forecast, self.X_train_covs.shape[2]), 
             forecast=self.config.forecast,
             activation_function=self.config.activation_function,
-            transformer_params=transformer_params
+            transformer_params=None
         )
 
         self.residual_model.compile(
@@ -310,11 +310,11 @@ class SeasonalResidualTransformerPipeline:
         callbacks = []
         
         # Learning rate scheduler
-        '''lr_params = self.config.get_lr_schedule_params(learning_rate=self.config.learning_rate)
+        lr_params = self.config.get_lr_schedule_params(learning_rate=self.config.learning_rate)
         scheduler = CustomCosineDecay(**lr_params)
         
         lr_callback = tf.keras.callbacks.LearningRateScheduler(scheduler)
-        callbacks.append(lr_callback)'''
+        callbacks.append(lr_callback)
         
         # Early stopping
         early_stop = tf.keras.callbacks.EarlyStopping(
@@ -525,28 +525,28 @@ class SeasonalResidualTransformerPipeline:
         original_mae = mean_absolute_error(Y_test_to_plot, predictions_to_plot)
         original_mse = mean_squared_error(Y_test_to_plot, predictions_to_plot)
         original_rmse = np.sqrt(original_mse)
-        original_mape = np.mean(np.abs((Y_test_to_plot - predictions_to_plot) / Y_test_to_plot)) * 100
+        original_wape = np.sum(np.abs(Y_test_to_plot - predictions_to_plot)) / np.sum(np.abs(Y_test_to_plot)) * 100
         
         # Corrected model metrics
         corrected_mae = mean_absolute_error(Y_test_to_plot, corrected_to_plot)
         corrected_mse = mean_squared_error(Y_test_to_plot, corrected_to_plot)
         corrected_rmse = np.sqrt(corrected_mse)
-        corrected_mape = np.mean(np.abs((Y_test_to_plot - corrected_to_plot) / Y_test_to_plot)) * 100
+        corrected_wape = np.sum(np.abs(Y_test_to_plot - corrected_to_plot)) / np.sum(np.abs(Y_test_to_plot)) * 100
         
         # Store metrics
         self.evaluation_metrics = {
             "original_mae": original_mae,
             "original_mse": original_mse,
             "original_rmse": original_rmse,
-            "original_mape": original_mape,
+            "original_wape": original_wape,
             "corrected_mae": corrected_mae,
             "corrected_mse": corrected_mse,
             "corrected_rmse": corrected_rmse,
-            "corrected_mape": corrected_mape,
+            "corrected_wape": corrected_wape,
             "mae_improvement": ((original_mae - corrected_mae) / original_mae * 100),
             "mse_improvement": ((original_mse - corrected_mse) / original_mse * 100),
             "rmse_improvement": ((original_rmse - corrected_rmse) / original_rmse * 100),
-            "mape_improvement": ((original_mape - corrected_mape) / original_mape * 100),
+            "wape_improvement": ((original_wape - corrected_wape) / original_wape * 100),
         }
         
         print("PERFORMANCE COMPARISON:")
@@ -555,19 +555,19 @@ class SeasonalResidualTransformerPipeline:
         print(f"  MAE:  {original_mae:.6f}")
         print(f"  MSE:  {original_mse:.6f}")
         print(f"  RMSE: {original_rmse:.6f}")
-        print(f"  MAPE: {original_mape:.6f}")
+        print(f"  WAPE: {original_wape:.6f}")
         print()
         print(f"Seasonal Residual Corrected Model:")
         print(f"  MAE:  {corrected_mae:.6f}")
         print(f"  MSE:  {corrected_mse:.6f}")
         print(f"  RMSE: {corrected_rmse:.6f}")
-        print(f"  MAPE: {corrected_mape:.6f}")
+        print(f"  WAPE: {corrected_wape:.6f}")
         print()
         print(f"IMPROVEMENT:")
         print(f"  MAE:  {self.evaluation_metrics['mae_improvement']:+.2f}%")
         print(f"  MSE:  {self.evaluation_metrics['mse_improvement']:+.2f}%")
         print(f"  RMSE: {self.evaluation_metrics['rmse_improvement']:+.2f}%")
-        print(f"  MAPE: {self.evaluation_metrics['mape_improvement']:+.2f}%")
+        print(f"  WAPE: {self.evaluation_metrics['wape_improvement']:+.2f}%")
         
         # Save performance results to JSON
         if self.config.save_performance_results:
@@ -576,11 +576,11 @@ class SeasonalResidualTransformerPipeline:
                 original_mae=original_mae,
                 original_mse=original_mse, 
                 original_rmse=original_rmse,
-                original_mape=original_mape,
+                original_wape=original_wape,
                 corrected_mae=corrected_mae,
                 corrected_mse=corrected_mse,
                 corrected_rmse=corrected_rmse,
-                corrected_mape=corrected_mape,
+                corrected_wape=corrected_wape,
                 forecast=self.config.forecast,
                 lookback=self.config.lookback,
                 code=self.config.code
@@ -592,7 +592,7 @@ class SeasonalResidualTransformerPipeline:
         except Exception as e:
             print(f"Note: Could not compare model performance: {e}")
         
-        return corrected_mae, corrected_mse, corrected_rmse, corrected_mape
+        return corrected_mae, corrected_mse, corrected_rmse, corrected_wape
         
     def run_complete_pipeline(self) -> Tuple[np.ndarray, np.ndarray, tf.keras.Model, str, float, float, float]:
         """
@@ -627,7 +627,7 @@ class SeasonalResidualTransformerPipeline:
         corrected_to_plot = np.maximum(corrected_to_plot, 0)  # Ensure no negative predictions
         Y_test_to_plot = np.maximum(Y_test_to_plot, 0)  # Ensure no negative predictions
         # Phase 6: Calculate performance metrics
-        corrected_mae, corrected_mse, corrected_rmse, corrected_mape = self.calculate_performance_metrics(
+        corrected_mae, corrected_mse, corrected_rmse, corrected_wape = self.calculate_performance_metrics(
             predictions_to_plot, corrected_to_plot, Y_test_to_plot
         )
         
@@ -637,7 +637,7 @@ class SeasonalResidualTransformerPipeline:
         
         return (self.predictions_train_corrected, self.predictions_test_corrected, 
                 self.residual_model, self.residual_model_name, 
-                corrected_mae, corrected_mse, corrected_rmse, corrected_mape)
+                corrected_mae, corrected_mse, corrected_rmse, corrected_wape)
     
     def get_results_summary(self) -> Dict[str, Any]:
         """
