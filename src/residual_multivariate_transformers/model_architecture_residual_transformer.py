@@ -228,7 +228,7 @@ class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
             'total_steps': self.total_steps
         }
     
-@keras.saving.register_keras_serializable(package="predap")
+#@keras.saving.register_keras_serializable(package="predap")
 class PositionalEncoding(layers.Layer):
     def __init__(self, sequence_length, d_model, **kwargs):
         super().__init__(**kwargs)
@@ -254,3 +254,11 @@ class PositionalEncoding(layers.Layer):
         # x shape: (batch_size, seq_len, d_model)
         seq_len = tf.shape(x)[1]
         return x + self.pos_encoding[:, :seq_len, :]
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'sequence_length': self.sequence_length,
+            'd_model': self.d_model
+        })
+        return config

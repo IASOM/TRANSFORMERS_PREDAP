@@ -1,25 +1,25 @@
 {
     "run_info": {
-        "run_id": "0f9ffbf17d6d40e5ab27c8acd7ae63c0",
-        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__DALTRE_lb7_fh30_231626",
-        "timestamp": "2026-01-14T23:17:59.251147",
-        "hydra_job_num": 73
+        "run_id": "5837535a41be4756accccf74fa6d9532",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__DALTRE_lb60_fh182_231247",
+        "timestamp": "2026-01-15T23:38:00.308302",
+        "hydra_job_num": 75
     },
     "hyperparameters": {
         "target_code": "demanda__TIPUS_CLASS__DALTRE",
-        "lookback": 7,
-        "forecast_horizon": 30,
+        "lookback": 60,
+        "forecast_horizon": 182,
         "activation_function": "leaky_relu",
         "covid_token": true,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer",
-        "head_size": 32,
-        "num_heads": 8,
-        "ff_dim": 512,
-        "mlp_units": 512,
-        "num_transformer_blocks": 2,
+        "head_size": 16,
+        "num_heads": 16,
+        "ff_dim": 256,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
         "dropout": 0.25,
-        "learning_rate": 1e-06
+        "learning_rate": 1e-05
     },
     "system_info": {
         "tensorflow_version": "2.10.1",
@@ -28,32 +28,36 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 22.326754,
-        "phase_2_diagnostic_seconds": 32.10259,
-        "phase_3_seasonal_seconds": 38.275525,
-        "total_training_seconds": 92.715873,
-        "total_training_minutes": 1.54526455
+        "phase_1_univariate_seconds": 84.350034,
+        "phase_2_diagnostic_seconds": 291.394315,
+        "phase_3_seasonal_seconds": 1137.131147,
+        "total_training_seconds": 1512.882858,
+        "total_training_minutes": 25.2147143
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.024149615317583084,
-            "mae": 116.10319122316469,
-            "mse": 22902.797472176477
+            "loss": 0.6351433396339417,
+            "mae": 201.32476321197217,
+            "mse": 60584.67971887509,
+            "rmse": 246.1395533409352,
+            "mape": 222.82523942012094
         },
         "diagnostic_residual": {
-            "mae": 126.4376149874593,
-            "mse": 24320.512713554366,
-            "rmse": 155.95035336142834
+            "mae": 200.15558360617757,
+            "mse": 59921.32192680617,
+            "rmse": 244.7883206503247,
+            "mape": 221.5242042233773
         },
         "seasonal_residual": {
-            "mae": 142.08343356896606,
-            "mse": 30686.956292281982,
-            "rmse": 175.17692853878327
+            "mae": 192.17228245441416,
+            "mse": 56478.57903015288,
+            "rmse": 237.65222285969236,
+            "mape": 215.0476445913739
         }
     },
     "model_paths": {
-        "univariate_model": "demanda__TIPUS_CLASS__DALTRE_base_transformer_30fh_512ff_7lb_1e-06lr.keras",
-        "diagnostic_model": "demanda__TIPUS_CLASS__DALTRE_DIAGNOSTIC_RESIDUALS_LEARNING_30fh_512ff_7lb_1e-06initlr.keras",
-        "seasonal_model": "demanda__TIPUS_CLASS__DALTRE_SEASONAL_RESIDUALS_LEARNING_30fh_512ff_7lb_1e-06initlr.keras"
+        "univariate_model": "demanda__TIPUS_CLASS__DALTRE_base_transformer_182fh_256ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__DALTRE_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_256ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__DALTRE_SEASONAL_RESIDUALS_LEARNING_182fh_256ff_60lb_1e-05initlr.keras"
     }
 }

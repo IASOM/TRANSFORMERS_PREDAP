@@ -1,8 +1,8 @@
 {
     "run_info": {
-        "run_id": "249ae177cf744ca084a5f4fefdf4e17a",
-        "run_name": "HYDRA_transformer_demanda__VISI_LLOC_VISITA__T_lb60_fh182_010749",
-        "timestamp": "2026-01-15T01:18:56.998091",
+        "run_id": "259a173820864f27ac5f6a7460da858f",
+        "run_name": "HYDRA_transformer_demanda__VISI_LLOC_VISITA__T_lb60_fh182_005944",
+        "timestamp": "2026-01-16T01:14:11.255198",
         "hydra_job_num": 96
     },
     "hyperparameters": {
@@ -10,7 +10,7 @@
         "lookback": 60,
         "forecast_horizon": 182,
         "activation_function": "leaky_relu",
-        "covid_token": false,
+        "covid_token": true,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer",
         "head_size": 16,
@@ -22,36 +22,36 @@
         "learning_rate": 1e-05
     },
     "system_info": {
-        "tensorflow_version": "2.17.0",
-        "python_version": "3.12.3",
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
         "gpu_available": true,
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 83.149208,
-        "phase_2_diagnostic_seconds": 190.690372,
-        "phase_3_seasonal_seconds": 393.567194,
-        "total_training_seconds": 667.413631,
-        "total_training_minutes": 11.123560516666666
+        "phase_1_univariate_seconds": 93.474049,
+        "phase_2_diagnostic_seconds": 203.277352,
+        "phase_3_seasonal_seconds": 569.688294,
+        "total_training_seconds": 866.442546,
+        "total_training_minutes": 14.4407091
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 6.093064439482987e-05,
-            "mae": 2.9360639118649588e-05,
-            "mse": 2.619550472710943e-09,
-            "rmse": 5.118154425875545e-05,
+            "loss": 4.932328010909259e-05,
+            "mae": 3.3419803862720936e-05,
+            "mse": 2.866454498665104e-09,
+            "rmse": 5.353927996027874e-05,
             "mape": NaN
         },
         "diagnostic_residual": {
-            "mae": 0.06372325403329604,
-            "mse": 0.00822944555278117,
-            "rmse": 0.09071629155108342,
-            "mape": Infinity
+            "mae": 0.029257954017698012,
+            "mse": 0.0021292892885375523,
+            "rmse": 0.04614422269946209,
+            "mape": NaN
         },
         "seasonal_residual": {
-            "mae": 0.04132032293537888,
-            "mse": 0.006741054992284452,
-            "rmse": 0.0821039279954647,
+            "mae": 0.053643033776958005,
+            "mse": 0.006538434917304835,
+            "rmse": 0.08086058939498793,
             "mape": NaN
         }
     },

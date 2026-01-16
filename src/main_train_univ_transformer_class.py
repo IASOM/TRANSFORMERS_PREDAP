@@ -15,7 +15,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 
-from tensorflow.keras.optimizers import Adam, AdamW
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
 
 # Import data preparation module
@@ -243,7 +243,6 @@ class UnivariateTransformerPipeline:
             optimizer=Adam(
                 clipnorm = 2.0,
                 learning_rate=self.config.learning_rate,
-                use_ema=True
                 
             ),
         )

@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "d9f7e9f4637c4deba0c30c574747749f",
+        "run_name": "HYDRA_transformer_I10_lb30_fh60_115733",
+        "timestamp": "2026-01-16T12:23:22.321541",
+        "hydra_job_num": 207
+    },
+    "hyperparameters": {
+        "target_code": "I10",
+        "lookback": 30,
+        "forecast_horizon": 60,
+        "activation_function": "leaky_relu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 16,
+        "num_heads": 16,
+        "ff_dim": 256,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 72.451415,
+        "phase_2_diagnostic_seconds": 506.190833,
+        "phase_3_seasonal_seconds": 970.198494,
+        "total_training_seconds": 1548.867294,
+        "total_training_minutes": 25.814454899999998
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.18114666640758514,
+            "mae": 51.09354333582829,
+            "mse": 5477.398577578139,
+            "rmse": 74.00944924520206,
+            "mape": 31.2047662336608
+        },
+        "diagnostic_residual": {
+            "mae": 52.50766397880402,
+            "mse": 5608.640433443627,
+            "rmse": 74.89085680804853,
+            "mape": 32.14563667545858
+        },
+        "seasonal_residual": {
+            "mae": 52.71332180357926,
+            "mse": 5544.709074331553,
+            "rmse": 74.46280329353411,
+            "mape": 32.850175579735655
+        }
+    },
+    "model_paths": {
+        "univariate_model": "I10_base_transformer_60fh_256ff_30lb_1e-05lr.keras",
+        "diagnostic_model": "I10_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_256ff_30lb_1e-05initlr.keras",
+        "seasonal_model": "I10_SEASONAL_RESIDUALS_LEARNING_60fh_256ff_30lb_1e-05initlr.keras"
+    }
+}

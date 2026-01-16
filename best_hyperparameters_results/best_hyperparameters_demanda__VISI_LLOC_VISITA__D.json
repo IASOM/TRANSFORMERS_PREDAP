@@ -1,8 +1,8 @@
 {
     "run_info": {
-        "run_id": "f3b1c21439c34db7b324279db7f8a82a",
-        "run_name": "HYDRA_transformer_demanda__VISI_LLOC_VISITA__D_lb60_fh182_003828",
-        "timestamp": "2026-01-15T00:55:58.713981",
+        "run_id": "0ab74c133d654aa9813112fd456fc636",
+        "run_name": "HYDRA_transformer_demanda__VISI_LLOC_VISITA__D_lb60_fh182_002535",
+        "timestamp": "2026-01-16T00:49:36.074546",
         "hydra_job_num": 89
     },
     "hyperparameters": {
@@ -10,7 +10,7 @@
         "lookback": 60,
         "forecast_horizon": 182,
         "activation_function": "leaky_relu",
-        "covid_token": false,
+        "covid_token": true,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer",
         "head_size": 16,
@@ -22,37 +22,37 @@
         "learning_rate": 1e-05
     },
     "system_info": {
-        "tensorflow_version": "2.17.0",
-        "python_version": "3.12.3",
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
         "gpu_available": true,
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 108.768645,
-        "phase_2_diagnostic_seconds": 319.238957,
-        "phase_3_seasonal_seconds": 622.674851,
-        "total_training_seconds": 1050.686057,
-        "total_training_minutes": 17.511434283333333
+        "phase_1_univariate_seconds": 113.103059,
+        "phase_2_diagnostic_seconds": 329.278999,
+        "phase_3_seasonal_seconds": 998.136226,
+        "total_training_seconds": 1440.531765,
+        "total_training_minutes": 24.00886275
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 0.22157491743564606,
-            "mae": 1022.5943456517034,
-            "mse": 2777586.293193653,
-            "rmse": 1666.6092203014039,
-            "mape": 35.94894515448668
+            "loss": 0.22107137739658356,
+            "mae": 1022.7711355632995,
+            "mse": 2640002.1128911306,
+            "rmse": 1624.8083311243608,
+            "mape": 38.41727442667204
         },
         "diagnostic_residual": {
-            "mae": 1102.618036795409,
-            "mse": 2877190.680464507,
-            "rmse": 1696.2283691957598,
-            "mape": 50.298253775869405
+            "mae": 1038.5202380919352,
+            "mse": 2671956.931346484,
+            "rmse": 1634.6121654222704,
+            "mape": 38.99986294373321
         },
         "seasonal_residual": {
-            "mae": 1114.3668819977527,
-            "mse": 2840629.960395813,
-            "rmse": 1685.416850632452,
-            "mape": 50.89456601920581
+            "mae": 1064.883811389213,
+            "mse": 2723804.4646406015,
+            "rmse": 1650.3952449763667,
+            "mape": 40.096156949508774
         }
     },
     "model_paths": {

@@ -301,7 +301,7 @@ class DiagnosticResidualTransformerPipeline:
             optimizer=tf.keras.optimizers.Adam(
                 learning_rate=self.config.learning_rate,
                 clipnorm = 1.0,
-                use_ema=True), 
+                ), 
             loss='mse', 
             metrics=['mae', 'mse']
         )
