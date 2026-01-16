@@ -316,7 +316,7 @@ class UnivariateTransformerPipeline:
         df_waves = create_pandemic_waves_df()
         
         # Evaluate the model
-        loss, mae, mse, rmse, mape = evaluate_univ_transformer(
+        loss, mae, mse, rmse, wape = evaluate_univ_transformer(
             self.model_name,
             self.config.data_path,
             self.config.code,
@@ -335,7 +335,7 @@ class UnivariateTransformerPipeline:
             "mae": mae, 
             "mse": mse,
             "rmse": rmse,
-            "mape": mape
+            "wape": wape
         }
         
         print(f"Evaluation results:")
@@ -343,9 +343,9 @@ class UnivariateTransformerPipeline:
         print(f"  MAE:  {mae:.6f}")
         print(f"  MSE:  {mse:.6f}")
         print(f"  RMSE: {rmse:.6f}")
-        print(f"  MAPE: {mape:.6f}%")
+        print(f"  WAPE: {wape:.6f}%")
         
-        return loss, mae, mse, rmse, mape
+        return loss, mae, mse, rmse, wape
     
     def run_complete_pipeline(self) -> Tuple[tf.keras.Model, str, Optional[float], Optional[float], Optional[float]]:
         """
@@ -370,9 +370,9 @@ class UnivariateTransformerPipeline:
         evaluation_results = self.evaluate_model()
         
         # Extract evaluation metrics
-        loss, mae, mse, rmse, mape = None, None, None, None, None
+        loss, mae, mse, rmse, wape = None, None, None, None, None
         if evaluation_results is not None:
-            loss, mae, mse, rmse, mape = evaluation_results
+            loss, mae, mse, rmse, wape = evaluation_results
         
         print("\n" + "="*50)
         print("PIPELINE COMPLETED SUCCESSFULLY!")
@@ -380,9 +380,9 @@ class UnivariateTransformerPipeline:
         print(f"Model name: {self.model_name}")
         print(f"Data preparation time: {self.data_prep_time:.2f} seconds")
         if evaluation_results:
-            print(f"Final metrics - Loss: {loss:.6f}, MAE: {mae:.6f}, MSE: {mse:.6f}, RMSE: {rmse:.6f}, MAPE: {mape:.6f}%")
+            print(f"Final metrics - Loss: {loss:.6f}, MAE: {mae:.6f}, MSE: {mse:.6f}, RMSE: {rmse:.6f}, WAPE: {wape:.6f}%")
         
-        return self.model, self.model_name, loss, mae, mse, rmse, mape
+        return self.model, self.model_name, loss, mae, mse, rmse, wape
     
     def get_results_summary(self) -> Dict[str, Any]:
         """
@@ -469,5 +469,5 @@ if __name__ == "__main__":
                             )
 
     pipeline = UnivariateTransformerPipeline(transformer_config)
-    model, model_name, loss, mae, mse, rmse, mape = pipeline.run_complete_pipeline()
+    model, model_name, loss, mae, mse, rmse, wape = pipeline.run_complete_pipeline()
     

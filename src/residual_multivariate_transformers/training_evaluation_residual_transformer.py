@@ -289,8 +289,8 @@ def get_callbacks(patience=None, monitor='val_loss', mode='min',
     return callbacks
 
 
-def save_performance_results(model_name, original_mae, original_mse, original_rmse, original_mape,
-                           corrected_mae, corrected_mse, corrected_rmse, corrected_mape,
+def save_performance_results(model_name, original_mae, original_mse, original_rmse, original_wape,
+                           corrected_mae, corrected_mse, corrected_rmse, corrected_wape,
                            forecast, lookback, code, output_dir="results"):
     """
     Save performance comparison results to a JSON file.
@@ -327,7 +327,7 @@ def save_performance_results(model_name, original_mae, original_mse, original_rm
     mae_improvement = ((original_mae - corrected_mae) / original_mae * 100) if original_mae != 0 else 0
     mse_improvement = ((original_mse - corrected_mse) / original_mse * 100) if original_mse != 0 else 0
     rmse_improvement = ((original_rmse - corrected_rmse) / original_rmse * 100) if original_rmse != 0 else 0
-    mape_improvement = ((original_mape - corrected_mape) / original_mape * 100) if original_mape != 0 else 0
+    wape_improvement = ((original_wape - corrected_wape) / original_wape * 100) if original_wape != 0 else 0
     
     # Create results dictionary
     results = {
@@ -343,20 +343,20 @@ def save_performance_results(model_name, original_mae, original_mse, original_rm
             "MAE": round(original_mae, 6),
             "MSE": round(original_mse, 6),
             "RMSE": round(original_rmse, 6),
-            "MAPE": round(original_mape, 6)
+            "WAPE": round(original_wape, 6)
         },
         "corrected_model_performance": {
             "MAE": round(corrected_mae, 6),
             "MSE": round(corrected_mse, 6),
             "RMSE": round(corrected_rmse, 6),
-            "MAPE": round(corrected_mape, 6)
+            "WAPE": round(corrected_wape, 6)
 
         },
         "improvements": {
             "MAE_improvement_percent": round(mae_improvement, 2),
             "MSE_improvement_percent": round(mse_improvement, 2),
             "RMSE_improvement_percent": round(rmse_improvement, 2),
-            "MAPE_improvement_percent": round(mape_improvement, 2),
+            "WAPE_improvement_percent": round(wape_improvement, 2),
             "overall_assessment": "positive" if mae_improvement > 0 else "negative"
         },
         "summary": {

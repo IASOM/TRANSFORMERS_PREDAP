@@ -72,7 +72,7 @@ def main_experiment(cfg: DictConfig) -> None:
     
     # Initialize MLflow
     mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
-    experiment_name = f"NEW_CODES_{cfg.mlflow.experiment_name}_{datetime.now().strftime('%Y%m%d')}"
+    experiment_name = f"{cfg.mlflow.experiment_name}_{datetime.now().strftime('%Y%m%d')}"
     mlflow.set_experiment(experiment_name)
     
     print(f"🎯 MLflow tracking initialized")
@@ -171,7 +171,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
         pipeline = UnivariateTransformerPipeline(univariate_parameters)
         #model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
-        model, model_name, loss, mae, mse, rmse, mape = pipeline.run_complete_pipeline()
+        model, model_name, loss, mae, mse, rmse, wape = pipeline.run_complete_pipeline()
         
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
@@ -195,7 +195,7 @@ def main_experiment(cfg: DictConfig) -> None:
                 "eval/univ_transformer_mae": mae,
                 "eval/univ_transformer_mse": mse,
                 "eval/univ_transformer_rmse": rmse,
-                "eval/univ_transformer_mape": mape
+                "eval/univ_transformer_wape": wape
             })
         
         print(f"\n\nRunning for Lookback: {lookback}, Forecast: {forecast}, Code: {CODE}\n")
@@ -226,7 +226,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
         #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
         pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
-        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse, corrected_diagnostics_mape = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
+        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse, corrected_diagnostics_wape = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
         
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
@@ -244,7 +244,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "eval/residual_diagnostics_model_mae": corrected_diagnostics_mae,
             "eval/residual_diagnostics_model_mse": corrected_diagnostics_mse,    
             "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
-            "eval/residual_diagnostics_model_mape": corrected_diagnostics_mape,
+            "eval/residual_diagnostics_model_wape": corrected_diagnostics_wape,
         })
         
         # ==================== PHASE 3: RESIDUAL SEASONAL TRANSFORMER ====================
@@ -276,7 +276,7 @@ def main_experiment(cfg: DictConfig) -> None:
             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
         )'''
         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
-        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse, corrected_seasonal_mape = pipeline.run_complete_pipeline()
+        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse, corrected_seasonal_wape = pipeline.run_complete_pipeline()
         
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
@@ -297,7 +297,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "eval/residual_seasonal_model_mae": corrected_seasonal_mae,
             "eval/residual_seasonal_model_mse": corrected_seasonal_mse,
             "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse,
-            "eval/residual_seasonal_model_mape": corrected_seasonal_mape,
+            "eval/residual_seasonal_model_wape": corrected_seasonal_wape,
         })
         
         # ==================== COLLECT AND SAVE BEST RESULTS ====================
@@ -344,19 +344,19 @@ def main_experiment(cfg: DictConfig) -> None:
                     "mae": mae,
                     "mse": mse,
                     "rmse": rmse,
-                    "mape": mape
+                    "wape": wape
                 },
                 "diagnostic_residual": {
                     "mae": corrected_diagnostics_mae,
                     "mse": corrected_diagnostics_mse,
                     "rmse": corrected_diagnostics_rmse,
-                    "mape": corrected_diagnostics_mape
+                    "wape": corrected_diagnostics_wape
                 },
                 "seasonal_residual": {
                     "mae": corrected_seasonal_mae,
                     "mse": corrected_seasonal_mse,
                     "rmse": corrected_seasonal_rmse,
-                    "mape": corrected_seasonal_mape
+                    "wape": corrected_seasonal_wape
                 }
             },
             "model_paths": {
@@ -411,7 +411,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "final/seasonal_mse": current_mse,
             "final/seasonal_mae": corrected_seasonal_mae,
             "final/seasonal_rmse": corrected_seasonal_rmse,
-            "final/seasonal_mape": corrected_seasonal_mape,
+            "final/seasonal_wape": corrected_seasonal_wape,
         })
         
         print(f"✅ Completed run for {CODE} - lb:{lookback} fh:{forecast}")

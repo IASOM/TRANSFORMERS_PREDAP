@@ -7,17 +7,17 @@
     },
     "hyperparameters": {
         "target_code": "demanda__SERVEI_CODI__INF",
-        "lookback": 60,
-        "forecast_horizon": 182,
+        "lookback": 7,
+        "forecast_horizon": 7,
         "activation_function": "leaky_relu",
         "covid_token": true,
         "cutoff_date": "2008-01-01",
         "model_type": "transformer",
         "head_size": 16,
-        "num_heads": 16,
+        "num_heads": 8,
         "ff_dim": 256,
         "mlp_units": "[512, 256]",
-        "num_transformer_blocks": 4,
+        "num_transformer_blocks": 2,
         "dropout": 0.25,
         "learning_rate": 1e-05
     },
@@ -56,8 +56,8 @@
         }
     },
     "model_paths": {
-        "univariate_model": "demanda__SERVEI_CODI__INF_base_transformer_182fh_256ff_60lb_1e-05lr.keras",
-        "diagnostic_model": "demanda__SERVEI_CODI__INF_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_256ff_60lb_1e-05initlr.keras",
-        "seasonal_model": "demanda__SERVEI_CODI__INF_SEASONAL_RESIDUALS_LEARNING_182fh_256ff_60lb_1e-05initlr.keras"
+        "univariate_model": "demanda__SERVEI_CODI__INF_base_transformer_7fh_256ff_7lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__INF_DIAGNOSTIC_RESIDUALS_LEARNING_7fh_256ff_7lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__INF_SEASONAL_RESIDUALS_LEARNING_7fh_256ff_7lb_1e-05initlr.keras"
     }
 }
