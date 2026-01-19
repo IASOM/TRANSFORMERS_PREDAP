@@ -47,7 +47,7 @@ def transformer_encoder_block(d_model, num_heads, d_ff, dropout=0.1, name=None):
     mha = layers.MultiHeadAttention(num_heads=num_heads, key_dim=d_model // num_heads, name=(name and name + "_mha"))
     ln1 = layers.LayerNormalization(epsilon=1e-6, name=(name and name + "_ln1"))
     ff = keras.Sequential([
-        layers.Dense(d_ff, activation="tanh"),
+        layers.Dense(d_ff, activation="leaky_relu"),
         layers.Dense(d_model),
     ], name=(name and name + "_ff"))
     ln2 = layers.LayerNormalization(epsilon=1e-6, name=(name and name + "_ln2"))
@@ -73,7 +73,7 @@ def transformer_decoder_block(d_model, num_heads, d_ff, dropout=0.1, name=None):
     ln1 = layers.LayerNormalization(epsilon=1e-6, name=(name and name + "_ln1"))
     ln2 = layers.LayerNormalization(epsilon=1e-6, name=(name and name + "_ln2"))
     ln3 = layers.LayerNormalization(epsilon=1e-6, name=(name and name + "_ln3"))
-    ff = keras.Sequential([layers.Dense(d_ff, activation="tanh"), layers.Dense(d_model)], name=(name and name + "_ff"))
+    ff = keras.Sequential([layers.Dense(d_ff, activation="leaky_relu"), layers.Dense(d_model)], name=(name and name + "_ff"))
     drop = layers.Dropout(dropout)
 
     def call(x, enc_out, look_ahead_mask=None, training=None):
@@ -113,13 +113,13 @@ def build_transformer_forecaster(
     in_dim=1,
     out_dim=1,
     time_dim=3,
-    time2vec_dim=8,
-    d_model=64,
-    num_heads=4,
-    d_ff=128,
+    time2vec_dim=32,
+    d_model=256,
+    num_heads=8,
+    d_ff=512,
     enc_layers=3,
     dec_layers=2,
-    dropout=0.1,
+    dropout=0.25,
 ):
     """
     Returns a keras Model for training (teacher forcing).
@@ -278,8 +278,8 @@ if __name__ == "__main__":
     model = build_transformer_forecaster(
         enc_len=ENC_LEN, target_len=TARGET_LEN,
         in_dim=IN_DIM, out_dim=OUT_DIM, time_dim=TIME_DIM,
-        time2vec_dim=8, d_model=64, num_heads=4, d_ff=128,
-        enc_layers=2, dec_layers=2, dropout=0.1
+        time2vec_dim=32, d_model=256, num_heads=8, d_ff=512,
+        enc_layers=2, dec_layers=2, dropout=0.25
     )
     model.summary()
 

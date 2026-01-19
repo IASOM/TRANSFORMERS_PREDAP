@@ -119,7 +119,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout, causal_masking)  # uses previous defined trans_encoder layer
 
-    x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
     
     
