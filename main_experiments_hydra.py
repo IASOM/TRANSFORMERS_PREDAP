@@ -108,7 +108,7 @@ def main_experiment(cfg: DictConfig) -> None:
     df = pd.read_csv(data_path)
     
     # Start MLflow run for this specific configuration
-    run_name = f"HYDRA_transformer_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}"
+    run_name = f"Experimental_HYDRA_transformer_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}"
     with mlflow.start_run(run_name=run_name) as run:
         print(f"\n🚀 Starting MLflow run: {run_name}")
         print(f"   • Run ID: {run.info.run_id}")

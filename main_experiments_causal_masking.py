@@ -60,7 +60,7 @@ default_config = TransformerUnivConfig()
 
 # Initialize MLflow
 mlflow.set_tracking_uri("file:./mlruns")
-experiment_name = f"TRANSFORMERS_PREDAP_{datetime.now().strftime('%Y%m%d')}"
+experiment_name = f"CAUSAL_TRANSFORMERS_PREDAP_{datetime.now().strftime('%Y%m%d')}"
 mlflow.set_experiment(experiment_name)
 
 print(f"🎯 MLflow tracking initialized")
@@ -80,20 +80,20 @@ def safe_float(value):
 
 # MAIN TRANSFORMER MODEL 
 COVID_TOKEN = False
-ACTIVATION_FUNCTION = keras.activations.tanh
+ACTIVATION_FUNCTION = "leaky_relu"#keras.activations.tanh
 POSITIONAL_ENCODING  = False
 
 LOOKBACK_LIST = default_config.LOOKBACK_LIST
 FORECAST_LIST = default_config.FORECAST_LIST
-CODES_LIST = default_config.CODES_LIST
+CODES_LIST = ["demanda__SERVEI_CODI__INF"]#default_config.CODES_LIST
 CUTOFF_DATE = default_config.cutoff_date
 ACTIVATIONS_LIST = default_config.ACTIVATIONS_LIST
 COVID_TOKEN_LIST = default_config.COVID_TOKEN_LIST
-HEAD_SIZE_LIST = default_config.HEAD_SIZE_LIST
-NUM_HEADS_LIST = default_config.NUM_HEADS_LIST
-FF_DIM_LIST = default_config.FF_DIM_LIST
-MLP_UNITS_LIST = default_config.MLP_UNITS_LIST
-DATA_PATH = default_config.data_path
+HEAD_SIZE_LIST = [32]#default_config.HEAD_SIZE_LIST
+NUM_HEADS_LIST = [8]#default_config.NUM_HEADS_LIST
+FF_DIM_LIST = [512]#default_config.FF_DIM_LIST
+MLP_UNITS_LIST = [512]#default_config.MLP_UNITS_LIST
+DATA_PATH = '../data/FINAL_DB/full_CAT1.parquet'#default_config.data_path
 LEARNING_RATE = default_config.learning_rate
 
 
@@ -242,7 +242,7 @@ for CODE in CODES_LIST:
                                     learning_rate = LEARNING_RATE,
                                 )
 
-                                predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = DiagnosticResidualTransformerPipeline(diagnostic_parameters, ).run_complete_pipeline()                                                                                                                                                                                                                                                                                    
+                                predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse, corrected_wape = DiagnosticResidualTransformerPipeline(diagnostic_parameters, ).run_complete_pipeline()                                                                                                                                                                                                                                                                                    
                                 mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
                                 load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
                                 
@@ -255,6 +255,7 @@ for CODE in CODES_LIST:
                                     "eval/residual_diagnostics_model_mae": corrected_diagnostics_mae,
                                     "eval/residual_diagnostics_model_mse": corrected_diagnostics_mse,    
                                     "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
+                                    "eval/residual_diagnostics_model_wape": corrected_wape,
                                     })
                                 # RESIDUAL SEASONAL TRANSFORMER
                                 seasonal_start_time = datetime.now()
@@ -278,7 +279,7 @@ for CODE in CODES_LIST:
                                     
                                 )
 
-                                predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = SeasonalResidualTransformerPipeline(seasonal_params).run_complete_pipeline()
+                                predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse, corrected_seasonal_wape = SeasonalResidualTransformerPipeline(seasonal_params).run_complete_pipeline()
 
                                 mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
                                 load_mlflow_model_history(residual_seasonal_model_name,  model_type="residual_seasonal_transformer")
@@ -294,7 +295,8 @@ for CODE in CODES_LIST:
                                     "total_training_duration_minutes": total_duration / 60,
                                     "eval/residual_seasonal_model_mae": corrected_seasonal_mae,
                                     "eval/residual_seasonal_model_mse": corrected_seasonal_mse,
-                                    "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse
+                                    "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse,
+                                    "eval/residual_seasonal_model_wape": corrected_seasonal_wape
                                 })
                                 
                                 # ==================== COLLECT AND SAVE BEST RESULTS ====================

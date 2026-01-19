@@ -98,12 +98,12 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     
     input_layer = keras.Input(shape=input_shape)
     
-    '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
+    d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(input_layer)
     # Transformer Block
-    x = PositionalEncoding(input_shape[0], d_model)(x)'''
+    x = PositionalEncoding(input_shape[0], d_model)(x)
 
-    x = layers.LayerNormalization(epsilon=1e-6)(input_layer)
+    '''x = layers.LayerNormalization(epsilon=1e-6)(input_layer)
     # LSTM Block
     x = layers.LSTM(
         lstm_params['units_1'], 
@@ -123,14 +123,14 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
         #recurrent_constraint=MaxNorm(1.0),
      )(x)
     x = layers.LayerNormalization(epsilon=1e-6)(x)
-    x = layers.Dropout(lstm_params['dropout'])(x)
+    x = layers.Dropout(lstm_params['dropout'])(x)'''
 
     # Transformer Encoder Block
     '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(input_layer)'''
 
     
-    x = PositionalEncoding(x.shape[1], x.shape[2])(x)
+    #x = PositionalEncoding(x.shape[1], x.shape[2])(x)
     for _ in range(transformer_params['num_transformer_blocks']):
         x = transformer_encoder(
             x, 
@@ -144,10 +144,10 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     # GlobalAveragePooling1D Layer
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # May be changed to Flatten() if needed 
     #x = layers.Flatten()(x)
-    '''x = layers.Dense(256, activation=activation_function)(x)
+    x = layers.Dense(256, activation=activation_function)(x)
     x = layers.Dropout(0.2)(x)
     x = layers.Dense(128, activation=activation_function)(x)
-    x = layers.Dropout(0.2)(x)'''
+    x = layers.Dropout(0.2)(x)
     # Output Layer
     outputs = layers.Dense(forecast, activation='linear')(x)
 

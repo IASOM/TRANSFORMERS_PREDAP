@@ -32,7 +32,7 @@ from config.base_transformer_config import BaseTransformerConfig
 default_config = BaseTransformerConfig()
 
 
-def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix="", show_plt=False, model_name = "Model"):
+def plot_residuals_analysis(original_predictions, corrected_predictions, actual_values, title_prefix="", show_plt=False, model_name = "Model", timestamp=None):
     """
     Plot analysis comparing original predictions, corrected predictions, and actual values.
     Assumes inputs are arrays of shape (num_of_predictions, forecast_horizon).
@@ -76,17 +76,22 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
     fig.suptitle(f'{title_prefix} Analysis (middle horizon + across-horizon uncertainty)', fontsize=14)
 
     # Time series: middle-horizon predictions with uncertainty bands from across horizons
-    t = np.arange(n)
+    if timestamp is not None:
+        H = original_predictions.shape[1]
+        mid = H//2
+        t = pd.to_datetime(timestamp[mid:-(mid+H)])
+    else:
+        t = np.arange(n)
     axes[0, 0].plot(t, act_mid, label='Actual (middle horizon)', color='black', alpha=0.9)
     axes[0, 0].plot(t, orig_mid, label='Original (middle)', color='C0', alpha=0.9)
     axes[0, 0].plot(t, corr_mid, label='Corrected (middle)', color='C1', alpha=0.9)
 
     # Fill uncertainty bands: (min,max) light band and (10th,90th) darker band
-    axes[0, 0].fill_between(t, orig_min, orig_max, color='C0', alpha=0.12, label='Original min-max')
-    axes[0, 0].fill_between(t, orig_p10, orig_p90, color='C0', alpha=0.25, label='Original 10-90 pct')
+    axes[0, 0].fill_between(t, orig_min, orig_max, color='C0', alpha=0.22, label='Original min-max')
+    axes[0, 0].fill_between(t, orig_p10, orig_p90, color='C0', alpha=0.35, label='Original 10-90 pct')
 
-    axes[0, 0].fill_between(t, corr_min, corr_max, color='C1', alpha=0.12, label='Corrected min-max')
-    axes[0, 0].fill_between(t, corr_p10, corr_p90, color='C1', alpha=0.25, label='Corrected 10-90 pct')
+    axes[0, 0].fill_between(t, corr_min, corr_max, color='C1', alpha=0.22, label='Corrected min-max')
+    axes[0, 0].fill_between(t, corr_p10, corr_p90, color='C1', alpha=0.35, label='Corrected 10-90 pct')
 
     axes[0, 0].set_title('Middle-horizon Time Series with Across-horizon Uncertainty')
     axes[0, 0].set_xlabel('Time Steps')

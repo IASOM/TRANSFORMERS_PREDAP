@@ -61,7 +61,8 @@ class TransformerUnivConfig(BaseTransformerConfig):
     num_encoder_blocks: int = field(default=4)
     num_decoder_blocks: int = field(default=2)
     decoder_target_length: int = field(default=1)
-    decoder_strategy: str = field(default='learned')  # 'zeros', 'learned', 'random'
+    #decoder_strategy: str = field(default='learned')  # 'zeros', 'learned', 'random'
+    decoder_strategy: str = field(default='autoregressive')  # 'zeros', 'learned', 'random'
     
     # Teacher Forcing Parameters
     use_teacher_forcing: bool = field(default=False)
@@ -89,6 +90,17 @@ class TransformerUnivConfig(BaseTransformerConfig):
             "evaluate_model": self.evaluate_model, 
             "data_path": self.data_path,
         }
+    
+    def __post_init__(self):
+        """Initialize configuration after dataclass creation"""
+        # Call parent's __post_init__ first
+        super().__post_init__()
+        
+        # Set diagnostic_covariates_path using the code from parent
+        if self.diagnostic_covariates_path is None:
+            self.diagnostic_covariates_path = f'../data/best_features/BEST_features_NOSMOOTH_{self.code}.xlsx'
+        else:
+            self.diagnostic_covariates_path =  self.diagnostic_covariates_path + f'{self.code}.xlsx'
     
     def print_config(self):
         """Print configuration in a readable format"""
@@ -161,7 +173,8 @@ class UnivariateTransformerPipeline:
         df_train_processed = data_preparation.prepare_time_series_features(
             df, 
             self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS, 
-            cutoff_date=self.config.cutoff_date
+            cutoff_date=self.config.cutoff_date,
+            scaler = self.config.scaler,
         )
         
         # Generate rolling sequences with covariates for training
@@ -186,6 +199,12 @@ class UnivariateTransformerPipeline:
 
         return self.X_dates, self.Y_dates
     
+    def load_diagnostic_covariates(self):
+        diagnostic_covariates_df = pd.read_excel(self.config.diagnostic_covariates_path, engine='openpyxl')
+        self.diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] == self.config.forecast]['predictors'])[0].split(',')
+    
+        return self.diagnostic_covariates_list
+    
     def prepare_causal_data(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Prepare training data using the configuration parameters.
@@ -198,7 +217,11 @@ class UnivariateTransformerPipeline:
         print("="*50)
         
         start_time = time.perf_counter()
-        
+
+        relevant_feature_cols = self.load_diagnostic_covariates()
+        self.config.relevant_feature_cols = relevant_feature_cols    
+
+
         X_train, Y_train = data_preparation.prepare_data(
             self.data_path, 
             self.config.code, 
@@ -209,7 +232,8 @@ class UnivariateTransformerPipeline:
             train=True, 
             debug=True, 
             univariate=False,
-            relevant_feature_cols = ["I63","R04","B00","H02"]
+            relevant_feature_cols = self.config.relevant_feature_cols,
+            scaler = self.config.scaler,
         )
 
         X_test, Y_test = data_preparation.prepare_data(
@@ -222,7 +246,8 @@ class UnivariateTransformerPipeline:
             train=False, 
             debug=True, 
             univariate=False, 
-            relevant_feature_cols = ["I63","R04","B00","H02"]
+            relevant_feature_cols = self.config.relevant_feature_cols,
+            scaler = self.config.scaler,
             
         )
 
@@ -235,7 +260,11 @@ class UnivariateTransformerPipeline:
         )
 
         X_time_train, Y_time_train = self.prepare_time_features(df=train_split)
+        X_time_train = X_time_train.astype(np.float32)
+        Y_time_train = Y_time_train.astype(np.float32)
         X_time_test, Y_time_test = self.prepare_time_features(df=test_split, generate_y=True)
+        X_time_test = X_time_test.astype(np.float32)
+        Y_time_test = Y_time_test.astype(np.float32)
         
         #train_dataset = self.build_dataset(X_train, X_time_train, Y_train, batch_size=self.config.batch_size, shuffle=False)
         #test_dataset = self.build_dataset(X_test, X_time_test, Y_test, batch_size=self.config.batch_size, shuffle=False)
@@ -257,7 +286,7 @@ class UnivariateTransformerPipeline:
         # Build training model
         model = build_transformer_forecaster(
             enc_len=self.config.lookback, target_len=self.config.forecast,
-            in_dim=4, out_dim=1, time_dim=27,
+            in_dim=12, out_dim=1, time_dim=12,
             time2vec_dim=16, d_model=self.config.mlp_units, num_heads=self.config.num_heads, d_ff=self.config.ff_dim,
             enc_layers=self.config.num_transformer_blocks, dec_layers=self.config.num_transformer_blocks, dropout=self.config.dropout,
         )
@@ -431,7 +460,9 @@ class UnivariateTransformerPipeline:
                                                 self.config.code, 
                                                 forecast=self.config.forecast, 
                                                 lookback=self.config.lookback, 
-                                                cutoff_date=self.config.cutoff_date
+                                                cutoff_date=self.config.cutoff_date,
+                                                scaler = self.config.scaler,
+
                                                 )
         
         # Evaluate model

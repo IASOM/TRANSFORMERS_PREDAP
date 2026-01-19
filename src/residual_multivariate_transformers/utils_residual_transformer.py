@@ -90,7 +90,7 @@ def split_train_test(df, split_ratio=None, cutoff_date='2010-01-01', scaler = No
     
     cutoff = pd.Timestamp(cutoff_date)
     max_dt = pd.Timestamp(max_date)
-    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    df = df[(df['timestamp'] >= cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
     
     print(f"Data filtered from {cutoff_date}. Remaining records: {len(df)}")
     # Split the data
@@ -101,9 +101,9 @@ def split_train_test(df, split_ratio=None, cutoff_date='2010-01-01', scaler = No
     if scaler is None:
         scaler = MinMaxScaler()
 
-    columns = [column for column in df.columns if column != 'timestamp']
+    '''columns = [column for column in df.columns if column != 'timestamp']
     scaler.fit(train_df[columns])
-    df[columns] = scaler.transform(df[columns])
+    df[columns] = scaler.transform(df[columns])'''
     
     print(f"Data split - Train: {len(train_df)} records, Test: {len(test_df)} records")
     
@@ -456,7 +456,7 @@ def load_base_model_transformer(X_train, X_test,base_path, base_model_name):
     FileNotFoundError
         If the model file does not exist
     """
-   # Load the base transformer model
+    #Load the base transformer model
     available_models = os.listdir(base_path) if os.path.exists(base_path) else []
     
     if base_model_name in available_models:

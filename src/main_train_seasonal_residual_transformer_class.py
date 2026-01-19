@@ -382,9 +382,13 @@ class SeasonalResidualTransformerPipeline:
         print("\n" + "="*50)
         print("PHASE 5: VISUALIZATION AND ANALYSIS")
         print("="*50)
-        
+
         # Get original scale data for visualization
         original_scale_df = pd.read_csv(self.data_path)
+
+        original_df = data_preparation.cut_dataframe(original_scale_df, self.config.cutoff_date, self.config.final_cutoff_date)
+        train_df, test_df = split_train_test(original_df, split_ratio=0.8, cutoff_date=self.config.cutoff_date, max_date=self.config.final_cutoff_date)
+        test_timestamp = test_df['timestamp']
         
         # Get original scale test data
         X_test_orig, Y_test_orig = data_preparation.prepare_data_not_normalized(
@@ -450,7 +454,8 @@ class SeasonalResidualTransformerPipeline:
                 corrected_forecast_orig, 
                 Y_test_orig, 
                 f"{self.config.code} Seasonal Residual Correction", 
-                model_name=self.residual_model_name
+                model_name=self.residual_model_name,
+                timestamp = test_timestamp
             )
         
         # Create pandemic waves DataFrame

@@ -26,21 +26,21 @@ class BaseTransformerConfig(ABC):
     
     # ==================== MODEL ARCHITECTURE ====================
     head_size: int = 64
-    num_heads: int = 2
-    ff_dim: int = 16
+    num_heads: int = 8
+    ff_dim: int = 512
     num_transformer_blocks: int = 2
-    mlp_units: int = 128
-    dropout: float = 0.5
-    activation_function: str = 'tanh'
+    mlp_units: int = 512
+    dropout: float = 0.25
+    activation_function: str = 'leaky_relu'
     
     # ==================== TRAINING PARAMETERS ====================
     learning_rate: float = 1e-4
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 300
-    batch_size: int = 32
-    early_stop_patience: int = 25
+    epochs: int = 3
+    batch_size: int = 1024
+    early_stop_patience: int = 50
     shuffle_data: bool = True
     save_train_history: bool = True
     
@@ -83,9 +83,9 @@ class BaseTransformerConfig(ABC):
     # Model Architecture Parameters
     DEFAULT_RESIDUAL_TRANSFORMER_PARAMS: dict = field(default_factory=lambda:  {
         'head_size': 16,
-        'num_heads': 8,
+        'num_heads': 16,
         'ff_dim': 256,
-        'num_transformer_blocks': 2,
+        'num_transformer_blocks': 4,
         'dropout': 0.2
     })
 

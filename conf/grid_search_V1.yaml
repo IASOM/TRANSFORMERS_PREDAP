@@ -58,19 +58,19 @@ hydra:
   sweeper:
     params:
       # Target codes to evaluate
-      model.target_code: ${load_json_codes_list:../data/FINAL_DB/targets_CAT.json} #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
+      model.target_code: "demanda__SERVEI_CODI__INF" #${load_json_codes_list:../data/FINAL_DB/targets_CAT.json} #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 3_3, "7_7", "14_14", "60_30", "60_60", "182_182", "365_365"
+      experiment_setup: 7_7 , "14_14", "60_30", "60_60", "182_182", "365_365"  # 3_3, 7_7, 14_14, 60_30, 60_60, 182_182, 365_182
       #model.lookback: 30,60
       #model.forecast: 30,60
       
       # Model architecture parameters
-      model.num_transformer_blocks: 4
-      model.head_size: 16
-      model.num_heads: 16
-      model.ff_dim: 256
+      model.num_transformer_blocks: 2,4,8
+      model.head_size: 16,32,64
+      model.num_heads: 8,16
+      model.ff_dim: 256,512
       model.mlp_units: [512,256] 
       
       # Training hyperparameters

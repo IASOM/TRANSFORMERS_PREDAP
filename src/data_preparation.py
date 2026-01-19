@@ -13,7 +13,7 @@ from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler 
 from sklearn.base import clone
 
-MAX_DATE = '2021-06-30'
+MAX_DATE = '2025-09-30'
 # Define function for train-test split
 def split_train_test(df, split_ratio=0.8):
     """
@@ -99,7 +99,7 @@ def cut_dataframe(df:pd.DataFrame, date_cutoff: str = '2010-01-01', max_date: st
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(date_cutoff)
     max_dt = pd.Timestamp(max_date)
-    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    df = df[(df['timestamp'] >= cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
 
     if save_data and csv_file is not None:
         input_path = Path(csv_file)
@@ -126,7 +126,7 @@ def eliminate_covid_dates(df:pd.DataFrame, covid_periods:list) -> pd.DataFrame:
         df = df[~((df['timestamp'] >= start) & (df['timestamp'] <= end))].reset_index(drop=True)
     return df
 
-def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2021-06-30', scaler = None, eliminate_covid_data=False, covid_dates=None):
+def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2025-09-30', scaler = None, eliminate_covid_data=False, covid_dates=None):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -175,7 +175,7 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     return pred_original_scale
 
 
-def inverse_causal_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_dt='2021-06-30', scaler = None):
+def inverse_causal_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2025-09-30', scaler = None):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -192,7 +192,7 @@ def inverse_causal_transform_predictions(predictions, original_scale_df, code, l
     # Fit scaler on original values
     original_scale_df['timestamp'] = pd.to_datetime(original_scale_df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
-    original_scale_df = original_scale_df[(original_scale_df['timestamp'] > cutoff)&(original_scale_df['timestamp'] <= max_dt)].reset_index(drop=True)  # Subset the DataFrame
+    original_scale_df = original_scale_df[(original_scale_df['timestamp'] >= cutoff)&(original_scale_df['timestamp'] <= max_date)].reset_index(drop=True)  # Subset the DataFrame
     
     train_df, test_df = split_train_test(original_scale_df)
     
@@ -236,7 +236,7 @@ def add_covid_token(df):
 
     return df
 
-def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None, eliminate_covid_data = False, covid_dates = None):
+def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2025-09-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None, eliminate_covid_data = False, covid_dates = None):
     code = code.replace("#", ":")
     start_time =time.time()
     # Load CSV
@@ -357,7 +357,7 @@ def prepare_causal_data(csv_file,code, lookback, forecast, cutoff_date = '2010-0
     return X, Y
 
 
-def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2021-06-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, eliminate_covid_data=False, covid_dates=None):
+def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2025-09-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, eliminate_covid_data=False, covid_dates=None):
     # Load CSV
     code = code.replace("#", ":")
     df = pd.read_csv(csv_file)
@@ -492,7 +492,7 @@ def extract_dates(csv_file,code,lookback, forecast, train = True, cutoff_date = 
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
     max_dt = pd.Timestamp(max_date)
-    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    df = df[(df['timestamp'] >= cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
 
     # Convert to datetime format
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -526,7 +526,7 @@ def extract_causal_dates(csv_file,code,lookback, forecast, train = True, cutoff_
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     cutoff = pd.Timestamp(cutoff_date)
     max_dt = pd.Timestamp(max_date)
-    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    df = df[(df['timestamp'] >= cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
 
     # Convert to datetime format
     df['timestamp'] = pd.to_datetime(df['timestamp'])
@@ -562,7 +562,7 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
         df = eliminate_covid_dates(df, covid_dates)
     cutoff = pd.Timestamp(cutoff_date)
     max_dt = pd.Timestamp(max_date)
-    df = df[(df['timestamp'] > cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
+    df = df[(df['timestamp'] >= cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 
     
     # Convert timestamp to datetime (optional)
     if 'timestamp' in df.columns:
@@ -827,9 +827,9 @@ def compute_dynamic_batch_size(lookback, forecast):
     elif 60 <= lookback <= 128 and forecast<= 128:
         batch_size = 128
     elif 128 < lookback <= 365 and forecast <=365:
-        batch_size = 256
+        batch_size = 128
     else:
-        batch_size = 256
+        batch_size = 128
     
 
     if len(gpus) == 0:
