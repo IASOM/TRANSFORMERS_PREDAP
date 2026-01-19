@@ -40,7 +40,7 @@ class BaseTransformerConfig(ABC):
     lr_warmup_ratio: float = 0.2
     epochs: int = 300
     batch_size: int = 32
-    early_stop_patience: int = 25
+    early_stop_patience: int = 50
     shuffle_data: bool = True
     save_train_history: bool = True
     

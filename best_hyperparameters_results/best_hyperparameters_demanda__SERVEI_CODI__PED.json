@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "f5d48f75fc3148b3b15c07a460d48ffe",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__PED_lb182_fh182_232523",
+        "timestamp": "2026-01-17T01:31:30.597572",
+        "hydra_job_num": 26
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__PED",
+        "lookback": 182,
+        "forecast_horizon": 182,
+        "activation_function": "leaky_relu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 16,
+        "num_heads": 16,
+        "ff_dim": 256,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 645.342572,
+        "phase_2_diagnostic_seconds": 2390.555928,
+        "phase_3_seasonal_seconds": 4531.140151,
+        "total_training_seconds": 7567.073696,
+        "total_training_minutes": 126.11789493333335
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 0.15873514115810394,
+            "mae": 2693.9334566912676,
+            "mse": 19359634.017416053,
+            "rmse": 4399.958410873454,
+            "wape": 27.871642687216685
+        },
+        "diagnostic_residual": {
+            "mae": 2158.9210741478582,
+            "mse": 14385514.170401122,
+            "rmse": 3792.824036308714,
+            "wape": 22.33636343878226
+        },
+        "seasonal_residual": {
+            "mae": 1803.3699165242087,
+            "mse": 6471811.87311478,
+            "rmse": 2543.975603875709,
+            "wape": 18.657803822657225
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__PED_base_transformer_182fh_256ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__PED_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_256ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__PED_SEASONAL_RESIDUALS_LEARNING_182fh_256ff_182lb_1e-05initlr.keras"
+    }
+}
