@@ -92,7 +92,7 @@ COVID_TOKEN_LIST = default_config.COVID_TOKEN_LIST
 HEAD_SIZE_LIST = [32]#default_config.HEAD_SIZE_LIST
 NUM_HEADS_LIST = [8]#default_config.NUM_HEADS_LIST
 FF_DIM_LIST = [512]#default_config.FF_DIM_LIST
-MLP_UNITS_LIST = [512]#default_config.MLP_UNITS_LIST
+MLP_UNITS_LIST = [128]#default_config.MLP_UNITS_LIST
 DATA_PATH = '../data/FINAL_DB/full_CAT1.parquet'#default_config.data_path
 LEARNING_RATE = default_config.learning_rate
 

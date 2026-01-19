@@ -77,9 +77,7 @@ def plot_residuals_analysis(original_predictions, corrected_predictions, actual_
 
     # Time series: middle-horizon predictions with uncertainty bands from across horizons
     if timestamp is not None:
-        H = original_predictions.shape[1]
-        mid = H//2
-        t = pd.to_datetime(timestamp[mid:-(mid+H)])
+        t = pd.to_datetime(timestamp)
     else:
         t = np.arange(n)
     axes[0, 0].plot(t, act_mid, label='Actual (middle horizon)', color='black', alpha=0.9)

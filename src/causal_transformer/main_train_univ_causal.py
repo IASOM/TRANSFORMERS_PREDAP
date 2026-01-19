@@ -428,7 +428,7 @@ class UnivariateTransformerPipeline:
         
 
         # Initialize decoder time features
-        decoder_time_input = np.zeros((Y_time_test.shape[0], Y_time_test.shape[1], Y_time_test.shape[-1]))
+        decoder_time_input = Y_time_test.copy() #np.zeros((Y_time_test.shape[0], Y_time_test.shape[1], Y_time_test.shape[-1]))
         predictions = []
         loss = 0 
         loss_fn = tf.keras.losses.MeanAbsoluteError()

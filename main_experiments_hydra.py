@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from src.experiments_utils import smart_read, safe_float, initialize_results_tracking, load_json_codes_list
+from src.experiments_utils import smart_read, safe_float, initialize_results_tracking, load_json_codes_list, cleanup_ram
 
 # 2. Reemplazar la función original con nuestra función "inteligente"
 pd.read_csv = smart_read
@@ -104,11 +104,8 @@ def main_experiment(cfg: DictConfig) -> None:
     scaler = default_config.scaler
 
     
-    # Load data
-    df = pd.read_csv(data_path)
-    
     # Start MLflow run for this specific configuration
-    run_name = f"Experimental_HYDRA_transformer_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}"
+    run_name = f"HYDRA_transformer_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}"
     with mlflow.start_run(run_name=run_name) as run:
         print(f"\n🚀 Starting MLflow run: {run_name}")
         print(f"   • Run ID: {run.info.run_id}")
@@ -176,6 +173,7 @@ def main_experiment(cfg: DictConfig) -> None:
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
         gc.collect()
+        plt.close('all')
 
         mlflow.keras.log_model(model, artifact_path="univariate_model")
         
@@ -231,6 +229,7 @@ def main_experiment(cfg: DictConfig) -> None:
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
         gc.collect()
+        plt.close('all')
 
         mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
         load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
@@ -281,6 +280,7 @@ def main_experiment(cfg: DictConfig) -> None:
         #Clear the GPU memory and possible memory garbage
         K.clear_session()
         gc.collect()
+        plt.close('all')
 
         mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
         load_mlflow_model_history(residual_seasonal_model_name, model_type="residual_seasonal_transformer")
@@ -418,7 +418,7 @@ def main_experiment(cfg: DictConfig) -> None:
         print(f"   • Seasonal MSE: {current_mse:.6f}")
         print(f"   • Configuration: head_size={head_size}, num_heads={num_heads}, ff_dim={ff_dim}, mlp_units={mlp_units}")
 
+        del model, residual_diagnostics_model, residual_seasonal_model, pipeline, univariate_parameters, diagnostic_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
 if __name__ == "__main__":
     main_experiment()
-    K.clear_session()
-    gc.collect()
+    cleanup_ram()

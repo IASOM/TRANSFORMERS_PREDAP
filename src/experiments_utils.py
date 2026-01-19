@@ -3,8 +3,21 @@ from datetime import datetime
 import pandas as pd
 from src.config.base_transformer_config import BaseTransformerConfig as default_config
 import json
+import matplotlib.pyplot as plt
+import gc
+import ctypes
+from tensorflow.keras import backend as K
 
 _original_read_csv = pd.read_csv
+
+def cleanup_ram():
+    plt.close('all')
+    K.clear_session()
+    gc.collect()
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
 
 def smart_read(file_path, **kwargs):
     """

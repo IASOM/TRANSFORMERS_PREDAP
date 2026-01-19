@@ -259,9 +259,19 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
         idx_code = df.columns.get_loc(code)
         feature_cols = df.columns[idx_code]  
         target_col = df.columns[idx_code]  # Get the target column 
-
+        
+        categorical_vars = ["Day_of_Week", 
+                            "Month", 
+                            "Season", 
+                            "Holiday", 
+                            "School_Vacation",
+                            "Is_Weekend",
+                            ]
+        #df_dates = prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+        #df_dates = df_dates.drop(columns=['timestamp']) 
         # Convert to numpy arrays
         X_raw = df[feature_cols].values.reshape(-1, 1)  # Ensure shape is (rows, 1)
+        #X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
         Y_raw = df[target_col].values # Target values
         print(X_raw.shape, Y_raw.shape)
     else: 
@@ -436,6 +446,7 @@ def prepare_causal_data_not_normalized(csv_file,code, lookback, forecast, cutoff
 
         # Convert to numpy arrays
         X_raw = df[feature_cols].values.reshape(-1, 1)  # Ensure shape is (rows, 1)
+
         Y_raw = df[target_col].values    # Target values
         print(X_raw.shape, Y_raw.shape)
     else: 
