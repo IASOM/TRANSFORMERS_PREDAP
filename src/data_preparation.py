@@ -282,7 +282,7 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
         
         if relevant_feature_cols is not None:
             features = df[relevant_feature_cols].values
-            X_raw = np.hstack((X_raw, features))
+            #X_raw = np.hstack((X_raw, features))
         
 
         else:
