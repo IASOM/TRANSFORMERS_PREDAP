@@ -143,7 +143,9 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # GlobalAveragePooling1D Layer
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # May be changed to Flatten() if needed 
+    #x = layers.AveragePooling1D(14, data_format="channels_first")(x)
     #x = layers.Flatten()(x)
+    
     x = layers.Dense(256, activation=activation_function)(x)
     x = layers.Dropout(0.2)(x)
     x = layers.Dense(128, activation=activation_function)(x)

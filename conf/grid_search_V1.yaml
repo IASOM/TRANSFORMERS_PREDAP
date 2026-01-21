@@ -7,7 +7,7 @@ data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "7_7"  # Default experiment setup
+experiment_setup: "60_30"  # Default experiment setup
 
 
 experiment_pairs:
@@ -27,11 +27,11 @@ model:
   num_transformer_blocks: 2
   head_size: 32
   num_heads: 8
-  activation: "leaky_relu"
-  covid_token: true
+  activation: "gelu"
+  covid_token: true 
   ff_dim: 512
   mlp_units: [512,256]
-  dropout: 0.25
+  dropout: 0.35
   learning_rate: 1e-5
   
 
@@ -62,7 +62,7 @@ hydra:
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 14_14, "60_30", "60_60", "182_182", "365_365"  # 3_3, 7_7, 14_14, 60_30, 60_60, 182_182, 365_182
+      experiment_setup: 60_60, "182_182", "365_365"  # 3_3, 7_7, 14_14, 60_30, 60_60, 182_182, 365_182
       #model.lookback: 30,60
       #model.forecast: 30,60
       
@@ -74,7 +74,7 @@ hydra:
       model.mlp_units: [512,256] 
       
       # Training hyperparameters
-      model.activation: leaky_relu
+      model.activation: gelu
       model.covid_token: true
       model.dropout: 0.25
       model.learning_rate: 0.00001

@@ -65,29 +65,36 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     """
     inputs = keras.Input(shape=input_shape)  # defines input tensor
     
-    x = inputs  # initial input
+    #x = inputs  # initial input
+    
     d_model = max(head_size * num_heads, 32)
     x = layers.Dense(d_model)(inputs)
     #x = layers.Dense(d_model)(inputs)
-    #x = layers.LayerNormalization(epsilon=1e-6)(x)
+    x = layers.LayerNormalization(epsilon=1e-6)(x)
     #x = layers.Activation(activation_function)(x)
     if pos_encoding == True:
+        pass
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
     
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
-    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
-    #x2 = layers.GlobalMaxPooling1D(data_format="channels_first")(x)
+    #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    x = layers.AveragePooling1D(20, data_format="channels_first")(x)
+    #x2 = layers.MaxPooling1D(7,data_format="channels_first")(x)
     #x = layers.Concatenate()([x1, x2])
+    #x = layers.Dense(input_shape[1])(x)
+    
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
-    #x = layers.Flatten()(x)
+    x = layers.Flatten()(x)
     
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
         x = layers.Dense(dim, activation=activation_function)(x)
         x = layers.Dropout(mlp_dropout)(x)
    
     outputs = layers.Dense(n_pred)(x)
+    #outputs = layers.Permute((2, 1))(outputs)
+
     return keras.Model(inputs, outputs)
 
 

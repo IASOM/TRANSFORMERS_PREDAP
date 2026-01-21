@@ -115,6 +115,7 @@ class UnivariateTransformerPipeline:
         self.training_history = None
         self.evaluation_results = None
         self.data_prep_time = 0
+        self.diagnostic_covariates_list = None
         
         # Initialize paths
         self.data_path =self.config.data_path
@@ -126,6 +127,13 @@ class UnivariateTransformerPipeline:
         setup_gpu_memory()
         create_model_directories()
         print("Environment setup complete!")
+
+    def load_diagnostic_covariates(self):
+        diagnostic_covariates_path = self.config.diagnostic_covariates_path + self.config.code + ".xlsx"
+        diagnostic_covariates_df = pd.read_excel(diagnostic_covariates_path, engine='openpyxl')
+        self.diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] == self.config.forecast]['predictors'])[0].split(',')
+
+        return self.diagnostic_covariates_list
     
     def prepare_data(self, train: bool=True) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -139,6 +147,8 @@ class UnivariateTransformerPipeline:
         print("="*50)
         
         start_time = time.perf_counter()
+
+        self.diagnostic_covariates_list = self.load_diagnostic_covariates()
         
         X, Y = data_preparation.prepare_data(
             self.data_path, 
@@ -154,6 +164,7 @@ class UnivariateTransformerPipeline:
             scaler = self.config.scaler,
             eliminate_covid_data = self.config.eliminate_covid_data,
             covid_dates = self.config.covid_dates,
+            relevant_feature_cols=self.diagnostic_covariates_list
         )
         
         finish_time = time.perf_counter()
@@ -329,6 +340,8 @@ class UnivariateTransformerPipeline:
             scaler = self.config.scaler,
             eliminate_covid_data = self.config.eliminate_covid_data,
             covid_dates = self.config.covid_dates,
+            relevant_feature_cols=self.diagnostic_covariates_list
+            
         )
         
         self.evaluation_results = {
