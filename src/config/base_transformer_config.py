@@ -9,7 +9,7 @@ from typing import Optional, Dict, List, Tuple, Any
 from abc import ABC, abstractmethod
 import os
 from datetime import datetime
-from sklearn.preprocessing import RobustScaler, MinMaxScaler
+from sklearn.preprocessing import RobustScaler, MinMaxScaler, StandardScaler, PowerTransformer, QuantileTransformer, FunctionTransformer
 
 
 @dataclass
@@ -31,14 +31,14 @@ class BaseTransformerConfig(ABC):
     num_transformer_blocks: int = 2
     mlp_units: int = 512
     dropout: float = 0.25
-    activation_function: str = 'leaky_relu'
+    activation_function: str = 'gelu'
     
     # ==================== TRAINING PARAMETERS ====================
     learning_rate: float = 1e-4
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 300
+    epochs: int = 100
     batch_size: int = 256
     early_stop_patience: int = 50
     shuffle_data: bool = True
@@ -62,7 +62,11 @@ class BaseTransformerConfig(ABC):
     # ==================== OPTIONAL PARAMETERS ====================
     covid_token: bool = False
     evaluate_model: bool = False
-    scaler = RobustScaler()
+    #scaler = RobustScaler(quantile_range=(15.0, 85.0))
+    scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
+    #scaler = MinMaxScaler( feature_range=(0, 1))
+    #scaler = PowerTransformer()
+    #scaler = QuantileTransformer()
     
     # ==================== PATHS AND DIRECTORIES ====================
     plots_dir: str = 'plots'

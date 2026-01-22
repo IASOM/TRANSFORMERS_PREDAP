@@ -202,6 +202,7 @@ def main_experiment(cfg: DictConfig) -> None:
         diag_start_time = datetime.now()
         mlflow.log_param("phase_2_residual_diagnostics_transformer_start_time", diag_start_time.isoformat())
         
+        
         diagnostic_parameters = DiagnosticResidualTransformerConfig(
             lookback=lookback,
             forecast=forecast,
@@ -246,6 +247,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "eval/residual_diagnostics_model_wape": corrected_diagnostics_wape,
         })
         
+        
         # ==================== PHASE 3: RESIDUAL SEASONAL TRANSFORMER ====================
         seasonal_start_time = datetime.now()
         mlflow.log_param("phase_3_residual_seasonal_transformer_start_time", seasonal_start_time.isoformat())
@@ -257,8 +259,8 @@ def main_experiment(cfg: DictConfig) -> None:
             activation_function=activation_function,
             covid_token=covid_token,
             cutoff_date=cutoff_date,
-            predictions_train_corrected=predictions_train_corrected,
-            predictions_test_corrected=predictions_test_corrected,
+            predictions_train_corrected= predictions_train_corrected,
+            predictions_test_corrected= predictions_test_corrected,
             head_size=head_size,
             num_heads=num_heads,
             ff_dim=ff_dim,
@@ -268,12 +270,12 @@ def main_experiment(cfg: DictConfig) -> None:
             learning_rate=learning_rate,#Not applyied yet
             data_path=data_path,
             batch_size = batch_size,
-            
-        )
+            )
 
         '''predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
             main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
-        )'''
+        )
+        '''
         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
         predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse, corrected_seasonal_wape = pipeline.run_complete_pipeline()
         
@@ -333,7 +335,7 @@ def main_experiment(cfg: DictConfig) -> None:
             },
             "training_duration": {
                 "phase_1_univariate_seconds": univ_duration,
-                "phase_2_diagnostic_seconds": diag_duration,
+                #"phase_2_diagnostic_seconds": diag_duration,
                 "phase_3_seasonal_seconds": seasonal_duration,
                 "total_training_seconds": total_duration,
                 "total_training_minutes": total_duration / 60
@@ -346,12 +348,12 @@ def main_experiment(cfg: DictConfig) -> None:
                     "rmse": rmse,
                     "wape": wape
                 },
-                "diagnostic_residual": {
-                    "mae": corrected_diagnostics_mae,
-                    "mse": corrected_diagnostics_mse,
-                    "rmse": corrected_diagnostics_rmse,
-                    "wape": corrected_diagnostics_wape
-                },
+                #"diagnostic_residual": {
+                    #"mae": corrected_diagnostics_mae,
+                    #"mse": corrected_diagnostics_mse,
+                    #"rmse": corrected_diagnostics_rmse,
+                    #"wape": corrected_diagnostics_wape
+                #},
                 "seasonal_residual": {
                     "mae": corrected_seasonal_mae,
                     "mse": corrected_seasonal_mse,
@@ -361,7 +363,7 @@ def main_experiment(cfg: DictConfig) -> None:
             },
             "model_paths": {
                 "univariate_model": model_name,
-                "diagnostic_model": residual_diagnostics_model_name,
+                #"diagnostic_model": residual_diagnostics_model_name,
                 "seasonal_model": residual_seasonal_model_name
             }
         }

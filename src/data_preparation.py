@@ -53,7 +53,7 @@ def normalize_dataframe(train_df,test_df, csv_file = None, save_data = False,  t
         raise KeyError("Expected a 'timestamp' column in the CSV.")
     train_df['timestamp'] = pd.to_datetime(train_df['timestamp'], errors='coerce')
     test_df['timestamp'] = pd.to_datetime(test_df['timestamp'], errors='coerce')
-    
+
     if scaler is None:
         scaler = MinMaxScaler()
         scaler_target = MinMaxScaler()
@@ -62,6 +62,7 @@ def normalize_dataframe(train_df,test_df, csv_file = None, save_data = False,  t
         scaler_target = clone(scaler)   
         
     codes = [code for code in train_df.columns if (code != 'timestamp' and code != target_code)]
+
     scaler.fit(train_df[codes].values)
     train_df[codes] = scaler.transform(train_df[codes].values)  
     test_df[codes] = scaler.transform(test_df[codes].values)
@@ -167,8 +168,12 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
         scaler_target = clone(scaler)
     if len(train_df_seq.shape) < 2:
         train_df_seq = train_df_seq.reshape(-1,1)
+
+
     scaler_target.fit(train_df_seq)
     pred_original_scale = scaler_target.inverse_transform(predictions)
+
+    
 
     #pred_original_scale = pred_original_scale.reshape(predictions.shape)
 
@@ -253,25 +258,39 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
     else:
         df = test_df
 
-    if univariate:
-        # univariate scenario ...................................................
-        # Only use the target column as input (Univariate Forecasting)
-        idx_code = df.columns.get_loc(code)
-        feature_cols = df.columns[idx_code]  
-        target_col = df.columns[idx_code]  # Get the target column 
-        
-        categorical_vars = ["Day_of_Week", 
+
+    categorical_vars = ["Day_of_Week", 
                             "Month", 
                             "Season", 
                             "Holiday", 
                             "School_Vacation",
                             "Is_Weekend",
                             ]
-        #df_dates = prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
-        #df_dates = df_dates.drop(columns=['timestamp']) 
+    df_dates = prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+    df_dates = df_dates.drop(columns=['timestamp']) 
+    if univariate:
+        # univariate scenario ...................................................
+        # Only use the target column as input (Univariate Forecasting)
+        idx_code = df.columns.get_loc(code)
+        feature_cols = df.columns[idx_code]  
+        target_col = df.columns[idx_code]  # Get the target column 
+        #df_features = df.drop(columns = ['timestamp'])
+        
+        
         # Convert to numpy arrays
         X_raw = df[feature_cols].values.reshape(-1, 1)  # Ensure shape is (rows, 1)
-        #X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
+        
+        if relevant_feature_cols is not None:
+            features = df[relevant_feature_cols].values
+            #X_raw = np.hstack((X_raw, features))
+        
+
+        else:
+            print("No relevant features provided for univariate scenario.")
+
+        X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
+            
+
         Y_raw = df[target_col].values # Target values
         print(X_raw.shape, Y_raw.shape)
     else: 
@@ -283,6 +302,8 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
         # Convert DataFrame to numpy arrays
         if relevant_feature_cols is not None:
             X_raw = df_features[relevant_feature_cols].values  
+            #X_raw = np.hstack((X_raw, df[target_col].values.reshape(-1, 1)))
+            X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
         else:
             X_raw = df_features.values
         Y_raw = df[target_col].values
@@ -581,11 +602,11 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
     if scaler is None:
         scaler = MinMaxScaler()
     
-    codes = [code for code in df.columns if code != 'timestamp']
+    '''codes = [code for code in df.columns if code != 'timestamp']
     #train_df, test_df = split_train_test(df)
 
     scaler.fit(df[codes])
-    df[codes] = scaler.transform(df[codes])
+    df[codes] = scaler.transform(df[codes])'''
 
 
     # Define fixed public holidays
@@ -836,11 +857,11 @@ def compute_dynamic_batch_size(lookback, forecast):
     elif (30 <= lookback <= 60) and forecast <= 60:
         batch_size = 512
     elif 60 <= lookback <= 128 and forecast<= 128:
-        batch_size = 128
+        batch_size = 256
     elif 128 < lookback <= 365 and forecast <=365:
-        batch_size = 128
+        batch_size = 256
     else:
-        batch_size = 128
+        batch_size = 92
     
 
     if len(gpus) == 0:

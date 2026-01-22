@@ -65,29 +65,43 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     """
     inputs = keras.Input(shape=input_shape)  # defines input tensor
     
-    x = inputs  # initial input
+    revin_layer = RevIN()
+
+    # 3. Normalize Input
+    x = revin_layer(inputs, mode='norm')
+    #x = inputs  # initial input
+    
     d_model = max(head_size * num_heads, 32)
-    x = layers.Dense(d_model)(inputs)
+    x = layers.Dense(d_model)(x)
     #x = layers.Dense(d_model)(inputs)
-    #x = layers.LayerNormalization(epsilon=1e-6)(x)
+    x = layers.LayerNormalization(epsilon=1e-6)(x)
     #x = layers.Activation(activation_function)(x)
     if pos_encoding == True:
+        pass
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
     
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
-    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
-    #x2 = layers.GlobalMaxPooling1D(data_format="channels_first")(x)
+    #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    x = layers.AveragePooling1D(20, data_format="channels_first")(x)
+    #x2 = layers.MaxPooling1D(7,data_format="channels_first")(x)
     #x = layers.Concatenate()([x1, x2])
+    #x = layers.Dense(input_shape[1])(x)
+    
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
-    #x = layers.Flatten()(x)
+    x = layers.Flatten()(x)
     
     for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
         x = layers.Dense(dim, activation=activation_function)(x)
         x = layers.Dropout(mlp_dropout)(x)
    
     outputs = layers.Dense(n_pred)(x)
+    outputs = layers.Reshape((n_pred, 1))(outputs)
+    outputs = revin_layer(outputs, mode='denorm')
+    outputs = layers.Reshape((n_pred,))(outputs)
+    #outputs = layers.Permute((2, 1))(outputs)
+
     return keras.Model(inputs, outputs)
 
 
@@ -153,3 +167,34 @@ class PositionalEncoding(layers.Layer):
         # x shape: (batch_size, seq_len, d_model)
         seq_len = tf.shape(x)[1]
         return x + self.pos_encoding[:, :seq_len, :]
+
+@keras.saving.register_keras_serializable(package="predap")
+class RevIN(layers.Layer):
+    def __init__(self, eps=1e-5, detach_grad=False, **kwargs):
+        super(RevIN, self).__init__(**kwargs)
+        self.eps = eps
+        self.detach_grad = detach_grad
+        # These will store the mean and stdev of the current batch/instance
+        self.mean = None
+        self.stdev = None
+
+    def call(self, x, mode='norm'):
+        if mode == 'norm':
+            self._get_statistics(x)
+            x = (x - self.mean) / self.stdev
+            return x
+        elif mode == 'denorm':
+            # Use the statistics stored during the last 'norm' call
+            dims = x.shape[-1]
+            x = x * self.stdev[:, :, :dims] + self.mean[:, :, :dims]
+            return x
+
+    def _get_statistics(self, x):
+        # Calculate mean and stdev across the time dimension (axis 1)
+        # Assuming shape: (batch, time_steps, features)
+        self.mean = tf.reduce_mean(x, axis=1, keepdims=True)
+        self.stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
+        
+        if self.detach_grad:
+            self.mean = tf.stop_gradient(self.mean)
+            self.stdev = tf.stop_gradient(self.stdev)

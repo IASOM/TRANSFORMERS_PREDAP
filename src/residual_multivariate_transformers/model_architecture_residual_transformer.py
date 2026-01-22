@@ -97,9 +97,11 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     
     input_layer = keras.Input(shape=input_shape)
+    revin_layer = RevIN()
+    x = revin_layer(input_layer, mode='norm')
     
     d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
-    x = layers.Dense(d_model)(input_layer)
+    x = layers.Dense(d_model)(x)
     # Transformer Block
     x = PositionalEncoding(input_shape[0], d_model)(x)
 
@@ -143,7 +145,9 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # GlobalAveragePooling1D Layer
     x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # May be changed to Flatten() if needed 
+    #x = layers.AveragePooling1D(14, data_format="channels_first")(x)
     #x = layers.Flatten()(x)
+    
     x = layers.Dense(256, activation=activation_function)(x)
     x = layers.Dropout(0.2)(x)
     x = layers.Dense(128, activation=activation_function)(x)
@@ -153,6 +157,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)
+    outputs = revin_layer(outputs, mode='denorm')
 
 
     # Build Model
@@ -258,10 +263,33 @@ class PositionalEncoding(layers.Layer):
         seq_len = tf.shape(x)[1]
         return x + self.pos_encoding[:, :seq_len, :]
     
-    def get_config(self):
-        config = super().get_config()
-        config.update({
-            'sequence_length': self.sequence_length,
-            'd_model': self.d_model
-        })
-        return config
+@keras.saving.register_keras_serializable(package="predap")
+class RevIN(layers.Layer):
+    def __init__(self, eps=1e-5, detach_grad=False, **kwargs):
+        super(RevIN, self).__init__(**kwargs)
+        self.eps = eps
+        self.detach_grad = detach_grad
+        # These will store the mean and stdev of the current batch/instance
+        self.mean = None
+        self.stdev = None
+
+    def call(self, x, mode='norm'):
+        if mode == 'norm':
+            self._get_statistics(x)
+            x = (x - self.mean) / self.stdev
+            return x
+        elif mode == 'denorm':
+            # Use the statistics stored during the last 'norm' call
+            dims = x.shape[-1]
+            x = x * self.stdev[:, :, :dims] + self.mean[:, :, :dims]
+            return x
+
+    def _get_statistics(self, x):
+        # Calculate mean and stdev across the time dimension (axis 1)
+        # Assuming shape: (batch, time_steps, features)
+        self.mean = tf.reduce_mean(x, axis=1, keepdims=True)
+        self.stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
+        
+        if self.detach_grad:
+            self.mean = tf.stop_gradient(self.mean)
+            self.stdev = tf.stop_gradient(self.stdev)
