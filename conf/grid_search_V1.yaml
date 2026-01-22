@@ -1,5 +1,6 @@
 defaults:
   - _self_
+  - override hydra/launcher: joblib
 
 # Complete self-contained configuration for grid search
 # Data configuration
@@ -7,7 +8,7 @@ data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "60_30"  # Default experiment setup
+experiment_setup: "365_182"  # Default experiment setup
 
 
 experiment_pairs:
@@ -21,7 +22,7 @@ experiment_pairs:
 
 # Model configuration (base defaults that will be overridden by sweep parameters)
 model:
-  target_code: "demanda__SERVEI_CODI__INF" #"demanda__TIPUS_CLASS__9T"
+  target_code: "J00" #"demanda__TIPUS_CLASS__9T"
   lookback: ${experiment_pairs.${experiment_setup}.lb}
   forecast: ${experiment_pairs.${experiment_setup}.fc}
   num_transformer_blocks: 2
@@ -31,7 +32,7 @@ model:
   covid_token: true 
   ff_dim: 512
   mlp_units: [512,256]
-  dropout: 0.35
+  dropout: 0.5
   learning_rate: 1e-5
   
 
@@ -52,6 +53,8 @@ mlflow:
 
 # Hydra multirun configuration
 hydra:
+  launcher:
+    n_jobs: 1
   sweep:
     dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
     subdir: ${hydra.job.num}

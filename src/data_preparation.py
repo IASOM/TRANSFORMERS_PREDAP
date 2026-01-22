@@ -602,11 +602,11 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
     if scaler is None:
         scaler = MinMaxScaler()
     
-    codes = [code for code in df.columns if code != 'timestamp']
+    '''codes = [code for code in df.columns if code != 'timestamp']
     #train_df, test_df = split_train_test(df)
 
     scaler.fit(df[codes])
-    df[codes] = scaler.transform(df[codes])
+    df[codes] = scaler.transform(df[codes])'''
 
 
     # Define fixed public holidays
@@ -857,9 +857,9 @@ def compute_dynamic_batch_size(lookback, forecast):
     elif (30 <= lookback <= 60) and forecast <= 60:
         batch_size = 256
     elif 60 <= lookback <= 128 and forecast<= 128:
-        batch_size = 92
+        batch_size = 256
     elif 128 < lookback <= 365 and forecast <=365:
-        batch_size = 92
+        batch_size = 256
     else:
         batch_size = 92
     

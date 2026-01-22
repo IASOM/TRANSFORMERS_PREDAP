@@ -9,7 +9,7 @@ from typing import Optional, Dict, List, Tuple, Any
 from abc import ABC, abstractmethod
 import os
 from datetime import datetime
-from sklearn.preprocessing import RobustScaler, MinMaxScaler, StandardScaler, PowerTransformer, QuantileTransformer
+from sklearn.preprocessing import RobustScaler, MinMaxScaler, StandardScaler, PowerTransformer, QuantileTransformer, FunctionTransformer
 
 
 @dataclass
@@ -38,7 +38,7 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 350
+    epochs: int = 100
     batch_size: int = 256
     early_stop_patience: int = 50
     shuffle_data: bool = True
@@ -62,7 +62,8 @@ class BaseTransformerConfig(ABC):
     # ==================== OPTIONAL PARAMETERS ====================
     covid_token: bool = False
     evaluate_model: bool = False
-    scaler = RobustScaler(quantile_range=(15.0, 85.0))
+    #scaler = RobustScaler(quantile_range=(15.0, 85.0))
+    scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
     #scaler = MinMaxScaler( feature_range=(0, 1))
     #scaler = PowerTransformer()
     #scaler = QuantileTransformer()

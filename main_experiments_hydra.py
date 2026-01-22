@@ -202,8 +202,8 @@ def main_experiment(cfg: DictConfig) -> None:
         diag_start_time = datetime.now()
         mlflow.log_param("phase_2_residual_diagnostics_transformer_start_time", diag_start_time.isoformat())
         
-        '''
-            diagnostic_parameters = DiagnosticResidualTransformerConfig(
+        
+        diagnostic_parameters = DiagnosticResidualTransformerConfig(
             lookback=lookback,
             forecast=forecast,
             code=CODE,
@@ -246,7 +246,7 @@ def main_experiment(cfg: DictConfig) -> None:
             "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
             "eval/residual_diagnostics_model_wape": corrected_diagnostics_wape,
         })
-        '''
+        
         
         # ==================== PHASE 3: RESIDUAL SEASONAL TRANSFORMER ====================
         seasonal_start_time = datetime.now()
@@ -259,8 +259,8 @@ def main_experiment(cfg: DictConfig) -> None:
             activation_function=activation_function,
             covid_token=covid_token,
             cutoff_date=cutoff_date,
-            predictions_train_corrected= None, #predictions_train_corrected,
-            predictions_test_corrected= None, #predictions_test_corrected,
+            predictions_train_corrected= predictions_train_corrected,
+            predictions_test_corrected= predictions_test_corrected,
             head_size=head_size,
             num_heads=num_heads,
             ff_dim=ff_dim,

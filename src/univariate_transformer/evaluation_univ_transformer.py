@@ -38,16 +38,48 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
 
     # Prepare test data
     X_test, Y_test = data_preparation.prepare_data(
-        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date,max_date = max_date, train=False, debug=True, univariate=True, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates, relevant_feature_cols=relevant_feature_cols
+        input_directory, 
+        code, 
+        lookback, 
+        forecast,covid_token=covid_token,  
+        cutoff_date=cutoff_date,
+        max_date = max_date,
+        train=False, 
+        debug=True, 
+        univariate=True, 
+        scaler=scaler, 
+        eliminate_covid_data=eliminate_covid_data, 
+        covid_dates=covid_dates, 
+        relevant_feature_cols=relevant_feature_cols
     )
 
     X_test_orig, Y_test_orig = data_preparation.prepare_data_not_normalized(
-        input_directory, code, lookback, forecast,covid_token=covid_token,  cutoff_date=cutoff_date, max_date = max_date, train=False, debug=True, univariate=True, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates, relevant_feature_cols=relevant_feature_cols
+        input_directory, 
+        code, 
+        lookback, 
+        forecast,
+        covid_token=covid_token,  
+        cutoff_date=cutoff_date, 
+        max_date = max_date, 
+        train=False, 
+        debug=True, 
+        univariate=True, 
+        eliminate_covid_data=eliminate_covid_data, 
+        covid_dates=covid_dates, 
+        relevant_feature_cols=relevant_feature_cols
     )
 
 
 
-    date_list = data_preparation.extract_dates(input_directory, code, lookback, forecast, train=False, cutoff_date=cutoff_date, max_date = max_date, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+    date_list = data_preparation.extract_dates(input_directory, 
+                                               code, 
+                                               lookback,
+                                               forecast, 
+                                               train=False, 
+                                               cutoff_date=cutoff_date, 
+                                               max_date = max_date, 
+                                               eliminate_covid_data=eliminate_covid_data, 
+                                               covid_dates=covid_dates)
 
     original_scale_df = pd.read_csv(input_directory)
     # Get predictions
