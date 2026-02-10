@@ -245,7 +245,8 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
     code = code.replace("#", ":")
     start_time =time.time()
     # Load CSV
-    df = pd.read_csv(csv_file)
+    #df = pd.read_csv(csv_file)
+    df = pd.read_parquet(csv_file)
     if eliminate_covid_data:
         assert covid_dates is not None
         df = eliminate_covid_dates(df, covid_dates)
@@ -850,16 +851,16 @@ def compute_dynamic_batch_size(lookback, forecast):
     """
     gpus = tf.config.list_physical_devices('GPU')
 
-    
-    
+    if lookback <= 14 and forecast <= 14:
+        batch_size = 2048
     if lookback <= 30 and forecast <= 30:
         batch_size = 512
     elif (30 <= lookback <= 60) and forecast <= 60:
-        batch_size = 256
+        batch_size = 128
     elif 60 <= lookback <= 128 and forecast<= 128:
-        batch_size = 256
+        batch_size = 92
     elif 128 < lookback <= 365 and forecast <=365:
-        batch_size = 256
+        batch_size = 64
     else:
         batch_size = 92
     

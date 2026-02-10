@@ -15,6 +15,9 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.constraints import MaxNorm
 
 from config.base_transformer_config import BaseTransformerConfig
+from univariate_transformer.model_architechture_informer import build_informer_model
+from univariate_transformer.model_architechture_log_transformer import build_log_transformer_model
+from univariate_transformer.model_architechture_LSTNet import build_lstnet_model
 
 default_config = BaseTransformerConfig()
 
@@ -66,9 +69,9 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
 
 
 def hybrid_lstm_transformer_model(input_shape, forecast, 
-                                  lstm_params=None, 
-                                  transformer_params=None,
-                                  activation_function='tanh'):
+                                lstm_params=None, 
+                                transformer_params=None,
+                                activation_function='tanh'):
     """
     Build a hybrid LSTM-Transformer model for residual learning.
     
@@ -102,10 +105,12 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     
     d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(x)
+    x = layers.LayerNormalization(epsilon=1e-6)(x)
     # Transformer Block
     x = PositionalEncoding(input_shape[0], d_model)(x)
-
-    '''x = layers.LayerNormalization(epsilon=1e-6)(input_layer)
+    
+    
+    '''
     # LSTM Block
     x = layers.LSTM(
         lstm_params['units_1'], 
@@ -125,13 +130,15 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
         #recurrent_constraint=MaxNorm(1.0),
      )(x)
     x = layers.LayerNormalization(epsilon=1e-6)(x)
-    x = layers.Dropout(lstm_params['dropout'])(x)'''
+    x = layers.Dropout(lstm_params['dropout'])(x)
+    '''
 
     # Transformer Encoder Block
+
     '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(input_layer)'''
 
-    
+
     #x = PositionalEncoding(x.shape[1], x.shape[2])(x)
     for _ in range(transformer_params['num_transformer_blocks']):
         x = transformer_encoder(
@@ -144,20 +151,21 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
         )
 
     # GlobalAveragePooling1D Layer
-    x = layers.GlobalAveragePooling1D(data_format="channels_first")(x) # May be changed to Flatten() if needed 
-    #x = layers.AveragePooling1D(14, data_format="channels_first")(x)
-    #x = layers.Flatten()(x)
+    #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x) # May be changed to Flatten() if needed 
+    if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
+        x = layers.AveragePooling1D(14, data_format="channels_first")(x)
+    x = layers.Flatten()(x)
     
-    x = layers.Dense(256, activation=activation_function)(x)
-    x = layers.Dropout(0.2)(x)
-    x = layers.Dense(128, activation=activation_function)(x)
-    x = layers.Dropout(0.2)(x)
+    for dim in transformer_params['mlp_units']:
+        x = layers.Dense(dim, activation=activation_function)(x)
+        x = layers.Dropout(transformer_params['dropout'])(x)
     # Output Layer
     outputs = layers.Dense(forecast, activation='linear')(x)
 
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)
     outputs = revin_layer(outputs, mode='denorm')
+    outputs = layers.Reshape((forecast,))(outputs)
 
 
     # Build Model
@@ -168,6 +176,21 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     return model
 
+    
+
+'''def hybrid_lstm_transformer_model(input_shape, forecast, 
+                                  lstm_params=None, 
+                                  transformer_params=None,
+                                  activation_function='tanh'):
+    if lstm_params is None:
+        lstm_params = default_config.DEFAULT_RESIDUAL_LSTM_PARAMS.copy()
+    if transformer_params is None:
+        transformer_params = default_config.DEFAULT_RESIDUAL_TRANSFORMER_PARAMS.copy()
+
+    #return build_informer_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
+    #return build_log_transformer_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
+    return build_lstnet_model(input_shape, n_filters=transformer_params['head_size']*transformer_params['num_heads'], kernel_size=6, rnn_units=transformer_params['ff_dim'], skip_units=transformer_params['ff_dim']//2, skip=7, n_pred=forecast, dropout=transformer_params['dropout'])
+'''
 
 class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     """

@@ -20,7 +20,7 @@ from univariate_transformer import plt_model, plot_predictions_with_waves, extra
 from residual_multivariate_transformers import load_base_model_transformer
 
 
-def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None, eliminate_covid_data=False, covid_dates=None, relevant_feature_cols=None):
+def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None, eliminate_covid_data=False, covid_dates=None, relevant_feature_cols=None, batch_size = 32):
     print(f"\n--- Evaluating model: {model_name} ---")
         
     # Extract parameters from filename
@@ -94,7 +94,7 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
     
     # Evaluate model
     
-    loss, mae, mse = model.evaluate(X_test, Y_test, verbose=0)
+    loss, mae, mse = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
 
     non_negative_predictions_to_plot = np.maximum(predictions_to_plot, 0)  # Ensure no negative predictions
 

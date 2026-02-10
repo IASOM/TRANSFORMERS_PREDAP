@@ -8,7 +8,7 @@ data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "365_182"  # Default experiment setup
+experiment_setup: "7_7"  # Default experiment setup
 
 
 experiment_pairs:
@@ -22,12 +22,12 @@ experiment_pairs:
 
 # Model configuration (base defaults that will be overridden by sweep parameters)
 model:
-  target_code: "J00" #"demanda__TIPUS_CLASS__9T"
+  target_code: "Ch01#subch01#A00-A09" #"J00" #"demanda__TIPUS_CLASS__9T"
   lookback: ${experiment_pairs.${experiment_setup}.lb}
   forecast: ${experiment_pairs.${experiment_setup}.fc}
   num_transformer_blocks: 2
-  head_size: 32
-  num_heads: 8
+  head_size: 16
+  num_heads: 16
   activation: "gelu"
   covid_token: true 
   ff_dim: 512
@@ -49,7 +49,7 @@ system:
 # MLflow configuration
 mlflow:
   tracking_uri: "file:./mlruns"
-  experiment_name: "Parameters_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH"
+  experiment_name: "full_TRANSFORMER3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH"
 
 # Hydra multirun configuration
 hydra:
@@ -61,25 +61,25 @@ hydra:
   sweeper:
     params:
       # Target codes to evaluate
-      model.target_code: "demanda__SERVEI_CODI__INF" #${load_json_codes_list:../data/FINAL_DB/targets_CAT.json} #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
+      model.target_code: demanda__TOTAL, "demanda__SERVEI_CODI__URG", "B34","J00", "I10", "M54","Ch01#subch01#A00-A09" #${load_json_codes_list:../data/FINAL_DB/targets_CAT.json} #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 60_60, "182_182", "365_365"  # 3_3, 7_7, 14_14, 60_30, 60_60, 182_182, 365_182
+      experiment_setup: 3_3, "7_7", "14_14", "60_30", "60_60", "182_182", "365_182"
       #model.lookback: 30,60
       #model.forecast: 30,60
       
       # Model architecture parameters
-      model.num_transformer_blocks: 2,4,8
-      model.head_size: 16,32,64
-      model.num_heads: 8,16
-      model.ff_dim: 256,512
+      model.num_transformer_blocks: 2
+      model.head_size: 32
+      model.num_heads: 8
+      model.ff_dim: 512
       model.mlp_units: [512,256] 
       
       # Training hyperparameters
       model.activation: gelu
       model.covid_token: true
-      model.dropout: 0.25
+      model.dropout: 0.5
       model.learning_rate: 0.00001
      
       

@@ -254,7 +254,7 @@ class UnivariateTransformerPipeline:
             optimizer=Adam(
                 clipnorm = 2.0,
                 learning_rate=self.config.learning_rate,
-                use_ema=True
+                #use_ema=True
                 
             ),
         )
@@ -340,7 +340,8 @@ class UnivariateTransformerPipeline:
             scaler = self.config.scaler,
             eliminate_covid_data = self.config.eliminate_covid_data,
             covid_dates = self.config.covid_dates,
-            relevant_feature_cols=self.diagnostic_covariates_list
+            relevant_feature_cols=self.diagnostic_covariates_list,
+            batch_size=self.config.batch_size
             
         )
         
