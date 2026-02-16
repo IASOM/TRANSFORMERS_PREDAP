@@ -66,28 +66,6 @@ def split_train_test(df, split_ratio=None, cutoff_date='2010-01-01', scaler = No
     df = df.copy()  # Create a copy to avoid modifying the original
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     
-
-    
-    '''# Process each column (except timestamp)
-    for code in df.columns:
-        if code != 'timestamp':
-            # Convert to numeric
-            df[code] = pd.to_numeric(df[code], errors='coerce')
-            
-            # Remove rows with NaN values for this column
-            df = df.dropna(subset=[code]).reset_index(drop=True)
-
-            # Min-max scale the target column
-            cmin, cmax = df[code].min(), df[code].max()
-            if pd.isna(cmin) or pd.isna(cmax) or cmax == cmin:
-                print(f"Warning: Column {code} has constant values or NaN. Setting to 0.0")
-                df[code] = 0.0
-            else:
-                df[code] = (df[code] - cmin) / (cmax - cmin)
-                print(f"Column {code} normalized. Range: [{cmin:.4f}, {cmax:.4f}]")'''
-
-
-    
     cutoff = pd.Timestamp(cutoff_date)
     max_dt = pd.Timestamp(max_date)
     df = df[(df['timestamp'] >= cutoff) & (df['timestamp'] <= max_dt)].reset_index(drop=True) 

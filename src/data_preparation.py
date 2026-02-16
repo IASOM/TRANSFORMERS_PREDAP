@@ -852,15 +852,15 @@ def compute_dynamic_batch_size(lookback, forecast):
     gpus = tf.config.list_physical_devices('GPU')
 
     if lookback <= 14 and forecast <= 14:
-        batch_size = 2048
+        batch_size = 4096
     if lookback <= 30 and forecast <= 30:
-        batch_size = 512
+        batch_size = 1024
     elif (30 <= lookback <= 60) and forecast <= 60:
-        batch_size = 128
+        batch_size = 512
     elif 60 <= lookback <= 128 and forecast<= 128:
-        batch_size = 92
+        batch_size = 256
     elif 128 < lookback <= 365 and forecast <=365:
-        batch_size = 64
+        batch_size = 128
     else:
         batch_size = 92
     

@@ -1,14 +1,14 @@
 {
     "run_info": {
-        "run_id": "8bac155a5d694eb99e0d040a732f20f7",
-        "run_name": "full_LOG_TRANSFORMER1_transformer_J00_lb182_fh182_165345",
-        "timestamp": "2026-02-09T17:11:44.331405",
-        "hydra_job_num": 26
+        "run_id": "27e1b4e383cd4b01b094d4f37fc65c76",
+        "run_name": "full_LOG_TRANSFORMER1_J00_lb182_fh365_183126",
+        "timestamp": "2026-02-12T18:45:04.318265",
+        "hydra_job_num": 1
     },
     "hyperparameters": {
         "target_code": "J00",
         "lookback": 182,
-        "forecast_horizon": 182,
+        "forecast_horizon": 365,
         "activation_function": "gelu",
         "covid_token": true,
         "cutoff_date": "2008-01-01",
@@ -28,28 +28,28 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 282.545833,
-        "phase_3_seasonal_seconds": 149.430365,
-        "total_training_seconds": 1078.616254,
-        "total_training_minutes": 17.976937566666667
+        "phase_1_univariate_seconds": 172.418292,
+        "phase_3_seasonal_seconds": 327.919423,
+        "total_training_seconds": 817.355289,
+        "total_training_minutes": 13.62258815
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 815.896240234375,
-            "mae": 815.896142055268,
-            "mse": 1268353.2694290786,
-            "rmse": 1126.211911422126,
-            "wape": 33.075367166051215
+            "loss": 819.3580322265625,
+            "mae": 819.3456752149121,
+            "mse": 1282646.7100112045,
+            "rmse": 1132.5399374905967,
+            "wape": 33.61300579315332
         },
         "seasonal_residual": {
-            "mae": 579.5451031304232,
-            "mse": 697096.3599761453,
-            "rmse": 834.922966492206,
-            "wape": 23.494003816514304
+            "mae": 622.0585676083994,
+            "mse": 809653.2468787282,
+            "rmse": 899.8073387557629,
+            "wape": 25.51945884283498
         }
     },
     "model_paths": {
-        "univariate_model": "J00_base_transformer_182fh_512ff_182lb_1e-05lr.keras",
-        "seasonal_model": "J00_SEASONAL_RESIDUALS_LEARNING_182fh_512ff_182lb_1e-05initlr.keras"
+        "univariate_model": "J00_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "seasonal_model": "J00_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
     }
 }

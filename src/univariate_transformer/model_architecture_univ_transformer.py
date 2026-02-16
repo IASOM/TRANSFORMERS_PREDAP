@@ -50,13 +50,13 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_functio
 
 
 
-'''def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
+def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
     #return build_informer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
-    return build_lstnet_model(input_shape, n_filters=head_size*num_heads, kernel_size=6, rnn_units=ff_dim, skip_units=ff_dim//2, skip=7, n_pred=n_pred, dropout=dropout)
-    #return build_log_transformer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
-'''
+    #return build_lstnet_model(input_shape, n_filters=head_size*num_heads, kernel_size=6, rnn_units=ff_dim, skip_units=ff_dim//2, skip=7, n_pred=n_pred, dropout=dropout)
+    return build_log_transformer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
 
 
+''' 
 def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
     """
     Build complete transformer model for univariate time series forecasting.
@@ -89,7 +89,6 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     x = layers.LayerNormalization(epsilon=1e-6)(x)
     #x = layers.Activation(activation_function)(x)
     if pos_encoding == True:
-        pass
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
     
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
@@ -123,7 +122,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     #outputs = layers.Permute((2, 1))(outputs)
 
     return keras.Model(inputs, outputs)
-    
+'''
 
 class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     """

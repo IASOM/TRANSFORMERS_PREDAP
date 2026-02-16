@@ -1,3 +1,4 @@
+from http import client
 import mlflow
 import pandas as pd
 import re
@@ -37,20 +38,63 @@ def dict_to_df(data):
 # --- TASK 1: WAPE vs Steps per Phase ---
 def plot_wape_comparison(df):
     phases = df['Phase'].unique()
+    # sharey=True ensures all plots are on the same scale for direct comparison
     fig, axes = plt.subplots(1, len(phases), figsize=(18, 5), sharey=True)
     
+    if len(phases) == 1:
+        axes = [axes]
+
     for i, phase in enumerate(phases):
         phase_df = df[df['Phase'] == phase]
         sns.lineplot(ax=axes[i], data=phase_df, x='Step', y='wape', hue='Model', marker='o')
+        
+        # Re-enable the Y-axis labels which are hidden by default when sharey=True
+        axes[i].tick_params(labelleft=True)
+        
         axes[i].set_title(f'Phase: {phase.capitalize()}')
         axes[i].set_ylabel('WAPE')
         axes[i].set_xlabel('Forecast Step')
         axes[i].grid(True, linestyle='--', alpha=0.6)
 
     plt.tight_layout()
-    plt.savefig('wape_comparison.png')  # Save the figure for later reference
+    plt.savefig('wape_comparison.png')
     plt.show()
 
+
+def plot_model_comparison_by_phase(df):
+    # Now we unique-ify 'Model' instead of 'Phase' for the subplots
+    models = df['Model'].unique()
+    
+    # Create subplots based on the number of models
+    fig, axes = plt.subplots(1, len(models), figsize=(18, 5), sharey=True)
+    
+    # Ensure axes is iterable even if there is only one model
+    if len(models) == 1:
+        axes = [axes]
+
+    for i, model in enumerate(models):
+        # Filter for the specific model
+        model_df = df[df['Model'] == model]
+        
+        # Plot all phases within this model's subplot
+        # We use 'Phase' as the hue to see them side-by-side
+        sns.lineplot(ax=axes[i], data=model_df, x='Step', y='wape', hue='Phase', marker='o')
+        
+        # Consistent with your previous request: keep Y-axis labels on all plots
+        axes[i].tick_params(labelleft=True)
+        
+        axes[i].set_title(f'Model: {model}')
+        axes[i].set_ylabel('WAPE')
+        axes[i].set_xlabel('Forecast Step')
+        axes[i].grid(True, linestyle='--', alpha=0.6)
+        
+        # Move legend to a consistent spot (optional: best, upper right, etc.)
+        axes[i].legend(title='Phase')
+
+    plt.tight_layout()
+    plt.savefig('model_comparison_by_phase.png')
+    plt.show()
+    
 def plot_wape_unified(df):
     plt.figure(figsize=(12, 7))
     
@@ -132,12 +176,12 @@ def extract_experiment_type(experiment_name):
     exp_type = None
     if "INFORMER" in experiment_name:
         exp_type = "informer"
-    elif "LSTNet" in experiment_name:
+    elif "LSTNET" in experiment_name:
         exp_type = "lstnet"
-    elif "TRANSFORMER1" in experiment_name:
+    elif "TRANSFORMER3" in experiment_name or "TRANSFORMERS3" in experiment_name:
         exp_type = "our_transformer"
 
-    elif "LOGTRANSFORMER" in experiment_name:
+    elif "LOG_TRANSFORMER" in experiment_name:
         exp_type = "log_transformer"
     else:
         exp_type = "unknown_model"
@@ -170,112 +214,6 @@ def extract_experiment_type(experiment_name):
         print(f"Successfully saved: {filename}")
     
     return saved_files
-
-
-def save_metrics_tables(codes,metrics_dict, model_name, experiment_names):
-    """
-    Get the metrics already logged in MLflow for a given model and experiment, convert them to a DataFrame, and save as CSV.
-
-    Args:
-        metrics_dict (dict): Dictionary of metrics to save, e.g. {'train_mae': 0.1, 'val_mae': 0.2}
-        model_name (str): Name of the model (used for filename)
-        experiment_name (str): Name of the MLflow experiment to query
-    """
-    model_names_col = 'tags.mlflow.runName'
-    #for experiment in experiment_names.unique():
-    experiments = [mlflow.get_experiment_by_name(experiment) for experiment in experiment_names]
-
-    if experiments is None or experiments == []:
-        print(f"Experiment '{experiment_names}' not found. Cannot save metrics.")
-        return None
-    df = mlflow.search_runs(experiment_ids=[experiment.experiment_id for experiment in experiments]) #load multiple experiments 
-    experiment_names = df[model_names_col]
-
-    
-    models_dict = {'informer': {'univariate':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'diagnostics':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'seasonal':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}}},
-                'lstnet':  {'univariate':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'diagnostics':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'seasonal':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}}},
-                'log_transformer':  {'univariate':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'diagnostics':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'seasonal':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}}},
-                'our_transformer':  {'univariate':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'diagnostics':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}},
-                                'seasonal':{7:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              14:{'mae':0, 'mse':0, 'rmse':0, 'wape':0},
-                                              30:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              60:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              182:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}, 
-                                              365:{'mae':0, 'mse':0, 'rmse':0, 'wape':0}}}}
-    
-    model_phases = ['univariate', 'diagnostics', 'seasonal']
-    for model_name in experiment_names.unique():
-        experiment_type, fh_number = extract_experiment_type(model_name)
-        model_params = df[df[model_names_col] == model_name]
-        for phase in model_phases:
-            for metric in metrics_dict[phase]:
-                metric_value = model_params[metric].values[0] if metric in model_params else None
-                if metric_value is not None:
-                    metric_name = metric.split('_')[-1]  # Extract 'mae', 'mse', etc.
-                    models_dict[experiment_type][phase][int(fh_number)][metric_name] = metric_value
-    return models_dict
 '''
 
 def save_metrics_tables(codes, metrics_dict, experiment_names):
@@ -356,19 +294,51 @@ def save_metrics_to_csv(df, code, prefix="experiment"):
     phases = df['Phase'].unique()
     for phase in phases:
         phase_df = df[df['Phase'] == phase]
-        
-        # Use pivot_table instead of pivot to handle duplicates
-        # aggfunc='mean' will average metrics if a model/step combo appears twice
-        pivoted = phase_df.pivot_table(
+        if phase == 'univariate':
+            df_univ = phase_df[phase_df['Phase'] == 'univariate']
+
+            pivoted = phase_df.pivot_table(
             index='Step', 
             columns='Model', 
             values=['mae', 'mse', 'rmse', 'wape'],
             aggfunc='mean' 
-        )
-        
-        filename = f"{prefix}_{phase}_metrics.csv"
-        pivoted.to_csv(filename)
-        print(f"Saved: {filename}")
+            )
+            pivoted = phase_df.pivot_table(
+            index='Step', 
+            columns='Model', 
+            values=['mae', 'mse', 'rmse', 'wape'],
+            aggfunc='mean' 
+            )
+
+            # Use pivot_table instead of pivot to handle duplicates
+            # aggfunc='mean' will average metrics if a model/step combo appears twice
+            
+            filename = f"{prefix}_{phase}_metrics.csv"
+            pivoted.to_csv(filename)
+            print(f"Saved: {filename}")
+
+        else:
+            mae_improve = (df_univ['mae'].values - phase_df['mae'].values) / df_univ['mae'].values
+            name = f"{phase}_mae_improve"
+            phase_df[name] = mae_improve
+
+
+            pivoted = phase_df.pivot_table(
+            index='Step', 
+            columns='Model', 
+            values=['mae', 'mse', 'rmse', 'wape', f'{phase}_mae_improve'],
+            aggfunc='mean' 
+            )
+
+            # Use pivot_table instead of pivot to handle duplicates
+            # aggfunc='mean' will average metrics if a model/step combo appears twice
+            
+            filename = f"{prefix}_{phase}_metrics.csv"
+            pivoted.to_csv(filename)
+            print(f"Saved: {filename}")
+
+
+
 
 if __name__ == "__main__":
     # Example usage
@@ -379,7 +349,7 @@ if __name__ == "__main__":
         'val_mse': 0.04
     }
 
-    codes = ["J00", "demanda__TOTAL", "demanda__SERVEI_CODI__URG", "B34", "I10", "M54", "Ch01:subch01:A00-A09"]
+    codes = ["J00", "demanda__TOTAL", "demanda__SERVEI_CODI__URG", "B34", "I10", "M54", "Ch01#subch01#A00-A09"]
 
     metrics_dict = {
                     'univariate':
@@ -401,10 +371,22 @@ if __name__ == "__main__":
                     'metrics.final/seasonal_wape']
 
                  }
-    experiment_names = ["full_INFORMER1_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260209"] 
-                        #"full_LSTNet_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260205", 
-                        #"full_TRANSFORMER2_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260206",
-                        #"full_LOGTRANSFORMER_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260205"]
+    experiment_names =["full_TRANSFORMER3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210",
+                       "full_TRANSFORMER3_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212",
+                    "full_INFORMER1_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260209",
+                    "full_INFORMER1_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210",
+                    "full_LOG_TRANSFORMER1_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260209",
+                    "full_LOG_TRANSFORMER1_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212",
+                    "full_LOG_TRANSFORMER2_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260209",
+                    "full_LOG_TRANSFORMER2_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210",
+                    "full_LSTNET3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210",
+                    "full_LSTNET3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260211",
+                    "full_LSTNET3_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212",
+                    #"full_LOG_TRANSFORMER1_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212",
+
+                        ] 
+    # ['full_NO_DIAGNOSTICS1_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260211']
+                        
 
     models_dict = save_metrics_tables(codes,  metrics_dict, experiment_names=experiment_names)
     # Initialize and Process
@@ -417,5 +399,10 @@ if __name__ == "__main__":
     plot_wape_unified(df)
     display_metrics_table(df)
     plot_rmse_heatmap(df)
+    plot_model_comparison_by_phase(df)
     save_metrics_to_csv(df, code=codes, prefix="final_experiment")
     print(models_dict)
+
+
+
+    

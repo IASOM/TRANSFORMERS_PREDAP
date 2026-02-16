@@ -1,9 +1,9 @@
 {
     "run_info": {
-        "run_id": "aa8894e41c9a468bae7068c5cea05ec5",
-        "run_name": "full_LOG_TRANSFORMER2_transformer_M54_lb182_fh365_204652",
-        "timestamp": "2026-02-09T21:07:46.660127",
-        "hydra_job_num": 13
+        "run_id": "7801e9273acd4c719063d22465a74a4e",
+        "run_name": "full_NO_DIAGNOSTICS_transformer_M54_lb182_fh365_124349",
+        "timestamp": "2026-02-11T12:53:54.492345",
+        "hydra_job_num": 41
     },
     "hyperparameters": {
         "target_code": "M54",
@@ -28,24 +28,24 @@
         "backend": "Agg"
     },
     "training_duration": {
-        "phase_1_univariate_seconds": 568.510306,
-        "phase_3_seasonal_seconds": 308.447772,
-        "total_training_seconds": 1253.910508,
-        "total_training_minutes": 20.898508466666666
+        "phase_1_univariate_seconds": 342.936915,
+        "phase_3_seasonal_seconds": 261.82463,
+        "total_training_seconds": 604.769108,
+        "total_training_minutes": 10.079485133333332
     },
     "evaluation_metrics": {
         "univariate_transformer": {
-            "loss": 220.61407470703125,
-            "mae": 220.6140746275407,
-            "mse": 123464.47233143057,
-            "rmse": 351.37511626669095,
-            "wape": 13.669264786288046
+            "loss": 171.44419860839844,
+            "mae": 171.4441967878534,
+            "mse": 107772.7041903287,
+            "rmse": 328.28753279758996,
+            "wape": 10.622695428304676
         },
         "seasonal_residual": {
-            "mae": 181.0171074877564,
-            "mse": 108255.1380301351,
-            "rmse": 329.0214856664153,
-            "wape": 11.215833700889432
+            "mae": 171.44036115017306,
+            "mse": 107772.29495489385,
+            "rmse": 328.28690950888347,
+            "wape": 10.622457771903262
         }
     },
     "model_paths": {
