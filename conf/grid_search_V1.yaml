@@ -8,7 +8,7 @@ data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "365_182"  # Default experiment setup
+experiment_setup: "7_7"  # Default experiment setup
 
 
 experiment_pairs:
@@ -65,7 +65,7 @@ hydra:
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 3_3, "365_182" #3_3, "7_7", "14_14", "60_30", "60_60", "182_182", "365_182"
+      experiment_setup: 3_3, "7_7" #3_3, "7_7", "14_14", "60_30", "60_60", "182_182", "365_182"
       #model.lookback: 30,60
       #model.forecast: 30,60
       

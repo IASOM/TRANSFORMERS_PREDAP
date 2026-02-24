@@ -38,7 +38,7 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 400
+    epochs: int = 4
     batch_size: int = 256
     early_stop_patience: int = 50
     shuffle_data: bool = True
@@ -60,7 +60,7 @@ class BaseTransformerConfig(ABC):
     ])
 
     # ==================== OPTIONAL PARAMETERS ====================
-    covid_token: bool = False
+    covid_token: bool = True
     evaluate_model: bool = False
     #scaler = RobustScaler(quantile_range=(15.0, 85.0))
     scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)

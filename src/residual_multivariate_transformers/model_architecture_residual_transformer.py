@@ -67,8 +67,8 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
     x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)          
     return x + res    
 
-    '''
-    def hybrid_lstm_transformer_model(input_shape, forecast, 
+    
+def hybrid_lstm_transformer_model(input_shape, forecast, 
                                     lstm_params=None, 
                                 transformer_params=None,
                                 activation_function='tanh'):
@@ -108,7 +108,7 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
     x = layers.LayerNormalization(epsilon=1e-6)(x)
     # Transformer Block
     x = PositionalEncoding(input_shape[0], d_model)(x)
-    '''
+    
     
     '''
     # LSTM Block
@@ -139,7 +139,7 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
         x = layers.Dense(d_model)(input_layer)
     '''
 
-    '''
+    
     #x = PositionalEncoding(x.shape[1], x.shape[2])(x)
     for _ in range(transformer_params['num_transformer_blocks']):
         x = transformer_encoder(
@@ -176,10 +176,10 @@ def transformer_encoder(inputs, head_size=None, num_heads=None, ff_dim=None, dro
     #model.compile(optimizer='adam', loss='mse')
 
     return model
-    '''
+    
     
 
-def hybrid_lstm_transformer_model(input_shape, forecast, 
+'''def hybrid_lstm_transformer_model(input_shape, forecast, 
                                   lstm_params=None, 
                                   transformer_params=None,
                                   activation_function='tanh'):
@@ -191,7 +191,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     #return build_informer_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
     return build_log_transformer_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
     #return build_lstnet_model(input_shape, n_filters=transformer_params['head_size']*transformer_params['num_heads'], kernel_size=6, rnn_units=transformer_params['ff_dim'], skip_units=transformer_params['ff_dim']//2, skip=7, n_pred=forecast, dropout=transformer_params['dropout'])
-
+'''
 
 class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     """
@@ -286,7 +286,7 @@ class PositionalEncoding(layers.Layer):
         # x shape: (batch_size, seq_len, d_model)
         seq_len = tf.shape(x)[1]
         return x + self.pos_encoding[:, :seq_len, :]
-    
+
 @keras.saving.register_keras_serializable(package="predap")
 class RevIN(layers.Layer):
     def __init__(self, eps=1e-5, detach_grad=False, **kwargs):

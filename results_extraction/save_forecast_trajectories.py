@@ -1,14 +1,18 @@
 import tensorflow as tf
 from tensorflow import keras
+from keras import layers
 import os 
 from src.univariate_transformer.model_architecture_univ_transformer import (
-    RevIN, PositionalEncoding
+    PositionalEncoding, RevIN
 )
+
 
 from src.main_train_univ_transformer_class import (
     TransformerUnivConfig,
     UnivariateTransformerPipeline,
 )
+
+
 
 from src.config.base_transformer_config import BaseTransformerConfig
 
@@ -237,7 +241,7 @@ default_config = BaseTransformerConfig()
 # Extract parameters from Hydra config
 CODE = "J00"
 lookback = 182
-forecast = 182
+forecast = 365
 head_size = default_config.head_size
 num_heads = 8
 ff_dim = 512
@@ -290,9 +294,10 @@ seasonal_model_name_in_run = "residual_seasonal_model"
 run_id_dict = {
     #'demanda__TOTAL': "b363cfbfd2124e908228327673fef429", }
     #'demanda__SERVEI_CODI__URG' : 'b791d7e5459f402fbf465c61018349c2',}
-    'J00': "bd748b533de649a1a2bc0d7e69e9884f", }
+    #'J00': "bd748b533de649a1a2bc0d7e69e9884f", }
     #'Ch01#subch01#A00-A09': "83ae8cc79e1747afb4a3794391c3c054",}
-    #'I10' : "f938c2de01a846c2ae1e4749f46fb868",}
+    #'I10' : "f938c2de01a846c2ae1e4749f46fb868",
+    "M54" : "e8b90d46995746a5bcfdf50bf54180c6"}
 
 def load_mlflow_model(run_id, model_name_in_run, custom_objects=None):
     """Load a Keras model from an specified mlflow experiment runID and model path."""
@@ -301,12 +306,12 @@ def load_mlflow_model(run_id, model_name_in_run, custom_objects=None):
     actual_model_path = os.path.join(local_path, "data", "model.keras")
     #model_uri = f"runs:/{run_id}/{model_name_in_run}"
 
-    # Load the model
-    model = keras.models.load_model(actual_model_path, custom_objects={'PositionalEncoding': PositionalEncoding, 'RevIN': RevIN})
+    # Load the model with safe_mode=False to handle custom layers properly
+    model = keras.models.load_model(actual_model_path, custom_objects=custom_objects)
     #model = mlflow.keras.load_model(model_uri, custom_objects=custom_objects, safe_mode = False)
     return model
 
-def univariate_transformer_phase(relevant_feature_cols=None):
+def univariate_transformer_phase(input_directory, code, lookback, forecast, cutoff_date, max_date,scaler,eliminate_covid_data=False, relevant_feature_cols=None):
     # Prepare test data
     X_test, Y_test = data_preparation.prepare_data(
         input_directory, 
@@ -320,7 +325,7 @@ def univariate_transformer_phase(relevant_feature_cols=None):
         univariate=True, 
         scaler=scaler, 
         eliminate_covid_data=eliminate_covid_data, 
-        covid_dates=covid_dates, 
+
         relevant_feature_cols=relevant_feature_cols
     )
 
@@ -336,7 +341,7 @@ def univariate_transformer_phase(relevant_feature_cols=None):
         debug=True, 
         univariate=True, 
         eliminate_covid_data=eliminate_covid_data, 
-        covid_dates=covid_dates, 
+
         relevant_feature_cols=relevant_feature_cols
     )
 
@@ -350,7 +355,7 @@ def univariate_transformer_phase(relevant_feature_cols=None):
                                                 cutoff_date=cutoff_date, 
                                                 max_date = max_date, 
                                                 eliminate_covid_data=eliminate_covid_data, 
-                                                covid_dates=covid_dates)
+                                                covid_dates=None)
     
     
 
@@ -358,7 +363,7 @@ def univariate_transformer_phase(relevant_feature_cols=None):
 
 
 
-def diagnostics_transformer_phase(code, forecast, lookback, final_cutoff_date):
+def diagnostics_transformer_phase(code, lookback, forecast, final_cutoff_date, scaler):
     train_split, test_split = split_train_test(
             pd.read_csv(data_path), 
             split_ratio=0.8, 
@@ -386,8 +391,8 @@ def diagnostics_transformer_phase(code, forecast, lookback, final_cutoff_date):
         train=True, 
         univariate=False,
         scaler = scaler,
-        eliminate_covid_data=eliminate_covid_data,
-        covid_dates=covid_dates
+        eliminate_covid_data=False,
+        covid_dates=None
     )
     
     print(f"Training covariates shape: {X_train_covs.shape}")
@@ -407,15 +412,15 @@ def diagnostics_transformer_phase(code, forecast, lookback, final_cutoff_date):
         train=False, 
         univariate=False,
         scaler = scaler,
-        eliminate_covid_data=eliminate_covid_data,
-        covid_dates=covid_dates,
+        eliminate_covid_data=False,
+        covid_dates=None,
     )
     
     print(f"Test covariates shape: {X_test_covs.shape}")
     return X_train_covs, X_test_covs
 
 
-def seasonal_transformer_phase(code, forecast, lookback, final_cutoff_date, categorical_vars,predictions_train, predictions_test, default_split_ratio=0.8):
+def seasonal_transformer_phase(code, forecast, lookback,cutoff_date, final_cutoff_date, categorical_vars,predictions_train, predictions_test, default_split_ratio=0.8, scaler=None):
     df = pd.read_csv(data_path)
     # Prepare seasonal features for training data
     print("Preparing seasonal features for training data...")
@@ -425,18 +430,20 @@ def seasonal_transformer_phase(code, forecast, lookback, final_cutoff_date, cate
         cutoff_date=cutoff_date,
         max_date = final_cutoff_date,
         scaler = scaler,
-        eliminate_covid_data=eliminate_covid_data, 
-        covid_dates=covid_dates,
+        eliminate_covid_data=False, 
+        covid_dates=None,
     )
-
+    
     # Load and split the original data for covariate extraction
     df_train_processed, df_test_processed = split_train_test(
         df_processed, 
-        split_ratio=default_split_ratio, 
+        split_ratio=0.8, 
         cutoff_date=cutoff_date,
         max_date = final_cutoff_date,
-        scaler = scaler
+        scaler = scaler, 
+
     )
+    
     
     # Generate rolling sequences with covariates for training
     print("Generating rolling sequences with seasonal covariates for training...")
@@ -444,7 +451,7 @@ def seasonal_transformer_phase(code, forecast, lookback, final_cutoff_date, cate
         df_train_processed, 
         lookback, 
         forecast, 
-        predictions_train, 
+        predictions_train,
 
     )
     
@@ -458,107 +465,117 @@ def seasonal_transformer_phase(code, forecast, lookback, final_cutoff_date, cate
         lookback, 
         forecast, 
         predictions_test,
+
     )
-    
+
     print(f"Test covariates shape: {X_test_covs.shape}")
 
     return X_train_covs, X_test_covs
 
 
-for code, run_id in run_id_dict.items():
+if __name__ == '__main__':
+    CUSTOM_OBJECTS = {'PositionalEncoding': PositionalEncoding, 
+                      'RevIN': RevIN}
+    for code, run_id in run_id_dict.items():
 
-    # Load the model
-    univ_model = load_mlflow_model(run_id, univ_model_name_in_run, custom_objects={'PositionalEncoding': PositionalEncoding, 'RevIN': RevIN}) 
-    diagnostics_model = load_mlflow_model(run_id, diag_model_name_in_run, custom_objects={'PositionalEncoding': PositionalEncoding, 'RevIN': RevIN})
-    seasonal_model = load_mlflow_model(run_id, seasonal_model_name_in_run, custom_objects={'PositionalEncoding': PositionalEncoding, 'RevIN': RevIN})
-    print("Model loaded successfully!")
-
-
-
-    input_directory = '../data/FINAL_DB/full_CAT1.parquet'
-    code = code
-    max_date = '2025-09-30'
-    eliminate_covid_data = False
-    covid_dates = None
-    
-    
-    X_test, Y_test, Y_test_orig, date_list = univariate_transformer_phase( relevant_feature_cols=None)
-    X_train_covs, X_test_covs = diagnostics_transformer_phase(code, forecast, lookback, max_date)
-    categorical_vars = ["Day_of_Week", 
-                        "Month", 
-                        "Season", 
-                        "Holiday", 
-                        "School_Vacation",
-                        "Is_Weekend",
-                        ]
-    X_train_seasonal_covs, X_test_seasonal_covs = seasonal_transformer_phase(code, forecast, lookback, max_date, categorical_vars=categorical_vars, predictions_train=None, predictions_test=None)
-    X_train_seasonal_covs = X_train_seasonal_covs.astype(float)
-    X_test_seasonal_covs = X_test_seasonal_covs.astype(float)
-
-    Y_test_orig_list.append(Y_test_orig)
-    date_list_list.append(date_list)
-
-    original_scale_df = pd.read_parquet(input_directory)
-    # Get predictions
-    predictions_univ = univ_model.predict(X_test, verbose=0)
-    pred_diagnostics_residuals = diagnostics_model.predict(X_test_covs, verbose=0)
-    
-    pred_seasonal_residuals = seasonal_model.predict(X_test_seasonal_covs, verbose=0)
-    
+        # Load the model
+        univ_model = load_mlflow_model(run_id, univ_model_name_in_run, custom_objects=CUSTOM_OBJECTS) 
+        diagnostics_model = load_mlflow_model(run_id, diag_model_name_in_run, custom_objects=CUSTOM_OBJECTS)
+        seasonal_model = load_mlflow_model(run_id, seasonal_model_name_in_run, custom_objects=CUSTOM_OBJECTS)
+        
+        
+        
+        print("Model loaded successfully!")
 
 
-    print("Predicted values shape:", predictions_univ.shape)
 
-        # Inverse transform predictions
-    predictions_to_plot = data_preparation.inverse_transform_predictions(
-        predictions_univ, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
-    )
-    pred_diagnostics_residuals_to_plot = data_preparation.inverse_transform_predictions(
-        pred_diagnostics_residuals, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
-    )
-    pred_seasonal_residuals_to_plot = data_preparation.inverse_transform_predictions(
-        pred_seasonal_residuals, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
-    )
+        input_directory = '../data/FINAL_DB/full_CAT1.parquet'
+        code = code
+        max_date = '2025-09-30'
+        eliminate_covid_data = False
+        covid_dates = None
+        
+        
+        X_test, Y_test, Y_test_orig, date_list = univariate_transformer_phase(input_directory, code, lookback, forecast, cutoff_date, max_date, relevant_feature_cols=None, scaler=scaler, eliminate_covid_data=eliminate_covid_data)
+        X_train_covs, X_test_covs = diagnostics_transformer_phase(code, lookback, forecast, max_date, scaler)
+        categorical_vars = ["Day_of_Week", 
+                            "Month", 
+                            "Season", 
+                            "Holiday", 
+                            "School_Vacation",
+                            "Is_Weekend",
+                            ]
 
-    pred_corrected_diagnostics = predictions_to_plot + pred_diagnostics_residuals_to_plot
-    pred_corrected_seasonal = pred_corrected_diagnostics + pred_seasonal_residuals_to_plot
+
+        Y_test_orig_list.append(Y_test_orig)
+        date_list_list.append(date_list)
+
+        original_scale_df = pd.read_parquet(input_directory)
+        # Get predictions
+        predictions_univ = univ_model.predict(X_test, verbose=0)
+        pred_diagnostics_residuals = diagnostics_model.predict(X_test_covs, verbose=0)
+
+        predictions_test = predictions_univ + pred_diagnostics_residuals
+        X_train_seasonal_covs, X_test_seasonal_covs = seasonal_transformer_phase(code, forecast, lookback,cutoff_date, max_date, categorical_vars=categorical_vars, predictions_train=None, predictions_test=None, scaler=scaler)
+        X_train_seasonal_covs = X_train_seasonal_covs.astype(float)
+        X_test_seasonal_covs = X_test_seasonal_covs.astype(float)
+        
+        pred_seasonal_residuals = seasonal_model.predict(X_test_seasonal_covs, verbose=0)
+        
 
 
-    predictions_to_plot_list.append(predictions_to_plot)
-    pred_diagnostics_residuals_to_plot_list.append(pred_corrected_diagnostics)
-    pred_seasonal_residuals_to_plot_list.append(pred_corrected_seasonal)
+        print("Predicted values shape:", predictions_univ.shape)
 
-    # Evaluate model
+            # Inverse transform predictions
+        predictions_to_plot = data_preparation.inverse_transform_predictions(
+            predictions_univ, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+        )
+        pred_diagnostics_residuals_to_plot = data_preparation.inverse_transform_predictions(
+            pred_diagnostics_residuals, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+        )
+        pred_seasonal_residuals_to_plot = data_preparation.inverse_transform_predictions(
+            pred_seasonal_residuals, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+        )
 
-    loss, mae, mse = univ_model.evaluate(X_test, Y_test, verbose=0, batch_size=256)
-    diagnostics_loss, diagnostics_mae, diagnostics_mse = diagnostics_model.evaluate(X_test_covs, Y_test, verbose=0, batch_size=256)
-    seasonal_loss, seasonal_mae, seasonal_mse = seasonal_model.evaluate(X_test_seasonal_covs, Y_test, verbose=0, batch_size=256)
+        pred_corrected_diagnostics = predictions_to_plot + pred_diagnostics_residuals_to_plot
+        pred_corrected_seasonal = pred_corrected_diagnostics + pred_seasonal_residuals_to_plot
 
-    non_negative_predictions_to_plot = np.maximum(predictions_to_plot, 0)  # Ensure no negative predictions
 
-    original_mae = mean_absolute_error(Y_test_orig, non_negative_predictions_to_plot)
-    original_mse = mean_squared_error(Y_test_orig, non_negative_predictions_to_plot)
-    original_rmse = np.sqrt(original_mse)
-    original_wape = np.sum(np.abs(Y_test_orig - non_negative_predictions_to_plot)) / np.sum(np.abs(Y_test_orig)) * 100
-    diagnostics_wape = np.sum(np.abs(Y_test_orig - pred_corrected_diagnostics)) / np.sum(np.abs(Y_test_orig)) * 100
-    seasonal_wape = np.sum(np.abs(Y_test_orig - pred_corrected_seasonal)) / np.sum(np.abs(Y_test_orig)) * 100
-    
-    print(f"Test Results - Loss: {loss:.4f}, MAE: {original_mae:.4f}, MSE: {original_mse:.4f}, RMSE: {original_rmse:.4f}, WAPE: {original_wape:.4f}%")
-    original_wape_list.append(original_wape)
-    diagnostics_wape_list.append(diagnostics_wape)
-    seasonal_wape_list.append(seasonal_wape)
+        predictions_to_plot_list.append(predictions_to_plot)
+        pred_diagnostics_residuals_to_plot_list.append(pred_corrected_diagnostics)
+        pred_seasonal_residuals_to_plot_list.append(pred_corrected_seasonal)
 
-    
+        # Evaluate model
 
-# Generate plots
-model_display_name = univ_model_name_in_run.replace('.keras', '')
+        loss, mae, mse = univ_model.evaluate(X_test, Y_test, verbose=0, batch_size=256)
+        diagnostics_loss, diagnostics_mae, diagnostics_mse = diagnostics_model.evaluate(X_test_covs, Y_test, verbose=0, batch_size=256)
+        seasonal_loss, seasonal_mae, seasonal_mse = seasonal_model.evaluate(X_test_seasonal_covs, Y_test, verbose=0, batch_size=256)
 
-plot_multiple_forecasts(Y_test_orig_list, predictions_to_plot_list, pred_diagnostics_residuals_to_plot_list, pred_seasonal_residuals_to_plot_list, date_list_list, codes=[code], wapes=original_wape_list, diagnostics_wape_list=diagnostics_wape_list, seasonal_wape_list=seasonal_wape_list)
-preds = univ_model.predict(X_test)
+        non_negative_predictions_to_plot = np.maximum(predictions_to_plot, 0)  # Ensure no negative predictions
 
-plt.plot(preds[0,:])
-plt.savefig('forecast_trajectory.png')  # Save the figure to a file
-plt.show()
-# Check the architecture
-univ_model.summary()
+        original_mae = mean_absolute_error(Y_test_orig, non_negative_predictions_to_plot)
+        original_mse = mean_squared_error(Y_test_orig, non_negative_predictions_to_plot)
+        original_rmse = np.sqrt(original_mse)
+        original_wape = np.sum(np.abs(Y_test_orig - non_negative_predictions_to_plot)) / np.sum(np.abs(Y_test_orig)) * 100
+        diagnostics_wape = np.sum(np.abs(Y_test_orig - pred_corrected_diagnostics)) / np.sum(np.abs(Y_test_orig)) * 100
+        seasonal_wape = np.sum(np.abs(Y_test_orig - pred_corrected_seasonal)) / np.sum(np.abs(Y_test_orig)) * 100
+        
+        print(f"Test Results - Loss: {loss:.4f}, MAE: {original_mae:.4f}, MSE: {original_mse:.4f}, RMSE: {original_rmse:.4f}, WAPE: {original_wape:.4f}%")
+        original_wape_list.append(original_wape)
+        diagnostics_wape_list.append(diagnostics_wape)
+        seasonal_wape_list.append(seasonal_wape)
+
+        
+
+    # Generate plots
+    model_display_name = univ_model_name_in_run.replace('.keras', '')
+
+    plot_multiple_forecasts(Y_test_orig_list, predictions_to_plot_list, pred_diagnostics_residuals_to_plot_list, pred_seasonal_residuals_to_plot_list, date_list_list, codes=[code], wapes=original_wape_list, diagnostics_wape_list=diagnostics_wape_list, seasonal_wape_list=seasonal_wape_list)
+    preds = univ_model.predict(X_test)
+
+    plt.plot(preds[0,:])
+    plt.savefig('forecast_trajectory.png')  # Save the figure to a file
+    plt.show()
+    # Check the architecture
+    univ_model.summary()
 

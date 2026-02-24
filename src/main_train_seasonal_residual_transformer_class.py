@@ -243,7 +243,6 @@ class SeasonalResidualTransformerPipeline:
             self.config.lookback, 
             self.config.forecast, 
             self.predictions_train, 
-            
         )
         
         print(f"Training covariates shape: {self.X_train_covs.shape}")
