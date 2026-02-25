@@ -121,7 +121,7 @@ class BaseTransformerConfig(ABC):
         "Season", 
         "Holiday", 
         "School_Vacation",
-        "Is_Weekend",
+        #"Is_Weekend",
     ])
 
     PANDEMIC_WAVES: dict = field(default_factory=lambda: {

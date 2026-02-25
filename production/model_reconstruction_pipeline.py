@@ -8,6 +8,8 @@ import os
 import sys
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Tuple, Any
+import pyarrow as pa
+import pyarrow.dataset as ds
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -15,190 +17,34 @@ from src.univariate_transformer import model_architecture_univ_transformer
 from src.residual_multivariate_transformers import model_architecture_residual_transformer
 import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
+from production.data_preparation_in_poduction import DataPreparationInProduction
 
 default_config = BaseTransformerConfig()
 
 
-
-
-@dataclass
-class TransformerPredictionConfig(BaseTransformerConfig):
-    """Configuration class for transformer training parameters"""
-    
-    # Configuration object reference
-    config_object: Optional[Any] = field(default=None)
-    categorical_vars: List[str] = field(default_factory=lambda: ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation",])
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert configuration to dictionary"""
-        return {
-            "lookback": self.lookback,
-            "forecast": self.forecast,
-            "code": self.code,
-            "head_size": self.head_size,
-            "num_heads": self.num_heads,
-            "ff_dim": self.ff_dim,
-            "num_transformer_blocks": self.num_transformer_blocks,
-            "mlp_units": self.mlp_units,
-            "dropout": self.dropout,
-            "learning_rate": self.learning_rate,
-            "epochs": self.epochs,
-            "batch_size": self.batch_size,
-            "cutoff_date": self.cutoff_date,
-            "covid_token": self.covid_token,
-            "positional_encoding": self.positional_encoding,
-            "activation_function": self.activation_function,
-            "evaluate_model": self.evaluate_model, 
-            "data_path": self.data_path,
-        }
-    
-    def print_config(self):
-        """Print configuration in a readable format"""
-        print("\n" + "="*60)
-        print("TRANSFORMER TRAINING CONFIGURATION")
-        print("="*60)
-        for key, value in self.to_dict().items():
-            print(f"{key:25}: {value}")
-        print("="*60)
-    
-
-    
-
-class ModelPredictionPipeline:
-    def __init__(self, config: TransformerPredictionConfig):
+class ModelPredictionPipeline(DataPreparationInProduction):
+    def __init__(self, config: BaseTransformerConfig):
         self.config = config
         self.config.print_config()
 
-    def load_diagnostic_covariates(self,diagnostic_covariates_path,code, forecast):
-        diagnostic_covariates_df = pd.read_excel(diagnostic_covariates_path + code + ".xlsx", engine='openpyxl')
-        diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] ==  forecast]['predictors'])[0].split(',')
-    
-        return diagnostic_covariates_list
-
-
-    def prepare_prediction_univ_data(self, data_path: str, code: str, lookback: int, forecast: int, cutoff_date: str, max_date: str, scaler: FunctionTransformer, eliminate_covid_data: bool, covid_token: bool, production_mode: bool = False):
-        code = code.replace("#", ":")
-        # Load CSV
-        df = pd.read_parquet(data_path)
-        if eliminate_covid_data:
-            assert covid_dates is not None
-            df = data_preparation.eliminate_covid_dates(df, covid_dates)
-        
-        df = data_preparation.cut_dataframe(df, cutoff_date,max_date, data_path)
-
-        categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation","Is_Weekend"]
-        df_dates = data_preparation.prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
-        df_timestamp = df['timestamp']
-        df_dates = df_dates.drop(columns=['timestamp']) 
-         
-        # univariate scenario ...................................................
-        idx_code = df.columns.get_loc(code)
-        feature_cols = df.columns[idx_code]  
-        target_col = df.columns[idx_code]  # Get the target column 
-        
-        # Convert to numpy arrays
-        X_raw = df[feature_cols].values.reshape(-1, 1)  
-        X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
-        Y_raw = df[target_col].values # Target values
-        
-        if covid_token:
-            df_covid = data_preparation.add_covid_token(df)
-            covid_feature = df_covid['covid_token'].values.reshape(-1, 1)
-            X_raw = np.hstack((X_raw, covid_feature))
-
-        if production_mode:
-            X_raw = X_raw[-lookback:].reshape(1, lookback, -1)
-            Y_raw = Y_raw[-forecast:].reshape(1, forecast)
-            Y_raw = np.zeros_like(Y_raw)  # Replace with zeros for production mode as we don't have true future values
-            
-            # Generate future timestamps for the forecast horizon and append to df_timestamp
-            last_date = df_timestamp.iloc[-1]
-            new_dates = pd.date_range(
-                start=last_date + pd.Timedelta(days=1), 
-                periods=forecast, 
-                freq='D'
-            )
-            df_forecast = pd.Series(new_dates)
-            #df_timestamp = df_timestamp.iloc[-lookback:].reset_index(drop=True)
-            df_timestamp = pd.concat([df_timestamp, df_forecast], ignore_index=True)
-            
-
-        else:
-            X_raw = X_raw[-(lookback + forecast):-forecast].reshape(1, lookback, -1)
-            Y_raw = Y_raw[-forecast:].reshape(1, forecast)
-            #df_timestamp = df_timestamp#.iloc[-(lookback + forecast):].reset_index(drop=True)
-        return X_raw, Y_raw, df_timestamp
-
-
-    def prepare_prediction_diagnostics_data(self, data_path: str, code: str, lookback: int, forecast: int, max_date: str, scaler: FunctionTransformer, covid_token: bool = False, production_mode: bool = False): 
-        
-        relevant_feature_cols = self.load_diagnostic_covariates(default_config.diagnostic_covariates_path, code, forecast)
-        code = code.replace("#", ":")
-        # Load CSV
-        df = pd.read_parquet(data_path)
-        if eliminate_covid_data:
-            assert covid_dates is not None
-            df = data_preparation.eliminate_covid_dates(df, covid_dates)
-        df = data_preparation.cut_dataframe(df, cutoff_date,max_date, data_path)
-
-        categorical_vars = ["Day_of_Week", 
-                                "Month", 
-                                "Season", 
-                                "Holiday", 
-                                "School_Vacation",
-                                "Is_Weekend",
-                                ]
-        df_dates = data_preparation.prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
-        df_dates = df_dates.drop(columns=['timestamp']) 
-        
-        
-        # multivariate scenario ..................................................
-        # Select feature columns (exclude timestamp & target)
-        idx_code = df.columns.get_loc(code)
-        df_features = df.drop(columns = ['timestamp'])
-        target_col = df.columns[idx_code]  # Target code column
-        # Convert DataFrame to numpy arrays
-        if relevant_feature_cols is not None:
-            X_raw = df_features[relevant_feature_cols].values  
-            X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
-        else:
-            X_raw = df_features.values
-
-        Y_raw = df[target_col].values
-        if covid_token:
-            df_covid = data_preparation.add_covid_token(df)
-            covid_feature = df_covid['covid_token'].values.reshape(-1, 1)
-            
-            X_raw = np.hstack((X_raw, covid_feature))
-
-        if production_mode:
-            X_raw = X_raw[-lookback:].reshape(1, lookback, -1)
-            Y_raw = Y_raw[-forecast:].reshape(1, forecast)
-            Y_raw = np.zeros_like(Y_raw)  # Replace with zeros for production mode as we don't have true future values
-        else:
-            X_raw = X_raw[-(lookback + forecast):-forecast].reshape(1, lookback, -1)
-            Y_raw = Y_raw[-forecast:].reshape(1, forecast)
-        return X_raw, Y_raw
-    
-
-    def prepare_prediction_seasonal_data(self, data_path: str, code: str, forecast: int, lookback: int, cutoff_date: str, max_date: str, categorical_vars: List[str], predictions_train: Optional[np.ndarray], predictions_test: Optional[np.ndarray], scaler: FunctionTransformer):
-        df = pd.read_parquet(data_path)
-        # Prepare seasonal features for training data
-
-        print("Preparing seasonal features for training data...")
-        df_processed = data_preparation.prepare_time_series_features(
-            df, 
-            self.config.categorical_vars, 
-            cutoff_date=self.config.cutoff_date,
-            max_date = self.config.final_cutoff_date,
-            scaler = self.config.scaler,
-            eliminate_covid_data=self.config.eliminate_covid_data, 
-            covid_dates=self.config.covid_dates,)
-
-        X_seasonal_covs = df_processed.drop(columns=['timestamp']).values[-forecast:].reshape(1, -1, df_processed.shape[1]-1)
-        X_seasonal_covs = X_seasonal_covs.astype(float)
-        return X_seasonal_covs
-    
     def create_univariate_transformer_model(self, input_shape, forecast, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function="tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding=True):
+        """Creates a univariate transformer model for time series forecasting.
+        Args:
+            input_shape (tuple): The shape of the input data (lookback, num_features).
+            forecast (int): The number of future time steps to predict.
+            head_size (int): The dimensionality of the attention heads.
+            num_heads (int): The number of attention heads.
+            ff_dim (int): The dimensionality of the feed-forward layer.
+            num_transformer_blocks (int): The number of transformer blocks to stack.
+            mlp_units (list of int): A list specifying the number of units in each MLP layer after the transformer blocks.
+            activation_function (str): The activation function to use in the transformer and MLP layers.
+            dropout (float): The dropout rate for regularization in the transformer blocks.
+            mlp_dropout (float): The dropout rate for regularization in the MLP layers.
+            n_pred (int): The number of future time steps to predict (forecast horizon).
+            pos_encoding (bool): Whether to use positional encoding in the model.
+        Returns:
+            A compiled Keras model instance representing the univariate transformer.
+        """
         model = model_architecture_univ_transformer.build_model(
             input_shape=input_shape,
             head_size=head_size,
@@ -215,6 +61,19 @@ class ModelPredictionPipeline:
         return model
 
     def create_residual_transformer_model(self, input_shape, forecast, transformer_params, activation_function="tanh"):
+        """Creates a residual transformer model for either diagnostics or seasonal components.
+        Args:
+            input_shape (tuple): The shape of the input data (lookback, num_features).
+            forecast (int): The number of future time steps to predict.
+            transformer_params (dict): A dictionary containing the parameters for the transformer architecture, including:
+                - head_size (int): The dimensionality of the attention heads.
+                - num_heads (int): The number of attention heads.
+                - ff_dim (int): The dimensionality of the feed-forward layer.
+                - mlp_units (list of int): A list specifying the number of units in each MLP layer after the transformer blocks.
+                - num_transformer_blocks (int): The number of transformer blocks to stack.
+            activation_function (str): The activation function to use in the transformer and MLP layers.
+        Returns:
+            A compiled Keras model instance representing the residual transformer."""
         model = model_architecture_residual_transformer.hybrid_lstm_transformer_model(
             input_shape=input_shape,
             forecast = forecast,
@@ -247,6 +106,12 @@ class ModelPredictionPipeline:
         return model
 
     def reconstruct_full_model(self, code: str, lookback: int, forecast: int, models_directory: str, univ_input_shape: Tuple[int], diagnostics_input_shape: Tuple[int], seasonal_input_shape: Tuple[int], head_size: int, num_heads: int, ff_dim: int, num_transformer_blocks: int, mlp_units: List[int], activation_function: str="tanh", dropout: float=0, mlp_dropout: float=0, n_pred: int=1, pos_encoding=True):
+        """Reconstructs the full model architecture for univariate, diagnostics residual, and seasonal residual components, and loads the corresponding weights for each sub-model.
+        
+        Returns:
+            A tuple containing the reconstructed univariate model, diagnostics residual model, and seasonal residual model with loaded weights.
+        """
+        
         DEFAULT_RESIDUAL_TRANSFORMER_PARAMS =  {
             'head_size': 16,
             'num_heads': 16,
@@ -299,9 +164,18 @@ class ModelPredictionPipeline:
 
     
     def run_reconstruct_save_results_pipeline(self, code: str, LOOKBACK_LIST: List[int], FORECAST_LIST: List[int], final_output_predictions: Optional[np.ndarray], final_output_df: pd.DataFrame):
-
+        """Runs the full pipeline to reconstruct the model, make predictions, and save results for a given code and list of lookback and forecast combinations. 
+        Args:
+            code (str): The code for which to run the pipeline (e.g., 'demanda__TOTAL').
+            LOOKBACK_LIST (List[int]): A list of lookback periods to iterate
+            FORECAST_LIST (List[int]): A list of forecast horizons to iterate.
+            final_output_predictions (Optional[np.ndarray]): An optional array to store final output predictions across iterations
+            final_output_df (pd.DataFrame): A DataFrame to store the final output predictions along with corresponding dates.
+        Returns:
+            A DataFrame containing the final output predictions for each forecast horizon along with corresponding dates.
+        """
         for lookback, forecast in zip(LOOKBACK_LIST, FORECAST_LIST):
-
+            auxiliary_output_df = pd.DataFrame()  # Temporary DataFrame for current iteration
             X_univ_data, Y_univ_data, df_timestamp = self.prepare_prediction_univ_data(
                 data_path=input_directory,
                 code=code,
@@ -320,6 +194,7 @@ class ModelPredictionPipeline:
                 code=code,
                 lookback=lookback,
                 forecast=forecast,
+                cutoff_date =cutoff_date,
                 max_date=max_date,
                 scaler=scaler,
                 covid_token=self.config.covid_token,
@@ -333,7 +208,7 @@ class ModelPredictionPipeline:
                 lookback=lookback,
                 cutoff_date=cutoff_date,
                 max_date=max_date,
-                categorical_vars=None,
+                categorical_vars=self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS,
                 predictions_train=None,
                 predictions_test=None,
                 scaler=scaler,
@@ -384,29 +259,39 @@ class ModelPredictionPipeline:
             print(f"MSE for code {code} with lookback {lookback} and forecast {forecast}: {mse}")
             print(f"WAPE for code {code} with lookback {lookback} and forecast {forecast}: {wape*100:.2f}%")
 
-            if final_output_predictions is None:
-                    final_output_predictions = np.zeros(FORECAST_LIST[-1])
+            target_date = df_timestamp[-forecast:].values
+            forecast_date = df_timestamp.iloc[-forecast-1]
 
-                
-            if FORECAST_LIST.index(forecast) == 0:
-                final_output_predictions[:forecast] += quant_pred_corrected_seasonal[:forecast][0]
-                vals = final_output_predictions[ :forecast]
-                padded_vals = np.full(365, np.nan)
-                padded_vals[:forecast] = vals
-                
-                final_output_df[forecast] = padded_vals
+            auxiliary_output_df["target_date"] = target_date
+            auxiliary_output_df["forecast_date"] = forecast_date
+            auxiliary_output_df["code"] = code
+            auxiliary_output_df["forecast"] = forecast
+            auxiliary_output_df["predictions"] = quant_pred_corrected_seasonal.flatten()[:forecast]
 
-            else:
-                final_output_predictions[FORECAST_LIST[FORECAST_LIST.index(forecast)-1]:forecast] += quant_pred_corrected_seasonal[0][FORECAST_LIST[FORECAST_LIST.index(forecast)-1]:forecast]
-                vals = final_output_predictions[:FORECAST_LIST[FORECAST_LIST.index(forecast)]]
-                padded_vals = np.full(365, np.nan)
-                padded_vals[:FORECAST_LIST[FORECAST_LIST.index(forecast)]] = vals
-                final_output_df[forecast] = padded_vals
+            final_output_df = pd.concat([final_output_df, auxiliary_output_df], ignore_index=True)
             
-        final_output_df['date'] = df_timestamp[-FORECAST_LIST[-1]:].values
-        final_output_df.to_csv(f"../quantized_models/{code}/final_output_predictions_{code.replace(':', '#')}.csv", index=False)
+        #final_output_df.to_csv(f"../quantized_models/{code}/final_output_predictions_{code.replace(':', '#')}.csv", index=False)
 
         return final_output_df
+
+    def save_final_output_predictions(self, final_output_df: pd.DataFrame):
+        """
+        Saves the final output predictions DataFrame to a CSV file.
+
+        Args:
+            final_output_df (pd.DataFrame): The DataFrame containing the final output predictions along with corresponding dates.
+            code (str): The code for which the predictions were made, used for naming the output file.
+        """
+        output_path = f"../production_predictions/final_output_predictions"
+        table = pa.Table.from_pandas(final_output_df, preserve_index=False)
+
+        ds.write_dataset(
+            table,
+            base_dir=output_path,
+            format="parquet",
+            partitioning=["code"]
+        )
+
 
 if __name__ == "__main__":
     CODES_LIST = ['demanda__TOTAL', 'demanda__SERVEI_CODI__URG', 'B34','J00', 'I10', 'M54','Ch01#subch01#A00-A09']
@@ -432,13 +317,13 @@ if __name__ == "__main__":
 
     
 
-
+    final_output_df = pd.DataFrame()
     for code in CODES_LIST:
         final_output_predictions = None
-        final_output_df = pd.DataFrame()
+        
         #final_output_df = generate_future_dates_df(input_directory, num_days=FORECAST_LIST[-1])
         
-        base_pipeline = ModelPredictionPipeline(config=TransformerPredictionConfig(
+        base_pipeline = ModelPredictionPipeline(config=BaseTransformerConfig(
                 code=code,
                 head_size=head_size,
                 num_heads=num_heads,
@@ -456,7 +341,7 @@ if __name__ == "__main__":
                 evaluate_model=True, 
                 data_path=input_directory
             ))
-        base_pipeline.run_reconstruct_save_results_pipeline(code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
-        
+        final_output_df = base_pipeline.run_reconstruct_save_results_pipeline(code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
+    base_pipeline.save_final_output_predictions(final_output_df)
     print(f"\nFinal output predictions for code {code}:\n")
     print(final_output_df)

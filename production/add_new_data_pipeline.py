@@ -39,10 +39,6 @@ class AddNewDataPipeline:
         Returns:
             pd.DataFrame: The original dataset plus the new row for the 'next day'.
         """
-    
-        # Standardizing the code identifier as per your snippet
-        # (Assuming 'code' is an attribute like self.code)
-        
         # Load Data
         df = pd.read_parquet(new_data_path)
         df = df[(df['timestamp'] >= cutoff_date) & (df['timestamp'] <= max_date)].reset_index(drop=True) 

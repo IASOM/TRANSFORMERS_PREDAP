@@ -1,46 +1,24 @@
-import tensorflow as tf
 from tensorflow import keras
-from keras import layers
 import os 
 from src.univariate_transformer.model_architecture_univ_transformer import (
     PositionalEncoding, RevIN
 )
 
-
-from src.main_train_univ_transformer_class import (
-    TransformerUnivConfig,
-    UnivariateTransformerPipeline,
-)
-
-
-
 from src.config.base_transformer_config import BaseTransformerConfig
-
 from src import data_preparation
-from src.univariate_transformer import plt_model, plot_predictions_with_waves, extract_model_params
-from src.residual_multivariate_transformers import load_base_model_transformer
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os
-import sys
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import mlflow
-from src.experiments_utils import smart_read, safe_float, initialize_results_tracking, load_json_codes_list, cleanup_ram
+from src.experiments_utils import smart_read
 import matplotlib.dates as mdates
-
 import mlflow
-import mlflow.keras
-from sklearn.preprocessing import MinMaxScaler
 
 from src.residual_multivariate_transformers import (
-    hybrid_lstm_transformer_model, train_given_model_and_data, 
-    load_trained_model, prepare_base_model_data, load_base_model_transformer,
-    prepare_residual_data, split_train_test, filter_diagnostics_covariates,
-    plot_stepwise_errors_comparison, plot_residuals_analysis, plot_predictions_with_pandemic_waves,
-    save_performance_results
-)
+        split_train_test, filter_diagnostics_covariates,
+        )
 
 def load_diagnostic_covariates( code, forecast, lookback, final_cutoff_date):
         diagnostic_covariates_path = f'../data/best_features/BEST_features_NOSMOOTH_{code}.xlsx'
@@ -526,7 +504,7 @@ if __name__ == '__main__':
 
         print("Predicted values shape:", predictions_univ.shape)
 
-            # Inverse transform predictions
+        # Inverse transform predictions
         predictions_to_plot = data_preparation.inverse_transform_predictions(
             predictions_univ, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
         )
