@@ -9,119 +9,19 @@ import math
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam
-from .model_architechture_informer import build_informer_model
-from .model_architechture_log_transformer import build_log_transformer_model
-from .model_architechture_LSTNet import build_lstnet_model
+from .transformer_architechtures.model_architechture_informer import build_informer_model
+from .transformer_architechtures.model_architechture_log_transformer import build_log_transformer_model
+from .transformer_architechtures.model_architechture_LSTNet import build_lstnet_model
+from .transformer_architechtures.model_architechture_base_tranformer import build_base_model 
 
 
-def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_function='tanh', dropout=0, causal_masking=False):
-    """
-    Transformer encoder block with multi-head attention and feed-forward layers.
-    
-    Args:
-        inputs: Input tensor (batch_size, sequence_length, features)
-        head_size: Dimension of each attention head
-        num_heads: Number of attention heads
-        ff_dim: Dimension of feed-forward layer
-        dropout: Dropout rate
-        
-    Returns:
-        Encoded tensor with residual connections
-    """
-
-    # Normalization and Attention
-    x = layers.LayerNormalization(epsilon=1e-6)(inputs)  # to inputs to stabilize training
-    x = layers.MultiHeadAttention(
-        key_dim=head_size, num_heads=num_heads, dropout=dropout)(x, x)  # self attention to normalized input 
-    x = layers.Dropout(dropout)(x)  # (dropout to reduce overfitting)
-    res = x + inputs  # attention output added to original inputs
-    
-
-    # Feed Forward Part
-    x = layers.LayerNormalization(epsilon=1e-6)(res)  # again after resid connection
-    x = layers.Conv1D(filters=ff_dim, kernel_size=1, activation=activation_function)(x)  # point-wise convol.: Expands feature dim to ff_dim 
-    x = layers.Dropout(dropout)(x)  # dropout again
-    x = layers.Conv1D(filters=inputs.shape[-1], kernel_size=1)(x)  # reduces feature dim back to match input size
-    x = x + res
-    
-    return x
-
-
-
-
-
-'''def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
-    #return build_informer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
-    #return build_lstnet_model(input_shape, n_filters=head_size*num_heads, kernel_size=6, rnn_units=ff_dim, skip_units=ff_dim//2, skip=7, n_pred=n_pred, dropout=dropout)
-    return build_log_transformer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
-'''
 
 
 def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
-    """
-    Build complete transformer model for univariate time series forecasting.
-    
-    Args:
-        input_shape: Shape of input data (sequence_length, features)
-        head_size: Dimension of each attention head
-        num_heads: Number of attention heads
-        ff_dim: Dimension of feed-forward layer
-        num_transformer_blocks: Number of transformer encoder blocks
-        mlp_units: List of MLP layer dimensions
-        dropout: Dropout rate for transformer layers
-        mlp_dropout: Dropout rate for MLP layers
-        n_pred: Number of prediction steps
-        
-    Returns:
-        Compiled Keras model
-    """
-    inputs = keras.Input(shape=input_shape)  # defines input tensor
-    
-    revin_layer = RevIN()
+    #return build_informer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
+    #return build_lstnet_model(input_shape, n_filters=head_size*num_heads, kernel_size=6, rnn_units=ff_dim, skip_units=ff_dim//2, skip=7, n_pred=n_pred, dropout=dropout)
+    return build_base_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
 
-    # 3. Normalize Input
-    x = revin_layer(inputs, mode='norm')
-    #x = inputs  # initial input
-    
-    d_model = max(head_size * num_heads, 32)
-    x = layers.Dense(d_model)(x)
-    #x = layers.Dense(d_model)(inputs)
-    x = layers.LayerNormalization(epsilon=1e-6)(x)
-    #x = layers.Activation(activation_function)(x)
-    if pos_encoding == True:
-        x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
-    
-    for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
-        x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
-
-    #x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
-    if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
-        x = layers.AveragePooling1D(7, data_format="channels_first")(x)
-    #query = tf.Variable(tf.random.normal((1, 1, d_model)), trainable=True)
-    # Broadcast query to match batch size
-    #query = LearnableQuery(d_model)(inputs)
-
-    # Cross-Attention: Query (Target) looks at Keys/Values (Input Variables)
-    # x shape: (batch, num_features, d_model)
-
-    #x2 = layers.MaxPooling1D(7,data_format="channels_first")(x)
-    #x = layers.Concatenate()([x1, x2])
-    #x = layers.Dense(input_shape[1])(x)
-    
-    #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)
-    x = layers.Flatten()(x)
-    
-    for dim in mlp_units:  # multi layer perceptron (dropout to avoid overfitting)
-        x = layers.Dense(dim, activation=activation_function)(x)
-        x = layers.Dropout(mlp_dropout)(x)
-   
-    outputs = layers.Dense(n_pred)(x)
-    outputs = layers.Reshape((n_pred, 1))(outputs)
-    outputs = revin_layer(outputs, mode='denorm')
-    outputs = layers.Reshape((n_pred,))(outputs)
-    #outputs = layers.Permute((2, 1))(outputs)
-
-    return keras.Model(inputs, outputs)
 
 
 class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):

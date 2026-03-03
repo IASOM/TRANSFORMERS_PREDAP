@@ -1,6 +1,7 @@
 from sklearn.pipeline import FunctionTransformer
 import numpy as np
 import pandas as pd
+from sqlalchemy import between
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -15,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.univariate_transformer import model_architecture_univ_transformer
 from src.residual_multivariate_transformers import model_architecture_residual_transformer
-import data_preparation
+from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
 
@@ -274,7 +275,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
 
         return final_output_df
 
-    def save_final_output_predictions(self, final_output_df: pd.DataFrame):
+    def save_final_output_predictions(self, final_output_df: pd.DataFrame, output_path: str = "../production_predictions/final_output_predictions"):
         """
         Saves the final output predictions DataFrame to a CSV file.
 
@@ -282,7 +283,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             final_output_df (pd.DataFrame): The DataFrame containing the final output predictions along with corresponding dates.
             code (str): The code for which the predictions were made, used for naming the output file.
         """
-        output_path = f"../production_predictions/final_output_predictions"
+        
         table = pa.Table.from_pandas(final_output_df, preserve_index=False)
 
         ds.write_dataset(
@@ -291,6 +292,126 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             format="parquet",
             partitioning=["code"]
         )
+
+    def compute_evaluation_metrics(self, predictions_df: np.ndarray, real_data_df: np.ndarray, metrics_df: pd.DataFrame) -> Dict[str, float]:
+        """
+        Computes evaluation metrics (MAE, MSE, WAPE) between predictions and real data.
+
+        Args:
+            predictions_df (np.ndarray): The array of predicted values.
+            real_data_df (np.ndarray): The array of actual values.
+        Returns:
+            A dictionary containing the computed evaluation metrics.
+        """
+
+        codes = np.unique(predictions_df['code'].values)
+        dates = np.unique(predictions_df['target_date'].values)
+        forecasts = np.unique(predictions_df['forecast'].values[0])
+        results_accumulator = []
+        for code in codes:
+            for date in dates:
+                for forecast in forecasts:
+                    real_code = code.replace('#', ':')
+                    preds_mask = (predictions_df['code'] == code) & (predictions_df['target_date'] == date) & (predictions_df['forecast'] == forecast)
+                    preds = predictions_df.loc[preds_mask, 'predictions'].values
+
+                    real_mask = real_data_df[real_code][real_data_df['timestamp'] == date].index
+                    real = real_data_df.loc[real_mask, real_code].values
+
+                    mae = np.mean(np.abs(preds - real))
+                    mse = np.mean((preds - real)**2)
+                    rmse = np.sqrt(mse)
+                    wape = np.mean(np.abs(preds - real) / (np.abs(real) + 1e-8))
+
+                    print(f"Evaluation for code {code} on date {date}: MAE={mae}, MSE={mse}, WAPE={wape*100:.2f}%")
+                    results_accumulator.append({
+                        'code': code,
+                        'date': date,
+                        'forecast': forecast,
+                        'MAE': mae,
+                        'MSE': mse,
+                        'RMSE': rmse,
+                        'WAPE': wape *100   
+
+                    })
+        metrics_df = pd.concat([metrics_df, pd.DataFrame(results_accumulator)], ignore_index=True)
+        metrics_df.to_parquet("../production_predictions/production_evaluation_metrics.parquet", index=False)
+        return metrics_df
+
+        
+
+    def delete_old_data(self, predictions_dataset_path: str, real_data_dataset_path: Optional[str] = None, metrics_df_path: str = "../production_predictions/production_evaluation_metrics.csv"):
+        """
+        Deletes rows from a parquet file where the day difference between
+        target_date and forecast_date equals the value in forecast.
+
+        Args:
+            predictions_dataset_path (str): Full parquet dataset path created by save_final_output_predictions.
+            real_data_dataset_path (Optional[str]): Optional path to the real data parquet file for additional processing.
+            metrics_df_path (str): Path to the existing metrics dataframe. If it doesn't exist, a new one will be created.
+        
+        """
+        if not os.path.exists(predictions_dataset_path):
+            print(f"No data file found at: {predictions_dataset_path}")
+            return None
+        if not os.path.exists(real_data_dataset_path):
+            print(f"No real data file found at: {real_data_dataset_path}")
+        else:
+            print(f"Real data file found at: {real_data_dataset_path}. It will be used for additional processing.")
+
+        if os.path.exists(metrics_df_path):
+            metrics_df = pd.read_parquet(metrics_df_path)
+            print(f"Existing metrics dataframe loaded from: {metrics_df_path}")
+        else:
+            print(f"No existing metrics dataframe found at: {metrics_df_path}. A new one will be created.")
+            metrics_df = pd.DataFrame(columns=['code', 'date', 'MAE', 'MSE', 'RMSE', 'WAPE'])
+            
+        
+        real_data_dataset = pd.read_parquet(real_data_dataset_path) if real_data_dataset_path else None
+
+        my_schema = pa.schema([("code", pa.string())])
+
+        # 2. Create the partitioning object WITH the flavor
+        partition_schema = ds.partitioning(my_schema)
+        dataset = ds.dataset(predictions_dataset_path, format="parquet", partitioning=partition_schema)
+
+        
+        table = dataset.to_table()
+        df = table.to_pandas()
+
+        required_cols = {"target_date", "forecast_date", "forecast"}
+        missing = required_cols - set(df.columns)
+        if missing:
+            raise ValueError(
+                f"Missing required columns in {predictions_dataset_path}: {sorted(missing)}"
+            )
+
+        # Ensure datetime + numeric types
+        df["target_date"] = pd.to_datetime(df["target_date"], errors="coerce")
+        df["forecast_date"] = pd.to_datetime(df["forecast_date"], errors="coerce")
+        forecast_days = pd.to_numeric(df["forecast"], errors="coerce")  # Add 1 to match the day difference logic (inclusive of start date)
+
+        # Rows to delete:
+        # difference in days equals forecast value in that row
+        diff_days = (df["target_date"] - df["forecast_date"]).dt.days
+        delete_mask = diff_days == forecast_days
+
+        deleted_rows = int(delete_mask.sum())
+        df_to_delete = df.loc[delete_mask].copy()
+
+        self.compute_evaluation_metrics(predictions_df=df_to_delete, real_data_df=real_data_dataset, metrics_df=metrics_df)
+        df_clean = df.loc[~delete_mask].copy()
+
+        df_clean.to_parquet(
+            predictions_dataset_path, 
+            engine='pyarrow', 
+            partition_cols=['code'], 
+            index=False
+        )
+        print(f"Deleted {deleted_rows} rows from: {predictions_dataset_path}")
+        print(f"Remaining rows: {len(df_clean)}")
+
+        return predictions_dataset_path
 
 
 if __name__ == "__main__":
@@ -302,6 +423,8 @@ if __name__ == "__main__":
 
     input_directory = '../data/FINAL_DB/full_CAT1.parquet'
     models_directory = '../transformer_outputs/models_covid_token'
+    output_path = f"../production_predictions/final_output_predictions"
+    metrics_df_path = "../production_predictions/production_evaluation_metrics.parquet"
     scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
     max_date = '2025-09-30'
     cutoff_date = '2008-01-01'
@@ -341,7 +464,8 @@ if __name__ == "__main__":
                 evaluate_model=True, 
                 data_path=input_directory
             ))
-        final_output_df = base_pipeline.run_reconstruct_save_results_pipeline(code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
-    base_pipeline.save_final_output_predictions(final_output_df)
+        #final_output_df = base_pipeline.run_reconstruct_save_results_pipeline(code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
+    #base_pipeline.save_final_output_predictions(final_output_df)
+    base_pipeline.delete_old_data(predictions_dataset_path=output_path, real_data_dataset_path=input_directory, metrics_df_path=metrics_df_path)
     print(f"\nFinal output predictions for code {code}:\n")
     print(final_output_df)

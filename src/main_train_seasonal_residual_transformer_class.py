@@ -26,8 +26,14 @@ if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
 # Import necessary modules
-import data_preparation
+from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
+
+from src.residual_multivariate_transformers.model_architecture_residual_transformer import (
+    RevIN,
+    PositionalEncoding,
+    CustomCosineDecay,
+)
 
 from residual_multivariate_transformers import (
     # Model architecture and training
@@ -95,6 +101,16 @@ class SeasonalResidualTransformerConfig(BaseTransformerConfig):
             'total_steps': self.epochs
         }
 
+@dataclass
+class SeasonalResidualPipelineOutputs:
+    predictions_train_corrected: np.ndarray
+    predictions_test_corrected: np.ndarray
+    residual_diagnostics_model: Any
+    residual_diagnostics_model_name: str
+    corrected_diagnostics_mae: float
+    corrected_diagnostics_mse: float
+    corrected_diagnostics_rmse: float
+    corrected_diagnostics_wape: float
 
 class SeasonalResidualTransformerPipeline:
     """
@@ -362,7 +378,7 @@ class SeasonalResidualTransformerPipeline:
         print("="*50)
         
         # Load the trained residual model if it was saved and reloaded
-        model_path = os.path.join(self.config.model_folder, self.residual_model_name)
+        model_path = os.path.join(self.data_path, self.residual_model_name)
         if os.path.exists(model_path):
             self.residual_model = load_trained_model(model_path)
         
@@ -647,9 +663,20 @@ class SeasonalResidualTransformerPipeline:
         print("SEASONAL RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
         print("="*50)
         
-        return (self.predictions_train_corrected, self.predictions_test_corrected, 
+        '''return (self.predictions_train_corrected, self.predictions_test_corrected, 
                 self.residual_model, self.residual_model_name, 
-                corrected_mae, corrected_mse, corrected_rmse, corrected_wape)
+                corrected_mae, corrected_mse, corrected_rmse, corrected_wape)'''
+        
+        return SeasonalResidualPipelineOutputs(
+            predictions_train_corrected=self.predictions_train_corrected,
+            predictions_test_corrected=self.predictions_test_corrected,
+            residual_diagnostics_model=self.residual_diagnostics_model,
+            residual_diagnostics_model_name=self.residual_diagnostics_model_name,
+            corrected_diagnostics_mae=corrected_mae,
+            corrected_diagnostics_mse=corrected_mse,
+            corrected_diagnostics_rmse=corrected_rmse,
+            corrected_diagnostics_wape=corrected_wape
+        )
     
     def get_results_summary(self) -> Dict[str, Any]:
         """

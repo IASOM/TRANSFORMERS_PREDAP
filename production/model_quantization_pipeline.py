@@ -17,7 +17,7 @@ from src.univariate_transformer.model_architecture_univ_transformer import (
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-import data_preparation
+from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
 

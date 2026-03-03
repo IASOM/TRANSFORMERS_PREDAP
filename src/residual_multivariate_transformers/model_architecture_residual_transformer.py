@@ -15,9 +15,10 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.constraints import MaxNorm
 
 from config.base_transformer_config import BaseTransformerConfig
-from univariate_transformer.model_architechture_informer import build_informer_model
-from univariate_transformer.model_architechture_log_transformer import build_log_transformer_model
-from univariate_transformer.model_architechture_LSTNet import build_lstnet_model
+from univariate_transformer.transformer_architechtures.model_architechture_informer import build_informer_model
+from univariate_transformer.transformer_architechtures.model_architechture_log_transformer import build_log_transformer_model
+from univariate_transformer.transformer_architechtures.model_architechture_LSTNet import build_lstnet_model
+from univariate_transformer.transformer_architechtures.model_architechture_base_tranformer import build_base_model
 
 default_config = BaseTransformerConfig()
 
@@ -101,7 +102,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     
     input_layer = keras.Input(shape=input_shape)
     revin_layer = RevIN()
-    x = revin_layer(input_layer, mode='norm')
+    x, revin_mean, revin_stdev = revin_layer(input_layer, mode='norm')
     
     d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(x)
@@ -110,9 +111,8 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     x = PositionalEncoding(input_shape[0], d_model)(x)
     
     
-    '''
     # LSTM Block
-    x = layers.LSTM(
+    '''x = layers.LSTM(
         lstm_params['units_1'], 
         return_sequences=lstm_params['return_sequences'],
         recurrent_activation='tanh',
@@ -136,8 +136,8 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     # Transformer Encoder Block
 
     '''d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
-        x = layers.Dense(d_model)(input_layer)
-    '''
+    x = layers.Dense(d_model)(input_layer)'''
+    
 
     
     #x = PositionalEncoding(x.shape[1], x.shape[2])(x)
@@ -153,8 +153,8 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # GlobalAveragePooling1D Layer
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x) # May be changed to Flatten() if needed 
-    if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
-        x = layers.AveragePooling1D(14, data_format="channels_first")(x)
+    #if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
+    x = layers.AveragePooling1D(14, data_format="channels_first")(x)
     x = layers.Flatten()(x)
     
     for dim in transformer_params['mlp_units']:
@@ -165,7 +165,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)
-    outputs = revin_layer(outputs, mode='denorm')
+    outputs = revin_layer(outputs, mode='denorm', mean=revin_mean, stdev=revin_stdev)
     outputs = layers.Reshape((forecast,))(outputs)
 
 
@@ -191,7 +191,8 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     #return build_informer_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
     return build_log_transformer_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
     #return build_lstnet_model(input_shape, n_filters=transformer_params['head_size']*transformer_params['num_heads'], kernel_size=6, rnn_units=transformer_params['ff_dim'], skip_units=transformer_params['ff_dim']//2, skip=7, n_pred=forecast, dropout=transformer_params['dropout'])
-'''
+    #return build_base_model(input_shape, transformer_params['head_size'], transformer_params['num_heads'], transformer_params['ff_dim'], transformer_params['num_transformer_blocks'], transformer_params['mlp_units'], activation_function, transformer_params['dropout'], transformer_params['dropout'], forecast, pos_encoding=True)
+    '''
 
 class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     """
@@ -293,27 +294,37 @@ class RevIN(layers.Layer):
         super(RevIN, self).__init__(**kwargs)
         self.eps = eps
         self.detach_grad = detach_grad
-        # These will store the mean and stdev of the current batch/instance
-        self.mean = None
-        self.stdev = None
 
-    def call(self, x, mode='norm'):
+    def call(self, x, mode='norm', mean=None, stdev=None):
         if mode == 'norm':
-            self._get_statistics(x)
-            x = (x - self.mean) / self.stdev
-            return x
+            mean, stdev = self._get_statistics(x)
+            x_norm = (x - mean) / stdev
+            return x_norm, mean, stdev
+
         elif mode == 'denorm':
-            # Use the statistics stored during the last 'norm' call
-            dims = x.shape[-1]
-            x = x * self.stdev[:, :, :dims] + self.mean[:, :, :dims]
-            return x
+            if mean is None or stdev is None:
+                raise ValueError("For mode='denorm', mean and stdev must be provided.")
+            dims = tf.shape(x)[-1]
+            return x * stdev[:, :, :dims] + mean[:, :, :dims]
+
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
 
     def _get_statistics(self, x):
-        # Calculate mean and stdev across the time dimension (axis 1)
-        # Assuming shape: (batch, time_steps, features)
-        self.mean = tf.reduce_mean(x, axis=1, keepdims=True)
-        self.stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
-        
+        mean = tf.reduce_mean(x, axis=1, keepdims=True)
+        stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
+
         if self.detach_grad:
-            self.mean = tf.stop_gradient(self.mean)
-            self.stdev = tf.stop_gradient(self.stdev)
+            mean = tf.stop_gradient(mean)
+            stdev = tf.stop_gradient(stdev)
+
+        return mean, stdev
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "eps": self.eps,
+            "detach_grad": self.detach_grad,
+        })
+        return config
+

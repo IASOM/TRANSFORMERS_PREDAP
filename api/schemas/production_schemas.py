@@ -56,3 +56,4 @@ class ModelReconstructionRequest(BaseModel):
     positional_encoding: bool = Field(default=True, description="If True, uses positional encoding in the model.")
     evaluate_model: bool = Field(default=True, description="If True, evaluates the model after training.")
     data_path: str = Field(..., description="The path to the input data directory.")
+    save_path: str = Field(..., description="The path to the directory where results will be saved.")

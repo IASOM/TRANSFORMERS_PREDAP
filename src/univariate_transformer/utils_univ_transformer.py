@@ -99,7 +99,7 @@ def load_and_evaluate_models(model_folder='models', input_directory=None, code="
             model = tf.keras.models.load_model(model_path, compile=True)
             
             # Import data_preparation here to avoid circular imports
-            import data_preparation
+            from utils import data_preparation
             
             # Prepare data with extracted parameters
             X_test, Y_test = data_preparation.prepare_data(

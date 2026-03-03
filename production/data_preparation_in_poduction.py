@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import FunctionTransformer
 from typing import List, Optional, Tuple
-import data_preparation
+from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 
 default_config = BaseTransformerConfig()

@@ -13,6 +13,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.config.base_transformer_config import BaseTransformerConfig
+import pyarrow as pa
+import pyarrow.dataset as ds
 
 class AddNewDataPipeline:
     def __init__(self, config: BaseTransformerConfig):
@@ -115,8 +117,8 @@ class AddNewDataPipeline:
 
         return full_save_path
 
-
     
+
 
 if __name__ == "__main__":
     config = BaseTransformerConfig()

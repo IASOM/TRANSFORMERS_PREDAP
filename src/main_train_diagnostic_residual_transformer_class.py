@@ -21,7 +21,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 
 # Import necessary modules
-import data_preparation
+from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 from univariate_transformer import setup_gpu_memory, create_model_directories, create_pandemic_waves_df
 from residual_multivariate_transformers import (
@@ -31,7 +31,7 @@ from residual_multivariate_transformers import (
     plot_stepwise_errors_comparison, plot_residuals_analysis, plot_predictions_with_pandemic_waves,
     save_performance_results
 )
-from evaluation_plot_utils import (
+from utils.evaluation_plot_utils import (
     plot_errors_over_time_with_waves,
     evaluate_error_significance_pandemic_waves
 )
@@ -95,6 +95,17 @@ class DiagnosticResidualTransformerConfig(BaseTransformerConfig):
             'warmup_steps': warmup_steps,
             'total_steps': self.epochs
         }
+
+@dataclass
+class DiagnosticResidualPipelineOutputs:
+    predictions_train_corrected: np.ndarray
+    predictions_test_corrected: np.ndarray
+    residual_diagnostics_model: tf.keras.Model
+    residual_diagnostics_model_name: str
+    corrected_diagnostics_mae: float
+    corrected_diagnostics_mse: float
+    corrected_diagnostics_rmse: float
+    corrected_diagnostics_wape: float
 
 
 class DiagnosticResidualTransformerPipeline:
@@ -653,9 +664,20 @@ class DiagnosticResidualTransformerPipeline:
         print("RESIDUAL MULTIVARIATE TRANSFORMER PIPELINE COMPLETE")
         print("="*50)
         
-        return (self.predictions_train_corrected, self.predictions_test_corrected, 
+        '''return (self.predictions_train_corrected, self.predictions_test_corrected, 
                 self.residual_model, self.residual_model_name, 
-                corrected_mae, corrected_mse, corrected_rmse, corrected_wape)
+                corrected_mae, corrected_mse, corrected_rmse, corrected_wape)'''
+        
+        return DiagnosticResidualPipelineOutputs(
+            predictions_train_corrected=self.predictions_train_corrected,
+            predictions_test_corrected=self.predictions_test_corrected,
+            residual_diagnostics_model=self.residual_model,
+            residual_diagnostics_model_name=self.residual_model_name,
+            corrected_diagnostics_mae=corrected_mae,
+            corrected_diagnostics_mse=corrected_mse,
+            corrected_diagnostics_rmse=corrected_rmse,
+            corrected_diagnostics_wape=corrected_wape
+        )
     
     def get_results_summary(self) -> Dict[str, Any]:
         """

@@ -15,7 +15,7 @@ src_dir = os.path.dirname(current_dir) if os.path.basename(current_dir) != 'src'
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-import data_preparation
+from utils import data_preparation
 from univariate_transformer import plt_model, plot_predictions_with_waves, extract_model_params
 from residual_multivariate_transformers import load_base_model_transformer
 
@@ -87,7 +87,7 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
 
     print("Predicted values shape:", predictions.shape)
     
-      # Inverse transform predictions
+    # Inverse transform predictions
     predictions_to_plot = data_preparation.inverse_transform_predictions(
         predictions, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
     )
@@ -125,5 +125,5 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
 
     # Sliding window evaluation (optional)
     # evaluate_model_sliding_window(model, model_display_name, X_test, Y_test, date_list, df_waves, sliding_window=forecast)
-    return loss, original_mae, original_mse, original_rmse, original_wape
+    return predictions, loss, original_mae, original_mse, original_rmse, original_wape
 

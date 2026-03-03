@@ -28,7 +28,7 @@ src_dir = os.path.dirname(current_dir) if os.path.basename(current_dir) != 'src'
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-import data_preparation
+from utils import data_preparation
 from univariate_transformer.evaluation_univ_transformer import evaluate_univ_transformer
 
 from config import BaseTransformerConfig
@@ -96,6 +96,17 @@ class TransformerUnivConfig(BaseTransformerConfig):
             'total_steps': self.epochs
         }
 
+@dataclass
+class UnivariateTransformerPipelineOutputs:
+    model: tf.keras.Model
+    model_name: str
+    train_predictions: np.ndarray
+    test_predictions: Optional[np.ndarray]
+    loss: Optional[float]
+    mae: Optional[float]
+    mse: Optional[float]
+    rmse: Optional[float]
+    wape: Optional[float]
 
 class UnivariateTransformerPipeline:
     """
@@ -116,6 +127,8 @@ class UnivariateTransformerPipeline:
         self.evaluation_results = None
         self.data_prep_time = 0
         self.diagnostic_covariates_list = None
+        self.train_predictions = None
+        self.test_predictions = None
         
         # Initialize paths
         self.data_path =self.config.data_path
@@ -301,6 +314,8 @@ class UnivariateTransformerPipeline:
         )
         
         self.training_history = training_results
+
+        self.train_predictions = self.model.predict(X, verbose=1)
         
         print("Training completed successfully!")
         return training_results
@@ -328,7 +343,7 @@ class UnivariateTransformerPipeline:
         df_waves = create_pandemic_waves_df()
         
         # Evaluate the model
-        loss, mae, mse, rmse, wape = evaluate_univ_transformer(
+        predictions, loss, mae, mse, rmse, wape = evaluate_univ_transformer(
             self.model_name,
             self.config.data_path,
             self.config.code,
@@ -360,7 +375,7 @@ class UnivariateTransformerPipeline:
         print(f"  RMSE: {rmse:.6f}")
         print(f"  WAPE: {wape:.6f}%")
         
-        return loss, mae, mse, rmse, wape
+        return predictions, loss, mae, mse, rmse, wape
     
     def run_complete_pipeline(self) -> Tuple[tf.keras.Model, str, Optional[float], Optional[float], Optional[float]]:
         """
@@ -385,9 +400,9 @@ class UnivariateTransformerPipeline:
         evaluation_results = self.evaluate_model()
         
         # Extract evaluation metrics
-        loss, mae, mse, rmse, wape = None, None, None, None, None
+        test_predictions, loss, mae, mse, rmse, wape = None, None, None, None, None, None
         if evaluation_results is not None:
-            loss, mae, mse, rmse, wape = evaluation_results
+            self.test_predictions, loss, mae, mse, rmse, wape = evaluation_results
         
         print("\n" + "="*50)
         print("PIPELINE COMPLETED SUCCESSFULLY!")
@@ -397,7 +412,18 @@ class UnivariateTransformerPipeline:
         if evaluation_results:
             print(f"Final metrics - Loss: {loss:.6f}, MAE: {mae:.6f}, MSE: {mse:.6f}, RMSE: {rmse:.6f}, WAPE: {wape:.6f}%")
         
-        return self.model, self.model_name, loss, mae, mse, rmse, wape
+        #return self.model, self.model_name, self.train_predictions, self.test_predictions, loss, mae, mse, rmse, wape
+        return UnivariateTransformerPipelineOutputs(
+            model=self.model,
+            model_name=self.model_name,
+            train_predictions=self.train_predictions,
+            test_predictions=self.test_predictions,
+            loss=loss,
+            mae=mae,
+            mse=mse,
+            rmse=rmse,
+            wape=wape
+        )
     
     def get_results_summary(self) -> Dict[str, Any]:
         """

@@ -5,7 +5,7 @@ like MAE, RMSE, MSE
 from datetime import datetime
 
 from config.base_transformer_config import BaseTransformerConfig
-import data_preparation
+from utils import data_preparation
 from dataclasses import dataclass, field
 import numpy as np
 import os

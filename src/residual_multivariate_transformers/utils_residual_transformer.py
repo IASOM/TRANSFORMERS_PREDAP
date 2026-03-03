@@ -22,7 +22,7 @@ src_dir = os.path.dirname(os.path.dirname(current_dir)) if 'residual_multivariat
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-import data_preparation
+from utils import data_preparation
 
 
 from config.base_transformer_config import BaseTransformerConfig

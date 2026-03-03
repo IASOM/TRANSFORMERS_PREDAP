@@ -7,10 +7,12 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from src.config.base_transformer_config import BaseTransformerConfig
+
 from production.add_new_data_pipeline import AddNewDataPipeline
 from production.model_reconstruction_pipeline import ModelPredictionPipeline
 from api.schemas.production_schemas import AddNewDataRequest
 from api.schemas.production_schemas import ModelReconstructionRequest
+
 
 
 router = APIRouter(prefix="/production", tags=["production"])
@@ -95,7 +97,7 @@ def model_reconstruction_pipeline(request: ModelReconstructionRequest):
             save_path=request.save_path
         )
 
-        data_preparation.save_final_output_predictions(final_output_df)
+        data_preparation.save_final_output_predictions(final_output_df, save_path=request.save_path)
 
 
         return JSONResponse(content={
@@ -105,3 +107,41 @@ def model_reconstruction_pipeline(request: ModelReconstructionRequest):
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error triggering model reconstruction: {str(e)}")
+
+@router.delete("/delete_old_data")
+def delete_old_data():
+    """
+    Deletes old data from the production predictions dataset based on the logic:
+    If the difference in days between target_date and forecast_date equals the forecast value, delete that row.
+    
+    Args:
+        dataset_path (str): The path to the dataset from which old data should be deleted.
+    
+    Returns:
+        str: The path to the updated dataset after deletion.
+    """
+    dataset_path = "../production_predictions/final_output_predictions.parquet"
+    metrics_df_path = "../production_predictions/production_evaluation_metrics.parquet"
+    input_directory = '../data/FINAL_DB/full_CAT1.parquet'
+
+
+    if not os.path.exists(dataset_path):
+        print(f"No data file found at: {dataset_path}")
+        return None
+
+    try:    
+        config = BaseTransformerConfig()
+        pipeline = ModelPredictionPipeline(config)
+        updated_path = pipeline.delete_old_data(predictions_dataset_path=dataset_path, real_data_dataset_path=input_directory, metrics_df_path=metrics_df_path)
+        return JSONResponse(content={
+            "status": "success",
+            "message": f"Old data deleted successfully from: {updated_path}",
+            "updated_dataset_path": updated_path
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting old data: {str(e)}")
+    
+
+
+
+

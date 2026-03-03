@@ -14,6 +14,9 @@ from datetime import datetime
 import json
 import pandas as pd
 
+from residual_multivariate_transformers.model_architecture_residual_transformer import PositionalEncoding, RevIN, CustomCosineDecay
+
+
 # Add the src directory to path for module imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.dirname(os.path.dirname(current_dir)) if 'residual_multivariate_transformers' in current_dir else os.path.dirname(current_dir)
@@ -226,8 +229,19 @@ def load_trained_model(model_path):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Model not found at: {model_path}")
     
+
+    
     print(f"Loading model from: {model_path}")
-    model = tf.keras.models.load_model(model_path, compile=True)
+    tf.keras.backend.clear_session()
+    model = tf.keras.models.load_model(
+        model_path, 
+        custom_objects={
+            'CustomCosineDecay': CustomCosineDecay, 
+            'PositionalEncoding': PositionalEncoding, 
+            'RevIN': RevIN}, 
+        compile=False,
+            )
+    
     print("Model loaded successfully")
     return model
 
