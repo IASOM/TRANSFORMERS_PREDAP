@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "4c90e8f10fc74a989869b5abb2948400",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INFP_PENEDES_70_lb182_fh365_010304",
+        "timestamp": "2026-01-27T01:36:20.472483",
+        "hydra_job_num": 55
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__INFP_PENEDES_70",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 377.259381,
+        "phase_2_diagnostic_seconds": 411.212103,
+        "phase_3_seasonal_seconds": 1206.992119,
+        "total_training_seconds": 1995.47725,
+        "total_training_minutes": 33.257954166666664
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 43.27238464355469,
+            "mae": 41.00457677276006,
+            "mse": 3955.7850278643673,
+            "rmse": 62.895031821793104,
+            "wape": 51.17654262209429
+        },
+        "diagnostic_residual": {
+            "mae": 40.27286694918089,
+            "mse": 3944.556034403357,
+            "rmse": 62.80570065211722,
+            "wape": 50.26331824763175
+        },
+        "seasonal_residual": {
+            "mae": 40.869885850326526,
+            "mse": 3992.453866267417,
+            "rmse": 63.185867615056274,
+            "wape": 51.008439052316476
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__INFP_PENEDES_70_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__INFP_PENEDES_70_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__INFP_PENEDES_70_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

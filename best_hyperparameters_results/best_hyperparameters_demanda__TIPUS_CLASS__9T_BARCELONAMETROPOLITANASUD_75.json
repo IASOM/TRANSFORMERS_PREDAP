@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "83292d5b57db41e6abd12cdc2190bb2f",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_BARCELONAMETROPOLITANASUD_75_lb182_fh365_231929",
+        "timestamp": "2026-02-03T00:29:54.006014",
+        "hydra_job_num": 153
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_BARCELONAMETROPOLITANASUD_75",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 289.872434,
+        "phase_2_diagnostic_seconds": 384.849732,
+        "phase_3_seasonal_seconds": 3549.628442,
+        "total_training_seconds": 4224.372743,
+        "total_training_minutes": 70.40621238333333
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 692.5654907226562,
+            "mae": 691.7692854149127,
+            "mse": 1204242.3786176364,
+            "rmse": 1097.3797786626271,
+            "wape": 25.519369591019007
+        },
+        "diagnostic_residual": {
+            "mae": 706.446194435818,
+            "mse": 1233253.7918604373,
+            "rmse": 1110.519604446692,
+            "wape": 26.06080077863469
+        },
+        "seasonal_residual": {
+            "mae": 579.5153316743383,
+            "mse": 885863.76263718,
+            "rmse": 941.2033588110382,
+            "wape": 21.37832113171846
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_BARCELONAMETROPOLITANASUD_75_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_BARCELONAMETROPOLITANASUD_75_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_BARCELONAMETROPOLITANASUD_75_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

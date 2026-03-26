@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "c0af9592a2e94f71a5a56f4b4e86cf1b",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_LLEIDA_61_lb182_fh365_081813",
+        "timestamp": "2026-02-03T08:54:27.521214",
+        "hydra_job_num": 181
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_LLEIDA_61",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 284.456541,
+        "phase_2_diagnostic_seconds": 1016.531199,
+        "phase_3_seasonal_seconds": 873.267719,
+        "total_training_seconds": 2174.263193,
+        "total_training_minutes": 36.23771988333333
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 259.6317443847656,
+            "mae": 258.24673170971994,
+            "mse": 205195.82958099377,
+            "rmse": 452.985462880426,
+            "wape": 19.660172682785003
+        },
+        "diagnostic_residual": {
+            "mae": 296.82908448869074,
+            "mse": 204038.09681704477,
+            "rmse": 451.7057635419818,
+            "wape": 22.597424639937834
+        },
+        "seasonal_residual": {
+            "mae": 296.8313284517844,
+            "mse": 204040.2996776178,
+            "rmse": 451.70820191537126,
+            "wape": 22.597595471536057
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_LLEIDA_61_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_LLEIDA_61_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_LLEIDA_61_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

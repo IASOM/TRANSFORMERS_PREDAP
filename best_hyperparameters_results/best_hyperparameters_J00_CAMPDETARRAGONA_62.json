@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "b985073d0e774f98a9eb143709663321",
+        "run_name": "HYDRA_transformer_J00_CAMPDETARRAGONA_62_lb182_fh365_170540",
+        "timestamp": "2026-01-28T17:44:27.552034",
+        "hydra_job_num": 34
+    },
+    "hyperparameters": {
+        "target_code": "J00_CAMPDETARRAGONA_62",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 510.044134,
+        "phase_2_diagnostic_seconds": 649.273869,
+        "phase_3_seasonal_seconds": 1167.702189,
+        "total_training_seconds": 2327.043517,
+        "total_training_minutes": 38.78405861666667
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 39.48149108886719,
+            "mae": 39.48149108886719,
+            "mse": 3320.943115234375,
+            "rmse": 57.627624584346485,
+            "wape": 21.182608604431152
+        },
+        "diagnostic_residual": {
+            "mae": 54.78989791870117,
+            "mse": 4956.40283203125,
+            "rmse": 70.40172463818801,
+            "wape": 29.395875334739685
+        },
+        "seasonal_residual": {
+            "mae": 51.10570526123047,
+            "mse": 4500.4814453125,
+            "rmse": 67.08562771050518,
+            "wape": 27.419230341911316
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_CAMPDETARRAGONA_62_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_CAMPDETARRAGONA_62_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_CAMPDETARRAGONA_62_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

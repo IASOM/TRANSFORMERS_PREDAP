@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "6ff8466991974c2c86aacb894c0af997",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_CATALUNYACENTRAL_67_lb182_fh365_041613",
+        "timestamp": "2026-02-03T05:16:51.816138",
+        "hydra_job_num": 167
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_CATALUNYACENTRAL_67",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 463.772879,
+        "phase_2_diagnostic_seconds": 692.735359,
+        "phase_3_seasonal_seconds": 2481.741186,
+        "total_training_seconds": 3638.273161,
+        "total_training_minutes": 60.63788601666667
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 329.0972595214844,
+            "mae": 319.3758871483285,
+            "mse": 318273.21629726904,
+            "rmse": 564.1570847709608,
+            "wape": 24.719348496369552
+        },
+        "diagnostic_residual": {
+            "mae": 278.7917031537824,
+            "mse": 212959.91328133998,
+            "rmse": 461.4757992369047,
+            "wape": 21.578176516983262
+        },
+        "seasonal_residual": {
+            "mae": 280.5100576670789,
+            "mse": 200644.14992911776,
+            "rmse": 447.9331980654233,
+            "wape": 21.711175299182365
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_CATALUNYACENTRAL_67_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_CATALUNYACENTRAL_67_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_CATALUNYACENTRAL_67_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

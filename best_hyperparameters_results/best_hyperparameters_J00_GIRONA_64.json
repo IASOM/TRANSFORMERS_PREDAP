@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "53316e7afa03493395e25a318c2928d4",
+        "run_name": "HYDRA_transformer_J00_GIRONA_64_lb182_fh182_113826",
+        "timestamp": "2026-01-29T11:55:09.809116",
+        "hydra_job_num": 12
+    },
+    "hyperparameters": {
+        "target_code": "J00_GIRONA_64",
+        "lookback": 182,
+        "forecast_horizon": 182,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 367.498821,
+        "phase_2_diagnostic_seconds": 331.473932,
+        "phase_3_seasonal_seconds": 304.325209,
+        "total_training_seconds": 1003.31038,
+        "total_training_minutes": 16.721839666666668
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 58.96517562866211,
+            "mae": 58.96516418457031,
+            "mse": 7462.7734375,
+            "rmse": 86.38734535509238,
+            "wape": 23.871327936649323
+        },
+        "diagnostic_residual": {
+            "mae": 74.3663558959961,
+            "mse": 10017.1669921875,
+            "rmse": 100.08579815432107,
+            "wape": 30.10631799697876
+        },
+        "seasonal_residual": {
+            "mae": 74.34048461914062,
+            "mse": 10012.060546875,
+            "rmse": 100.06028456323217,
+            "wape": 30.09583353996277
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_GIRONA_64_base_transformer_182fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_GIRONA_64_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_GIRONA_64_SEASONAL_RESIDUALS_LEARNING_182fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

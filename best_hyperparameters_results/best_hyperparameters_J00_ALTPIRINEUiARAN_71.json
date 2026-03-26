@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "35d7d9c26c094c9bbd2b0ce51d371e58",
+        "run_name": "HYDRA_transformer_J00_ALTPIRINEUiARAN_71_lb182_fh365_104544",
+        "timestamp": "2026-01-28T11:20:42.659660",
+        "hydra_job_num": 6
+    },
+    "hyperparameters": {
+        "target_code": "J00_ALTPIRINEUiARAN_71",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 456.407672,
+        "phase_2_diagnostic_seconds": 406.176428,
+        "phase_3_seasonal_seconds": 1235.289569,
+        "total_training_seconds": 2097.89024,
+        "total_training_minutes": 34.964837333333335
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 6.1250481605529785,
+            "mae": 6.124963760375977,
+            "mse": 78.8612060546875,
+            "rmse": 8.880383215531158,
+            "wape": 33.90675187110901
+        },
+        "diagnostic_residual": {
+            "mae": 6.177488803863525,
+            "mse": 79.1492919921875,
+            "rmse": 8.896588784033321,
+            "wape": 34.1975212097168
+        },
+        "seasonal_residual": {
+            "mae": 6.176448822021484,
+            "mse": 78.76075744628906,
+            "rmse": 8.874725767385101,
+            "wape": 34.191763401031494
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_ALTPIRINEUiARAN_71_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_ALTPIRINEUiARAN_71_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_ALTPIRINEUiARAN_71_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

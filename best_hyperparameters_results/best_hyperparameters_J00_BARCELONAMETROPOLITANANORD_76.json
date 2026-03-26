@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "10c1347e6c814174a5ca29ec72ff9d73",
+        "run_name": "HYDRA_transformer_J00_BARCELONAMETROPOLITANANORD_76_lb182_fh365_140644",
+        "timestamp": "2026-01-28T14:47:58.199844",
+        "hydra_job_num": 20
+    },
+    "hyperparameters": {
+        "target_code": "J00_BARCELONAMETROPOLITANANORD_76",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 313.40776,
+        "phase_2_diagnostic_seconds": 635.387664,
+        "phase_3_seasonal_seconds": 1525.099639,
+        "total_training_seconds": 2473.920239,
+        "total_training_minutes": 41.232003983333335
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 175.66116333007812,
+            "mae": 175.46554565429688,
+            "mse": 73454.671875,
+            "rmse": 271.02522368775936,
+            "wape": 24.425092339515686
+        },
+        "diagnostic_residual": {
+            "mae": 188.4573211669922,
+            "mse": 77128.46875,
+            "rmse": 277.72012665631564,
+            "wape": 26.233568787574768
+        },
+        "seasonal_residual": {
+            "mae": 185.08412170410156,
+            "mse": 75467.7578125,
+            "rmse": 274.71395634823506,
+            "wape": 25.76400935649872
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_BARCELONAMETROPOLITANANORD_76_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_BARCELONAMETROPOLITANANORD_76_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_BARCELONAMETROPOLITANANORD_76_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

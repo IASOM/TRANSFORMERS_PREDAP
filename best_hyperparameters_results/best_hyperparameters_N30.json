@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "2336e1a4feec4e04b6b6783789556441",
+        "run_name": "HYDRA_transformer_N30_lb14_fh14_054245",
+        "timestamp": "2026-01-25T05:45:04.228303",
+        "hydra_job_num": 324
+    },
+    "hyperparameters": {
+        "target_code": "N30",
+        "lookback": 14,
+        "forecast_horizon": 14,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 38.745808,
+        "phase_2_diagnostic_seconds": 41.038883,
+        "phase_3_seasonal_seconds": 58.757175,
+        "total_training_seconds": 138.555994,
+        "total_training_minutes": 2.3092665666666665
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 42.310794830322266,
+            "mae": 42.310797003283675,
+            "mse": 5889.824425317229,
+            "rmse": 76.74519154525076,
+            "wape": 8.939778904418562
+        },
+        "diagnostic_residual": {
+            "mae": 42.6774042329048,
+            "mse": 5808.706635609097,
+            "rmse": 76.2148714858793,
+            "wape": 9.017238744688646
+        },
+        "seasonal_residual": {
+            "mae": 37.82353374494074,
+            "mse": 3856.7422968662686,
+            "rmse": 62.1026754404854,
+            "wape": 7.991672410173289
+        }
+    },
+    "model_paths": {
+        "univariate_model": "N30_base_transformer_14fh_512ff_14lb_1e-05lr.keras",
+        "diagnostic_model": "N30_DIAGNOSTIC_RESIDUALS_LEARNING_14fh_512ff_14lb_1e-05initlr.keras",
+        "seasonal_model": "N30_SEASONAL_RESIDUALS_LEARNING_14fh_512ff_14lb_1e-05initlr.keras"
+    }
+}

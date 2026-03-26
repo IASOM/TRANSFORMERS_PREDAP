@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "f2ec57fb7d3843db96448a541a10e244",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INFP_BARCELONACIUTAT_79_lb182_fh365_152137",
+        "timestamp": "2026-01-26T15:53:13.777404",
+        "hydra_job_num": 13
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__INFP_BARCELONACIUTAT_79",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 424.564197,
+        "phase_2_diagnostic_seconds": 583.383111,
+        "phase_3_seasonal_seconds": 887.994119,
+        "total_training_seconds": 1895.953685,
+        "total_training_minutes": 31.599228083333333
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 329.6186218261719,
+            "mae": 319.75449603444156,
+            "mse": 255043.11651815978,
+            "rmse": 505.0179368281485,
+            "wape": 31.916550431132023
+        },
+        "diagnostic_residual": {
+            "mae": 306.61820751198746,
+            "mse": 236453.86210561925,
+            "rmse": 486.2652178653325,
+            "wape": 30.605341299424776
+        },
+        "seasonal_residual": {
+            "mae": 306.7761120235793,
+            "mse": 236602.92766275152,
+            "rmse": 486.41846969739083,
+            "wape": 30.6211026643783
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__INFP_BARCELONACIUTAT_79_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__INFP_BARCELONACIUTAT_79_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__INFP_BARCELONACIUTAT_79_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

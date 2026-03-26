@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "ef1a5351f80a4b15bd81c41009257528",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INF_TERRESDELEBRE_63_lb182_fh365_052906",
+        "timestamp": "2026-01-31T05:57:01.644572",
+        "hydra_job_num": 20
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__INF_TERRESDELEBRE_63",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 498.722054,
+        "phase_2_diagnostic_seconds": 325.971884,
+        "phase_3_seasonal_seconds": 849.850192,
+        "total_training_seconds": 1674.562134,
+        "total_training_minutes": 27.9093689
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 226.40480041503906,
+            "mae": 217.71198630983102,
+            "mse": 204936.12203912123,
+            "rmse": 452.69871000381835,
+            "wape": 14.626182017340877
+        },
+        "diagnostic_residual": {
+            "mae": 228.3221171835043,
+            "mse": 213654.0096712826,
+            "rmse": 462.2272273149675,
+            "wape": 15.33898478036976
+        },
+        "seasonal_residual": {
+            "mae": 228.30468307294697,
+            "mse": 213642.1694701404,
+            "rmse": 462.2144193663157,
+            "wape": 15.337813533537444
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__INF_TERRESDELEBRE_63_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__INF_TERRESDELEBRE_63_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__INF_TERRESDELEBRE_63_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

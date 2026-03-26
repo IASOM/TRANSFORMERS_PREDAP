@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "49f3cd3416f749d2878ccdd2112ffca7",
+        "run_name": "HYDRA_transformer_J00_CATALUNYACENTRAL_67_lb182_fh365_103301",
+        "timestamp": "2026-01-29T11:05:53.002961",
+        "hydra_job_num": 6
+    },
+    "hyperparameters": {
+        "target_code": "J00_CATALUNYACENTRAL_67",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 358.135657,
+        "phase_2_diagnostic_seconds": 379.169299,
+        "phase_3_seasonal_seconds": 1234.339379,
+        "total_training_seconds": 1971.657353,
+        "total_training_minutes": 32.86095588333333
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 28.669416427612305,
+            "mae": 28.66916275024414,
+            "mse": 1786.712890625,
+            "rmse": 42.269526737651084,
+            "wape": 26.136678457260132
+        },
+        "diagnostic_residual": {
+            "mae": 30.431875228881836,
+            "mse": 1909.5322265625,
+            "rmse": 43.698194774641436,
+            "wape": 27.74367928504944
+        },
+        "seasonal_residual": {
+            "mae": 29.96518898010254,
+            "mse": 1877.676513671875,
+            "rmse": 43.33216488558903,
+            "wape": 27.318212389945984
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_CATALUNYACENTRAL_67_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_CATALUNYACENTRAL_67_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_CATALUNYACENTRAL_67_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

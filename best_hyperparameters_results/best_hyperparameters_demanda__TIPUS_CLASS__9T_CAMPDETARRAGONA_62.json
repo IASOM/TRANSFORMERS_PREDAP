@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "440f08c191784f09bdef1282138f778e",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_CAMPDETARRAGONA_62_lb182_fh365_014813",
+        "timestamp": "2026-02-03T03:12:17.997820",
+        "hydra_job_num": 160
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_CAMPDETARRAGONA_62",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 485.278474,
+        "phase_2_diagnostic_seconds": 387.207546,
+        "phase_3_seasonal_seconds": 4171.896633,
+        "total_training_seconds": 5044.38698,
+        "total_training_minutes": 84.07311633333333
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 303.5340576171875,
+            "mae": 301.16850875621526,
+            "mse": 272300.12980334816,
+            "rmse": 521.8238494006844,
+            "wape": 23.860914745460597
+        },
+        "diagnostic_residual": {
+            "mae": 314.48409903489625,
+            "mse": 285555.2486051881,
+            "rmse": 534.3736975237349,
+            "wape": 24.915879508334505
+        },
+        "seasonal_residual": {
+            "mae": 294.5192025078581,
+            "mse": 248497.04541863027,
+            "rmse": 498.49477973057077,
+            "wape": 23.334104920078296
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_CAMPDETARRAGONA_62_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_CAMPDETARRAGONA_62_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_CAMPDETARRAGONA_62_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

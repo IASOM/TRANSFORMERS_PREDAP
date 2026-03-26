@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "72de65dbe4a74475ad6c549dd5b68cf4",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__MF_BARCELONAMETROPOLITANANORD_76_lb182_fh365_143613",
+        "timestamp": "2026-01-31T16:01:39.782299",
+        "hydra_job_num": 41
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__MF_BARCELONAMETROPOLITANANORD_76",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 660.738396,
+        "phase_2_diagnostic_seconds": 355.222769,
+        "phase_3_seasonal_seconds": 4109.983933,
+        "total_training_seconds": 5125.970557,
+        "total_training_minutes": 85.43284261666666
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 2160.21728515625,
+            "mae": 2097.1982316279496,
+            "mse": 19321063.50546366,
+            "rmse": 4395.573171437789,
+            "wape": 13.251711497405697
+        },
+        "diagnostic_residual": {
+            "mae": 2278.4338253425167,
+            "mse": 19488514.064141355,
+            "rmse": 4414.57971545892,
+            "wape": 14.396897376711998
+        },
+        "seasonal_residual": {
+            "mae": 2079.9093175933463,
+            "mse": 11495706.226182612,
+            "rmse": 3390.5318500469234,
+            "wape": 13.142466840684733
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__MF_BARCELONAMETROPOLITANANORD_76_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__MF_BARCELONAMETROPOLITANANORD_76_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__MF_BARCELONAMETROPOLITANANORD_76_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

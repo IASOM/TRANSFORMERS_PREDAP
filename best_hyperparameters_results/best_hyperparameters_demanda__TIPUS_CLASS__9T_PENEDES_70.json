@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "dc6335f477cf44168a4053f3ca39eed4",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_PENEDES_70_lb182_fh365_100110",
+        "timestamp": "2026-02-03T10:27:05.882972",
+        "hydra_job_num": 188
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_PENEDES_70",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 275.518375,
+        "phase_2_diagnostic_seconds": 403.197417,
+        "phase_3_seasonal_seconds": 876.406937,
+        "total_training_seconds": 1555.128427,
+        "total_training_minutes": 25.918807116666667
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 247.62168884277344,
+            "mae": 247.2591821947921,
+            "mse": 152829.29145547072,
+            "rmse": 390.9338709493854,
+            "wape": 23.52543455705648
+        },
+        "diagnostic_residual": {
+            "mae": 258.69196847925707,
+            "mse": 162239.63312747332,
+            "rmse": 402.78981259147224,
+            "wape": 24.613205143178146
+        },
+        "seasonal_residual": {
+            "mae": 258.6899905659796,
+            "mse": 162237.73972464178,
+            "rmse": 402.7874622237413,
+            "wape": 24.613016954942005
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_PENEDES_70_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_PENEDES_70_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_PENEDES_70_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

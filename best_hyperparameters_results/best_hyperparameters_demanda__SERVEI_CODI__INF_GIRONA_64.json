@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "908026bb933c4f419023fd51adbb8e5d",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__INF_GIRONA_64_lb182_fh182_121537",
+        "timestamp": "2026-01-30T12:37:58.590148",
+        "hydra_job_num": 124
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__INF_GIRONA_64",
+        "lookback": 182,
+        "forecast_horizon": 182,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 587.687218,
+        "phase_2_diagnostic_seconds": 407.951629,
+        "phase_3_seasonal_seconds": 345.132585,
+        "total_training_seconds": 1340.784787,
+        "total_training_minutes": 22.346413116666668
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 817.8228149414062,
+            "mae": 799.5874996363485,
+            "mse": 2924149.130187224,
+            "rmse": 1710.0143654914787,
+            "wape": 13.439681710724582
+        },
+        "diagnostic_residual": {
+            "mae": 802.5329536708896,
+            "mse": 2944370.192821709,
+            "rmse": 1715.9167208293381,
+            "wape": 13.48918969419832
+        },
+        "seasonal_residual": {
+            "mae": 802.5312310819237,
+            "mse": 2944365.570262212,
+            "rmse": 1715.9153738638197,
+            "wape": 13.489160740459763
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__INF_GIRONA_64_base_transformer_182fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__INF_GIRONA_64_DIAGNOSTIC_RESIDUALS_LEARNING_182fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__INF_GIRONA_64_SEASONAL_RESIDUALS_LEARNING_182fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

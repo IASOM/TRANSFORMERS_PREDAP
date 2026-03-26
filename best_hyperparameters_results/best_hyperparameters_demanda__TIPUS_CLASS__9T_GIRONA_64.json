@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "340816c62acb472eaed68a8c6c8dc4c6",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_GIRONA_64_lb182_fh365_062103",
+        "timestamp": "2026-02-03T07:10:49.784606",
+        "hydra_job_num": 174
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_GIRONA_64",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 278.563036,
+        "phase_2_diagnostic_seconds": 769.06108,
+        "phase_3_seasonal_seconds": 1938.494265,
+        "total_training_seconds": 2986.125414,
+        "total_training_minutes": 49.7687569
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 366.7180480957031,
+            "mae": 366.6330077082939,
+            "mse": 499101.3283138825,
+            "rmse": 706.4710385528076,
+            "wape": 15.185048292096335
+        },
+        "diagnostic_residual": {
+            "mae": 361.35744053837317,
+            "mse": 382937.81098258926,
+            "rmse": 618.8196918186987,
+            "wape": 14.966547119099976
+        },
+        "seasonal_residual": {
+            "mae": 348.40474271962427,
+            "mse": 325494.82921362866,
+            "rmse": 570.5215414106891,
+            "wape": 14.430077849406933
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_GIRONA_64_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_GIRONA_64_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_GIRONA_64_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

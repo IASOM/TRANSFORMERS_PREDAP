@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "974207d5daad48c98c0398c49e7bcedd",
+        "run_name": "HYDRA_transformer_J00_BARCELONACIUTAT_79_lb182_fh365_122040",
+        "timestamp": "2026-01-28T13:08:10.862736",
+        "hydra_job_num": 13
+    },
+    "hyperparameters": {
+        "target_code": "J00_BARCELONACIUTAT_79",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 351.575534,
+        "phase_2_diagnostic_seconds": 823.352805,
+        "phase_3_seasonal_seconds": 1675.370523,
+        "total_training_seconds": 2850.346999,
+        "total_training_minutes": 47.505783316666665
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 136.9131622314453,
+            "mae": 136.80502319335938,
+            "mse": 38719.8671875,
+            "rmse": 196.7736445449441,
+            "wape": 30.654391646385193
+        },
+        "diagnostic_residual": {
+            "mae": 171.61834716796875,
+            "mse": 55289.19921875,
+            "rmse": 235.1365544077526,
+            "wape": 38.455137610435486
+        },
+        "seasonal_residual": {
+            "mae": 159.93394470214844,
+            "mse": 49060.6015625,
+            "rmse": 221.49627889086534,
+            "wape": 35.83696782588959
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_BARCELONACIUTAT_79_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_BARCELONACIUTAT_79_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_BARCELONACIUTAT_79_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

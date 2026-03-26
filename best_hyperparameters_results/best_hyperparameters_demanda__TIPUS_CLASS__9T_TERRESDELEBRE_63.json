@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "d4ced4e79bc64721823ec412b0ae33f7",
+        "run_name": "HYDRA_transformer_demanda__TIPUS_CLASS__9T_TERRESDELEBRE_63_lb60_fh60_105118",
+        "timestamp": "2026-02-03T11:04:02.790805",
+        "hydra_job_num": 200
+    },
+    "hyperparameters": {
+        "target_code": "demanda__TIPUS_CLASS__9T_TERRESDELEBRE_63",
+        "lookback": 60,
+        "forecast_horizon": 60,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 157.815729,
+        "phase_2_diagnostic_seconds": 354.0649,
+        "phase_3_seasonal_seconds": 252.821112,
+        "total_training_seconds": 764.716262,
+        "total_training_minutes": 12.745271033333333
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 65.25039672851562,
+            "mae": 63.863335153161984,
+            "mse": 15327.294869646184,
+            "rmse": 123.80345257562966,
+            "wape": 15.231742665846165
+        },
+        "diagnostic_residual": {
+            "mae": 74.62836649960289,
+            "mse": 13610.820907131734,
+            "rmse": 116.66542292869697,
+            "wape": 17.79925948696911
+        },
+        "seasonal_residual": {
+            "mae": 70.44413557816688,
+            "mse": 11202.991106703466,
+            "rmse": 105.8441831500601,
+            "wape": 16.801298317278548
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__TIPUS_CLASS__9T_TERRESDELEBRE_63_base_transformer_60fh_512ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__TIPUS_CLASS__9T_TERRESDELEBRE_63_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_512ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__TIPUS_CLASS__9T_TERRESDELEBRE_63_SEASONAL_RESIDUALS_LEARNING_60fh_512ff_60lb_1e-05initlr.keras"
+    }
+}

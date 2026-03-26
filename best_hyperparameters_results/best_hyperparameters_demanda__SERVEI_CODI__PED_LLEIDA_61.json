@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "1e51409d5ed3495a81df56f63baac752",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__PED_LLEIDA_61_lb182_fh365_104743",
+        "timestamp": "2026-02-02T12:24:28.610551",
+        "hydra_job_num": 104
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__PED_LLEIDA_61",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 866.319592,
+        "phase_2_diagnostic_seconds": 1001.402193,
+        "phase_3_seasonal_seconds": 3936.99407,
+        "total_training_seconds": 5804.746366,
+        "total_training_minutes": 96.74577276666668
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 91.88175964355469,
+            "mae": 87.90253675515889,
+            "mse": 24184.453429579913,
+            "rmse": 155.51351526340054,
+            "wape": 23.233280259080992
+        },
+        "diagnostic_residual": {
+            "mae": 80.60638085203465,
+            "mse": 16687.92964223529,
+            "rmse": 129.18176977513232,
+            "wape": 21.30485314913999
+        },
+        "seasonal_residual": {
+            "mae": 87.12182385680778,
+            "mse": 16211.83260090396,
+            "rmse": 127.32569497514616,
+            "wape": 23.02693215766279
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__PED_LLEIDA_61_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__PED_LLEIDA_61_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__PED_LLEIDA_61_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

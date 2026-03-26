@@ -95,6 +95,8 @@ class TransformerUnivConfig(BaseTransformerConfig):
             'warmup_steps': warmup_steps,
             'total_steps': self.epochs
         }
+    
+
 
 
 class UnivariateTransformerPipeline:

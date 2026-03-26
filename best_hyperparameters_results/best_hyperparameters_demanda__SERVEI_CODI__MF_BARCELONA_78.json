@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "ccabbca8dbca4c8e88a694fc491fcbdd",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__MF_BARCELONA_78_lb60_fh60_182810",
+        "timestamp": "2026-01-31T18:34:47.684171",
+        "hydra_job_num": 53
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__MF_BARCELONA_78",
+        "lookback": 60,
+        "forecast_horizon": 60,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 121.711495,
+        "phase_2_diagnostic_seconds": 148.125982,
+        "phase_3_seasonal_seconds": 127.252118,
+        "total_training_seconds": 397.10813,
+        "total_training_minutes": 6.618468833333334
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 6.828460027463734e-05,
+            "mae": 1.4158149547212003e-05,
+            "mse": 1.0049989182416525e-09,
+            "rmse": 3.1701717906789416e-05,
+            "wape": Infinity
+        },
+        "diagnostic_residual": {
+            "mae": 0.00011785911593579614,
+            "mse": 5.271464573567195e-08,
+            "rmse": 0.00022959670236236398,
+            "wape": Infinity
+        },
+        "seasonal_residual": {
+            "mae": 0.015899880238259972,
+            "mse": 0.0005746772607748552,
+            "rmse": 0.023972427093952236,
+            "wape": Infinity
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__MF_BARCELONA_78_base_transformer_60fh_512ff_60lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__MF_BARCELONA_78_DIAGNOSTIC_RESIDUALS_LEARNING_60fh_512ff_60lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__MF_BARCELONA_78_SEASONAL_RESIDUALS_LEARNING_60fh_512ff_60lb_1e-05initlr.keras"
+    }
+}

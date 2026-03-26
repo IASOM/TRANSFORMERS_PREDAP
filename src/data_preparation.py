@@ -855,13 +855,13 @@ def compute_dynamic_batch_size(lookback, forecast):
     if lookback <= 30 and forecast <= 30:
         batch_size = 1024
     elif (30 <= lookback <= 60) and forecast <= 60:
-        batch_size = 512
+        batch_size = 256
     elif 60 <= lookback <= 128 and forecast<= 128:
-        batch_size = 256
+        batch_size = 128
     elif 128 < lookback <= 365 and forecast <=365:
-        batch_size = 256
+        batch_size = 64
     else:
-        batch_size = 92
+        batch_size = 64
     
 
     if len(gpus) == 0:

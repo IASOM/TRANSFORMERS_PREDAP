@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "aa8a76ade6b64aedbc54a6d18bc87345",
+        "run_name": "HYDRA_transformer_J00_LLEIDA_61_lb182_fh365_161050",
+        "timestamp": "2026-01-29T16:41:56.537273",
+        "hydra_job_num": 6
+    },
+    "hyperparameters": {
+        "target_code": "J00_LLEIDA_61",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 325.627872,
+        "phase_2_diagnostic_seconds": 504.035419,
+        "phase_3_seasonal_seconds": 1035.890433,
+        "total_training_seconds": 1865.583795,
+        "total_training_minutes": 31.09306325
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 27.847286224365234,
+            "mae": 27.847291946411133,
+            "mse": 1572.744140625,
+            "rmse": 39.65783832516593,
+            "wape": 22.73077368736267
+        },
+        "diagnostic_residual": {
+            "mae": 41.57381820678711,
+            "mse": 2775.0634765625,
+            "rmse": 52.67887125368671,
+            "wape": 33.93526077270508
+        },
+        "seasonal_residual": {
+            "mae": 31.149837493896484,
+            "mse": 1796.8883056640625,
+            "rmse": 42.38971933929337,
+            "wape": 25.426524877548218
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_LLEIDA_61_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_LLEIDA_61_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_LLEIDA_61_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

@@ -335,7 +335,7 @@ def main_experiment(cfg: DictConfig) -> None:
             },
             "training_duration": {
                 "phase_1_univariate_seconds": univ_duration,
-                #"phase_2_diagnostic_seconds": diag_duration,
+                "phase_2_diagnostic_seconds": diag_duration,
                 "phase_3_seasonal_seconds": seasonal_duration,
                 "total_training_seconds": total_duration,
                 "total_training_minutes": total_duration / 60
@@ -348,12 +348,12 @@ def main_experiment(cfg: DictConfig) -> None:
                     "rmse": rmse,
                     "wape": wape
                 },
-                #"diagnostic_residual": {
-                    #"mae": corrected_diagnostics_mae,
-                    #"mse": corrected_diagnostics_mse,
-                    #"rmse": corrected_diagnostics_rmse,
-                    #"wape": corrected_diagnostics_wape
-                #},
+                "diagnostic_residual": {
+                    "mae": corrected_diagnostics_mae,
+                    "mse": corrected_diagnostics_mse,
+                    "rmse": corrected_diagnostics_rmse,
+                    "wape": corrected_diagnostics_wape
+                },
                 "seasonal_residual": {
                     "mae": corrected_seasonal_mae,
                     "mse": corrected_seasonal_mse,
@@ -363,7 +363,7 @@ def main_experiment(cfg: DictConfig) -> None:
             },
             "model_paths": {
                 "univariate_model": model_name,
-                #"diagnostic_model": residual_diagnostics_model_name,
+                "diagnostic_model": residual_diagnostics_model_name,
                 "seasonal_model": residual_seasonal_model_name
             }
         }

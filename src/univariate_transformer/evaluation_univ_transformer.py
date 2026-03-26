@@ -18,6 +18,7 @@ if src_dir not in sys.path:
 import data_preparation
 from univariate_transformer import plt_model, plot_predictions_with_waves, extract_model_params
 from residual_multivariate_transformers import load_base_model_transformer
+from univariate_transformer.model_architecture_univ_transformer import RevIN
 
 
 def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None, eliminate_covid_data=False, covid_dates=None, relevant_feature_cols=None):
@@ -33,7 +34,7 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
 
     # Load model
     model_path = os.path.join(MODEL_FOLDER, model_name)
-    model = tf.keras.models.load_model(model_path, compile=True)
+    model = tf.keras.models.load_model(model_path,custom_objects={'RevIN': RevIN}, compile=True)
 
 
     # Prepare test data

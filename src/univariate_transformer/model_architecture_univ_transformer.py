@@ -68,7 +68,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     revin_layer = RevIN()
 
     # 3. Normalize Input
-    x = revin_layer(inputs, mode='norm')
+    x, mean, stdev = revin_layer(inputs, mode='norm')
     #x = inputs  # initial input
     
     d_model = max(head_size * num_heads, 32)
@@ -98,7 +98,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
    
     outputs = layers.Dense(n_pred)(x)
     outputs = layers.Reshape((n_pred, 1))(outputs)
-    outputs = revin_layer(outputs, mode='denorm')
+    outputs = revin_layer(outputs, mode='denorm', mean=mean, stdev=stdev)
     outputs = layers.Reshape((n_pred,))(outputs)
     #outputs = layers.Permute((2, 1))(outputs)
 
@@ -168,33 +168,48 @@ class PositionalEncoding(layers.Layer):
         seq_len = tf.shape(x)[1]
         return x + self.pos_encoding[:, :seq_len, :]
 
-@keras.saving.register_keras_serializable(package="predap")
+
 class RevIN(layers.Layer):
     def __init__(self, eps=1e-5, detach_grad=False, **kwargs):
-        super(RevIN, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.eps = eps
         self.detach_grad = detach_grad
-        # These will store the mean and stdev of the current batch/instance
-        self.mean = None
-        self.stdev = None
 
-    def call(self, x, mode='norm'):
+    def call(self, x, mode='norm', mean=None, stdev=None):
+        """
+        norm:   returns (x_norm, mean, stdev)
+        denorm: returns x_denorm (requires mean and stdev)
+        """
         if mode == 'norm':
-            self._get_statistics(x)
-            x = (x - self.mean) / self.stdev
+            mean, stdev = self._get_statistics(x)
+            x = (x - mean) / stdev
+            return x, mean, stdev
+
+        if mode == 'denorm':
+            if mean is None or stdev is None:
+                raise ValueError("RevIN denorm requires mean and stdev from a previous norm call.")
+            dims = tf.shape(x)[-1]  # dynamic safe
+            x = x * stdev[:, :, :dims] + mean[:, :, :dims]
             return x
-        elif mode == 'denorm':
-            # Use the statistics stored during the last 'norm' call
-            dims = x.shape[-1]
-            x = x * self.stdev[:, :, :dims] + self.mean[:, :, :dims]
-            return x
+
+        raise ValueError("mode must be 'norm' or 'denorm'")
 
     def _get_statistics(self, x):
-        # Calculate mean and stdev across the time dimension (axis 1)
-        # Assuming shape: (batch, time_steps, features)
-        self.mean = tf.reduce_mean(x, axis=1, keepdims=True)
-        self.stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
-        
+        # across time dimension axis=1, keep dims to broadcast
+        mean = tf.reduce_mean(x, axis=1, keepdims=True)
+        var = tf.math.reduce_variance(x, axis=1, keepdims=True)
+        stdev = tf.sqrt(var + self.eps)
+
         if self.detach_grad:
-            self.mean = tf.stop_gradient(self.mean)
-            self.stdev = tf.stop_gradient(self.stdev)
+            mean = tf.stop_gradient(mean)
+            stdev = tf.stop_gradient(stdev)
+
+        return mean, stdev
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'eps': self.eps,
+            'detach_grad': self.detach_grad,
+        })
+        return config

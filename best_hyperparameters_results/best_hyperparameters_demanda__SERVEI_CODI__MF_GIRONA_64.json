@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "018727e1bf7c4e60b03e18de663f4d8d",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__MF_GIRONA_64_lb182_fh365_054230",
+        "timestamp": "2026-02-01T06:06:52.254692",
+        "hydra_job_num": 20
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__MF_GIRONA_64",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 308.692878,
+        "phase_2_diagnostic_seconds": 317.400541,
+        "phase_3_seasonal_seconds": 835.533326,
+        "total_training_seconds": 1461.653055,
+        "total_training_minutes": 24.36088425
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 1035.4305419921875,
+            "mae": 1020.7710027825342,
+            "mse": 4051629.8511057985,
+            "rmse": 2012.866078780652,
+            "wape": 14.3482310681457
+        },
+        "diagnostic_residual": {
+            "mae": 1012.720555178713,
+            "mse": 4054579.4721935834,
+            "rmse": 2013.598637314195,
+            "wape": 14.235071816847652
+        },
+        "seasonal_residual": {
+            "mae": 1012.7242448604286,
+            "mse": 4054575.4539821297,
+            "rmse": 2013.597639545232,
+            "wape": 14.235123680003719
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__MF_GIRONA_64_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__MF_GIRONA_64_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__MF_GIRONA_64_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

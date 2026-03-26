@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "2ed93eaac8ca48958e386dddca177be4",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__URG_CAMPDETARRAGONA_62_lb182_fh365_014741",
+        "timestamp": "2026-01-30T02:16:53.172373",
+        "hydra_job_num": 62
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__URG_CAMPDETARRAGONA_62",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 262.554809,
+        "phase_2_diagnostic_seconds": 623.415004,
+        "phase_3_seasonal_seconds": 865.498165,
+        "total_training_seconds": 1751.477545,
+        "total_training_minutes": 29.191292416666666
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 103.1962661743164,
+            "mae": 103.19626835799626,
+            "mse": 22619.46201395022,
+            "rmse": 150.3976795497531,
+            "wape": 11.729758588004032
+        },
+        "diagnostic_residual": {
+            "mae": 264.56773156891694,
+            "mse": 102302.36344444573,
+            "rmse": 319.8474064994833,
+            "wape": 30.07197518725768
+        },
+        "seasonal_residual": {
+            "mae": 264.6167403347335,
+            "mse": 102333.08429307774,
+            "rmse": 319.89542712123557,
+            "wape": 30.07754574713229
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__URG_CAMPDETARRAGONA_62_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__URG_CAMPDETARRAGONA_62_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__URG_CAMPDETARRAGONA_62_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

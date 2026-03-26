@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "6c74842a966e459fbd615fdd1c1a946e",
+        "run_name": "HYDRA_transformer_demanda__SERVEI_CODI__PED_ALTPIRINEUiARAN_71_lb182_fh365_163621",
+        "timestamp": "2026-02-01T18:18:49.685760",
+        "hydra_job_num": 55
+    },
+    "hyperparameters": {
+        "target_code": "demanda__SERVEI_CODI__PED_ALTPIRINEUiARAN_71",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 976.257416,
+        "phase_2_diagnostic_seconds": 511.734344,
+        "phase_3_seasonal_seconds": 4660.532238,
+        "total_training_seconds": 6148.528552,
+        "total_training_minutes": 102.47547586666666
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 29.66330909729004,
+            "mae": 29.663285059589942,
+            "mse": 2245.668637290564,
+            "rmse": 47.388486336773454,
+            "wape": 23.54070505895561
+        },
+        "diagnostic_residual": {
+            "mae": 27.291974232433947,
+            "mse": 1932.9628406906306,
+            "rmse": 43.9654732795023,
+            "wape": 21.65883901906667
+        },
+        "seasonal_residual": {
+            "mae": 27.527030432662773,
+            "mse": 1679.6995194075967,
+            "rmse": 40.98413741202316,
+            "wape": 21.845379001767494
+        }
+    },
+    "model_paths": {
+        "univariate_model": "demanda__SERVEI_CODI__PED_ALTPIRINEUiARAN_71_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "demanda__SERVEI_CODI__PED_ALTPIRINEUiARAN_71_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "demanda__SERVEI_CODI__PED_ALTPIRINEUiARAN_71_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}

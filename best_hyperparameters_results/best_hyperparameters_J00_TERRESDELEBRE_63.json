@@ -1,0 +1,63 @@
+{
+    "run_info": {
+        "run_id": "8f8e4b2db6d8420a95c029ea390ba209",
+        "run_name": "HYDRA_transformer_J00_TERRESDELEBRE_63_lb182_fh365_190624",
+        "timestamp": "2026-01-29T19:35:53.987372",
+        "hydra_job_num": 27
+    },
+    "hyperparameters": {
+        "target_code": "J00_TERRESDELEBRE_63",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 4,
+        "dropout": 0.25,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.10.1",
+        "python_version": "3.10.11",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 415.098377,
+        "phase_2_diagnostic_seconds": 479.216174,
+        "phase_3_seasonal_seconds": 875.367424,
+        "total_training_seconds": 1769.694131,
+        "total_training_minutes": 29.494902183333334
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 16.575389862060547,
+            "mae": 16.575387954711914,
+            "mse": 533.6043090820312,
+            "rmse": 23.099876819628957,
+            "wape": 25.656190514564514
+        },
+        "diagnostic_residual": {
+            "mae": 17.51342010498047,
+            "mse": 570.4564208984375,
+            "rmse": 23.884229543747846,
+            "wape": 27.10811495780945
+        },
+        "seasonal_residual": {
+            "mae": 16.8527889251709,
+            "mse": 543.8785400390625,
+            "rmse": 23.32120365759586,
+            "wape": 26.085561513900757
+        }
+    },
+    "model_paths": {
+        "univariate_model": "J00_TERRESDELEBRE_63_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "diagnostic_model": "J00_TERRESDELEBRE_63_DIAGNOSTIC_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras",
+        "seasonal_model": "J00_TERRESDELEBRE_63_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}
