@@ -85,7 +85,7 @@ class SeasonalResidualTransformerConfig(BaseTransformerConfig):
             lr_init = self.learning_rate
         lr_max = lr_init * self.lr_max_multiplier
         lr_min = lr_init * self.lr_min_multiplier
-        warmup_steps = 30#int(self.epochs * self.lr_warmup_ratio)
+        warmup_steps = int(self.epochs * self.lr_warmup_ratio)
         
         return {
             'initial_lr': lr_init,
@@ -289,9 +289,10 @@ class SeasonalResidualTransformerPipeline:
         self.residual_model.compile(
             optimizer=tf.keras.optimizers.Adam(
                 learning_rate=self.config.learning_rate,
-                clipnorm=1.0,
+                clipnorm= 1.0,
+                #use_ema=True
                 ), 
-            loss='mse', 
+            loss='mae', 
             metrics=['mae', 'mse']
         )
         
@@ -352,7 +353,7 @@ class SeasonalResidualTransformerPipeline:
         
         # Generate corrected training predictions
         predicted_residuals_train = self.residual_model.predict(self.X_train_covs, verbose=1)
-        predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
+        #predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
         self.predictions_train_corrected = self.predictions_train + predicted_residuals_train
         
     def evaluate_residual_model(self):

@@ -9,7 +9,9 @@ import math
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.optimizers import Adam
-
+from .model_architechture_informer import build_informer_model
+from .model_architechture_log_transformer import build_log_transformer_model
+from .model_architechture_LSTNet import build_lstnet_model
 
 
 def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_function='tanh', dropout=0, causal_masking=False):
@@ -45,6 +47,16 @@ def transformer_encoder(inputs, head_size, num_heads, ff_dim, activation_functio
     return x
 
 
+
+
+
+def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
+    #return build_informer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
+    #return build_lstnet_model(input_shape, n_filters=head_size*num_heads, kernel_size=6, rnn_units=ff_dim, skip_units=ff_dim//2, skip=7, n_pred=n_pred, dropout=dropout)
+    return build_log_transformer_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function, dropout, mlp_dropout, n_pred, pos_encoding)
+
+
+''' 
 def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_blocks, mlp_units, activation_function = "tanh", dropout=0, mlp_dropout=0, n_pred=1, pos_encoding = False):
     """
     Build complete transformer model for univariate time series forecasting.
@@ -77,14 +89,21 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     x = layers.LayerNormalization(epsilon=1e-6)(x)
     #x = layers.Activation(activation_function)(x)
     if pos_encoding == True:
-        pass
         x = PositionalEncoding(input_shape[0], d_model)(x)  # add positional encoding if enabled
     
     for _ in range(num_transformer_blocks):  # apply num_transformer_blocks transformer encoder layers seq.
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
-    #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
-    x = layers.AveragePooling1D(20, data_format="channels_first")(x)
+    #x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
+    if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
+        x = layers.AveragePooling1D(7, data_format="channels_first")(x)
+    #query = tf.Variable(tf.random.normal((1, 1, d_model)), trainable=True)
+    # Broadcast query to match batch size
+    #query = LearnableQuery(d_model)(inputs)
+
+    # Cross-Attention: Query (Target) looks at Keys/Values (Input Variables)
+    # x shape: (batch, num_features, d_model)
+
     #x2 = layers.MaxPooling1D(7,data_format="channels_first")(x)
     #x = layers.Concatenate()([x1, x2])
     #x = layers.Dense(input_shape[1])(x)
@@ -103,7 +122,7 @@ def build_model(input_shape, head_size, num_heads, ff_dim, num_transformer_block
     #outputs = layers.Permute((2, 1))(outputs)
 
     return keras.Model(inputs, outputs)
-
+'''
 
 class CustomCosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
     """
@@ -201,6 +220,7 @@ class RevIN(layers.Layer):
         stdev = tf.sqrt(var + self.eps)
 
         if self.detach_grad:
+<<<<<<< HEAD
             mean = tf.stop_gradient(mean)
             stdev = tf.stop_gradient(stdev)
 
@@ -213,3 +233,8 @@ class RevIN(layers.Layer):
             'detach_grad': self.detach_grad,
         })
         return config
+=======
+            self.mean = tf.stop_gradient(self.mean)
+            self.stdev = tf.stop_gradient(self.stdev)
+
+>>>>>>> d88f5f5b4697842f2578dcd5628da8b94d7d6eb0

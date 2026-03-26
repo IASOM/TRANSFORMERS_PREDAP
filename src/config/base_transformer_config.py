@@ -22,14 +22,14 @@ class BaseTransformerConfig(ABC):
     # ==================== CORE MODEL PARAMETERS ====================
     lookback: int = 14
     forecast: int = 7
-    code: str = "T14"
+    code: str = "J00"
     
     # ==================== MODEL ARCHITECTURE ====================
     head_size: int = 64
     num_heads: int = 8
     ff_dim: int = 512
-    num_transformer_blocks: int = 2
-    mlp_units: int = 512
+    num_transformer_blocks: int = 4
+    mlp_units: List[int] = field(default_factory=lambda: [512,256])
     dropout: float = 0.25
     activation_function: str = 'gelu'
     
@@ -38,14 +38,14 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 300
+    epochs: int = 400
     batch_size: int = 256
     early_stop_patience: int = 50
     shuffle_data: bool = True
     save_train_history: bool = True
     
     # ==================== DATA PARAMETERS ====================
-    data_path: str = '../data/diagnostics_CAT_aggregated.parquet'
+    data_path: str = '../data/FINAL_DB/full_CAT1.parquet'
     diagnostic_covariates_path: str = f'../data/best_features/BEST_features_NOSMOOTH_'
     cutoff_date: str = "2008-01-01"
     final_cutoff_date: str = "2025-09-30"#"2021-06-30"#
@@ -88,9 +88,10 @@ class BaseTransformerConfig(ABC):
     DEFAULT_RESIDUAL_TRANSFORMER_PARAMS: dict = field(default_factory=lambda:  {
         'head_size': 16,
         'num_heads': 16,
-        'ff_dim': 256,
-        'num_transformer_blocks': 4,
-        'dropout': 0.2
+        'ff_dim': 512,
+        'mlp_units': [256, 128],
+        'num_transformer_blocks': 2,
+        'dropout': 0.5
     })
 
     DEFAULT_RESIDUAL_LSTM_PARAMS: dict = field(default_factory=lambda: {

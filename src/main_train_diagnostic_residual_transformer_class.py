@@ -301,8 +301,9 @@ class DiagnosticResidualTransformerPipeline:
             optimizer=tf.keras.optimizers.Adam(
                 learning_rate=self.config.learning_rate,
                 clipnorm = 1.0,
+                #use_ema=True
                 ), 
-            loss='mse', 
+            loss='mae', 
             metrics=['mae', 'mse']
         )
         print("Residual model architecture:")
@@ -362,7 +363,7 @@ class DiagnosticResidualTransformerPipeline:
         
         # Generate corrected training predictions
         predicted_residuals_train = self.residual_model.predict(self.X_train_covs, verbose=1)
-        predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
+        #predicted_residuals_train = np.squeeze(predicted_residuals_train, axis=-1)
         self.predictions_train_corrected = self.predictions_train + predicted_residuals_train
         
     def evaluate_residual_model(self):

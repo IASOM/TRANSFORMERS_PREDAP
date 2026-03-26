@@ -105,7 +105,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
     
     # Start MLflow run for this specific configuration
-    run_name = f"HYDRA_transformer_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}"
+    run_name = f"full_LOG_TRANSFORMER1_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}" #TRANSFORMER3
     with mlflow.start_run(run_name=run_name) as run:
         print(f"\n🚀 Starting MLflow run: {run_name}")
         print(f"   • Run ID: {run.info.run_id}")
@@ -420,7 +420,8 @@ def main_experiment(cfg: DictConfig) -> None:
         print(f"   • Seasonal MSE: {current_mse:.6f}")
         print(f"   • Configuration: head_size={head_size}, num_heads={num_heads}, ff_dim={ff_dim}, mlp_units={mlp_units}")
 
-        del model, residual_diagnostics_model, residual_seasonal_model, pipeline, univariate_parameters, diagnostic_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
+        #del model, residual_diagnostics_model, residual_seasonal_model, pipeline, univariate_parameters, diagnostic_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
+        del model, residual_seasonal_model, pipeline, univariate_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
 if __name__ == "__main__":
     main_experiment()
     cleanup_ram()

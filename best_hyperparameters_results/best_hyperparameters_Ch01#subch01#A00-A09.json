@@ -1,0 +1,55 @@
+{
+    "run_info": {
+        "run_id": "6082f6d8517d4b0b98c482a08edc5c7c",
+        "run_name": "full_TRANSFORMERS3 _Ch01#subch01#A00-A09_lb182_fh365_164326",
+        "timestamp": "2026-02-12T16:52:39.939892",
+        "hydra_job_num": 1
+    },
+    "hyperparameters": {
+        "target_code": "Ch01#subch01#A00-A09",
+        "lookback": 182,
+        "forecast_horizon": 365,
+        "activation_function": "gelu",
+        "covid_token": true,
+        "cutoff_date": "2008-01-01",
+        "model_type": "transformer",
+        "head_size": 32,
+        "num_heads": 8,
+        "ff_dim": 512,
+        "mlp_units": "[512, 256]",
+        "num_transformer_blocks": 2,
+        "dropout": 0.5,
+        "learning_rate": 1e-05
+    },
+    "system_info": {
+        "tensorflow_version": "2.17.0",
+        "python_version": "3.12.3",
+        "gpu_available": true,
+        "backend": "Agg"
+    },
+    "training_duration": {
+        "phase_1_univariate_seconds": 180.61745,
+        "phase_3_seasonal_seconds": 254.373725,
+        "total_training_seconds": 553.105931,
+        "total_training_minutes": 9.218432183333334
+    },
+    "evaluation_metrics": {
+        "univariate_transformer": {
+            "loss": 234.3032989501953,
+            "mae": 234.3033355632175,
+            "mse": 143947.40212227797,
+            "rmse": 379.4040091014827,
+            "wape": 25.096402721171618
+        },
+        "seasonal_residual": {
+            "mae": 233.40599624123647,
+            "mse": 141949.87863291285,
+            "rmse": 376.7623636098925,
+            "wape": 25.00028804594582
+        }
+    },
+    "model_paths": {
+        "univariate_model": "Ch01#subch01#A00-A09_base_transformer_365fh_512ff_182lb_1e-05lr.keras",
+        "seasonal_model": "Ch01#subch01#A00-A09_SEASONAL_RESIDUALS_LEARNING_365fh_512ff_182lb_1e-05initlr.keras"
+    }
+}
