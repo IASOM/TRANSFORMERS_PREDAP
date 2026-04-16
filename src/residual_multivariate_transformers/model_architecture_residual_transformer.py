@@ -153,8 +153,8 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # GlobalAveragePooling1D Layer
     #x = layers.GlobalAveragePooling1D(data_format="channels_last")(x) # May be changed to Flatten() if needed 
-    #if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
-    x = layers.AveragePooling1D(14, data_format="channels_first")(x)
+    if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
+        x = layers.AveragePooling1D(30, data_format="channels_first")(x)
     x = layers.Flatten()(x)
     
     for dim in transformer_params['mlp_units']:

@@ -1,9 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, config
 from typing import Optional, List
 import sys
 import os
+from uuid import uuid4
+import json
+from datetime import datetime, timezone
+import redis
+from redis.exceptions import RedisError
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from src.config.base_transformer_config import BaseTransformerConfig
@@ -16,6 +21,34 @@ from api.schemas.production_schemas import ModelReconstructionRequest
 
 
 router = APIRouter(prefix="/production", tags=["production"])
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+JOB_TTL_SECONDS = int(os.getenv("JOB_TTL_SECONDS", "86400"))
+redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+
+
+def _utc_now():
+    return datetime.now(timezone.utc).isoformat()
+
+def _job_key(job_id: str) -> str:
+    return f"jobs:model_reconstruction:{job_id}"
+
+def _save_job(job_id: str, payload: dict) -> None:
+    key = _job_key(job_id)
+    redis_client.set(key, json.dumps(payload), ex=JOB_TTL_SECONDS)
+
+def _read_job(job_id: str):
+    raw = redis_client.get(_job_key(job_id))
+    return json.loads(raw) if raw else None
+
+def _set_job_status(job_id: str, status: str, updates: Optional[dict] = None):
+    data = _read_job(job_id) or {}
+    data["job_id"] = job_id
+    data["status"] = status
+    data["updated_at"] = _utc_now()
+    if updates:
+        data.update(updates)
+    _save_job(job_id, data)
 
 
 @router.post("/add_new_data")
@@ -75,9 +108,97 @@ def add_new_data(request: AddNewDataRequest = None):
         raise HTTPException(status_code=404, detail=f"Data file not found: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding new data: {str(e)}")
-    
 
-@router.get("/model_reconstruction_pipeline")
+
+def run_model_reconstruction_job(job_id: str, payload: dict) -> None:
+    try:
+        _set_job_status(job_id, "running")
+        config = BaseTransformerConfig()
+        pipeline = ModelPredictionPipeline(config)
+
+        final_output_df = pipeline.run_reconstruct_save_results_pipeline(
+            code=payload["code"],
+            LOOKBACK_LIST=payload["lookback_list"],
+            FORECAST_LIST=payload["forecast_horizon_list"],
+            final_output_predictions=None,
+            final_output_df=None,
+        )
+
+        output_path = payload.get("save_path") or "../production_predictions/final_output_predictions"
+        pipeline.save_final_output_predictions(
+            final_output_df,
+            output_path=output_path,
+        )
+
+        _set_job_status(
+                job_id,
+                "succeeded",
+                {
+                    "finished_at": _utc_now(),
+                    "result": {
+                        "rows": int(len(final_output_df)),
+                        "output_path": output_path,
+                    },
+                    "error": None,
+                },
+            )
+
+    except Exception as e:
+        _set_job_status(
+            job_id,
+            "failed",
+            {
+                "finished_at": _utc_now(),
+                "error": str(e),
+            },
+        )
+
+
+@router.post("/model_reconstruction_pipeline", status_code=202)
+def model_reconstruction_pipeline(
+    request: ModelReconstructionRequest,
+    background_tasks: BackgroundTasks,
+):
+    job_id = str(uuid4())
+    payload = request.model_dump()
+
+    try:
+        _save_job(
+            job_id,
+            {
+                "job_id": job_id,
+                "status": "queued",
+                "created_at": _utc_now(),
+                "updated_at": _utc_now(),
+                "error": None,
+                "result": None,
+            },
+        )
+    except RedisError as e:
+        raise HTTPException(status_code=503, detail=f"Redis unavailable: {str(e)}")
+    background_tasks.add_task(run_model_reconstruction_job, job_id, payload)
+    return JSONResponse(
+        content={
+            "status": "queued",
+            "job_id": job_id,
+            "status_endpoint": f"/production/model_reconstruction_pipeline/{job_id}",
+            "message": "Model reconstruction started in the background.",
+        },
+        status_code=202,
+    )
+
+@router.get("/model_reconstruction_pipeline/{job_id}")
+def model_reconstruction_pipeline_status(job_id: str):
+    try:
+        job = _read_job(job_id)
+    except RedisError as e:
+        raise HTTPException(status_code=503, detail=f"Redis unavailable: {str(e)}")
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return JSONResponse(content=job)
+
+'''@router.post("/model_reconstruction_pipeline")
 def model_reconstruction_pipeline(request: ModelReconstructionRequest):
     """
     Endpoint to trigger the model reconstruction pipeline. This will retrain the model using the updated dataset.
@@ -94,7 +215,7 @@ def model_reconstruction_pipeline(request: ModelReconstructionRequest):
             forecast_horizon_list=request.forecast_horizon_list,
             lookback_list=request.lookback_list,
             data_path=request.data_path,
-            save_path=request.save_path
+            #save_path=request.save_path
         )
 
         data_preparation.save_final_output_predictions(final_output_df, save_path=request.save_path)
@@ -106,7 +227,7 @@ def model_reconstruction_pipeline(request: ModelReconstructionRequest):
             "final_output_df": final_output_df.shape if final_output_df is not None else None
         })
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error triggering model reconstruction: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error triggering model reconstruction: {str(e)}")'''
 
 @router.delete("/delete_old_data")
 def delete_old_data():
@@ -120,9 +241,12 @@ def delete_old_data():
     Returns:
         str: The path to the updated dataset after deletion.
     """
-    dataset_path = "../production_predictions/final_output_predictions.parquet"
-    metrics_df_path = "../production_predictions/production_evaluation_metrics.parquet"
-    input_directory = '../data/FINAL_DB/full_CAT1.parquet'
+    config = BaseTransformerConfig()
+    pipeline = ModelPredictionPipeline(config)
+
+    dataset_path = config.production_predictions_file
+    metrics_df_path = config.production_metrics_file
+    input_directory = config.data_path
 
 
     if not os.path.exists(dataset_path):
@@ -130,8 +254,7 @@ def delete_old_data():
         return None
 
     try:    
-        config = BaseTransformerConfig()
-        pipeline = ModelPredictionPipeline(config)
+
         updated_path = pipeline.delete_old_data(predictions_dataset_path=dataset_path, real_data_dataset_path=input_directory, metrics_df_path=metrics_df_path)
         return JSONResponse(content={
             "status": "success",

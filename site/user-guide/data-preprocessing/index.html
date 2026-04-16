@@ -936,7 +936,14 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="data-preprocessing">Data Preprocessing<a class="headerlink" href="#data-preprocessing" title="Permanent link">¶</a></h1>
-<p>Predap provides a comprehensive data ingestion and feature engineering pipeline in <code>src/utils/data_preparation.py</code>. This module handles raw data loading, date filtering, normalization, COVID period handling, temporal feature engineering, and rolling sequence creation.</p>
+<p>Predap provides a comprehensive data ingestion and feature engineering pipeline in <code>src/utils/data_preparation.py</code>. <br/>
+This module handles: </p>
+<p>1- raw data loading<br/>
+2- date filtering<br/>
+3- normalization<br/>
+4- COVID period handling<br/>
+5- temporal feature engineering<br/>
+6- rolling sequence creation<br/></p>
 <hr/>
 <h2 id="pipeline-overview">Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart TD
@@ -989,7 +996,7 @@
 <h2 id="covid-period-handling">COVID Period Handling<a class="headerlink" href="#covid-period-handling" title="Permanent link">¶</a></h2>
 <p>Predap supports two COVID-related strategies, both configurable via <code>BaseTransformerConfig</code>:</p>
 <h3 id="1-covid-token-feature">1. COVID Token Feature<a class="headerlink" href="#1-covid-token-feature" title="Permanent link">¶</a></h3>
-<p>A binary indicator column (<code>covid_token</code>) flags whether each date falls within a predefined pandemic period. This allows the model to learn pandemic-specific patterns without removing data:</p>
+<p>A binary indicator column (<code>covid_token</code>) flags whether each date falls within a predefined pandemic period. The covid periods are indicated with a one and non covid periods with a 0. This allows the model to learn pandemic-specific patterns without removing data:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="n">df</span> <span class="o">=</span> <span class="n">add_covid_token</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 </span><span id="__span-2-2"><a href="#__codelineno-2-2" id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="c1"># Adds column: covid_token ∈ {0, 1}</span>
 </span></code></pre></div>

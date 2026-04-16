@@ -1021,7 +1021,7 @@
         E --&gt; F[Partitioned Parquet output]
     end
 
-    subgraph Optimization
+    subgraph Quantization
         G[Trained MLflow model] --&gt; H[ModelQuantizationPipeline]
         H --&gt; I[float16 quantized weights .h5]
         I --&gt; E
@@ -1063,7 +1063,7 @@
 <h3 id="imputation-logic">Imputation Logic<a class="headerlink" href="#imputation-logic" title="Permanent link">¶</a></h3>
 <p>For each numeric column, the new value is computed as:</p>
 <div class="arithmatex">\[
-\hat{x}_{\text{new}} = \frac{1}{3} \sum_{k=1}^{3} x_{\text{same\_dow\_month}, \text{year}-k}
+\hat{x}_{\text{new}} = \frac{1}{3} \sum_{k=1}^{3} x_{k}
 \]</div>
 <p>If COVID data elimination is enabled, years 2020–2022 are excluded from the mean calculation.</p>
 <hr/>

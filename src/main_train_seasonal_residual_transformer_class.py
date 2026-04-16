@@ -670,8 +670,8 @@ class SeasonalResidualTransformerPipeline:
         return SeasonalResidualPipelineOutputs(
             predictions_train_corrected=self.predictions_train_corrected,
             predictions_test_corrected=self.predictions_test_corrected,
-            residual_diagnostics_model=self.residual_diagnostics_model,
-            residual_diagnostics_model_name=self.residual_diagnostics_model_name,
+            residual_diagnostics_model=self.residual_model,
+            residual_diagnostics_model_name=self.residual_model_name,
             corrected_diagnostics_mae=corrected_mae,
             corrected_diagnostics_mse=corrected_mse,
             corrected_diagnostics_rmse=corrected_rmse,

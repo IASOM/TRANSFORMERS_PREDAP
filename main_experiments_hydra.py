@@ -105,7 +105,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
     
     # Start MLflow run for this specific configuration
-    run_name = f"Prova_FullPooling1_TRANSFORMER1_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}" #TRANSFORMER3
+    run_name = f"Prova_FullPooling2_TRANSFORMER1_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}" #TRANSFORMER3
     with mlflow.start_run(run_name=run_name) as run:
         print(f"\n🚀 Starting MLflow run: {run_name}")
         print(f"   • Run ID: {run.info.run_id}")
@@ -336,7 +336,7 @@ def main_experiment(cfg: DictConfig) -> None:
         del pipeline
         memory_cleanup()
         plt.close('all')
-        del model, residual_seasonal_model, pipeline, univariate_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
+        del model, residual_seasonal_model, univariate_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
 if __name__ == "__main__":
     main_experiment()
     cleanup_ram()

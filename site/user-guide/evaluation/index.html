@@ -1070,7 +1070,8 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="evaluation-metrics">Evaluation &amp; Metrics<a class="headerlink" href="#evaluation-metrics" title="Permanent link">¶</a></h1>
-<p>Predap evaluates forecasting performance using a comprehensive suite of metrics, applied on the <strong>original (un-normalized) scale</strong> after inverse transformation. The evaluation framework is implemented in <code>src/utils/evaluation_plot_utils.py</code> and <code>src/univariate_transformer/evaluation_univ_transformer.py</code>.</p>
+<p>Predap evaluates forecasting performance using a comprehensive suite of metrics, applied on the <strong>original (un-normalized) scale</strong> after inverse transformation. The evaluation framework is implemented in <code>src/utils/evaluation_plot_utils.py</code> and <code>src/univariate_transformer/evaluation_univ_transformer.py</code>.
+Only the MAE, RMSE, MSE and WAPE metrics are loaded to Mlflow. </p>
 <hr/>
 <h2 id="core-metrics">Core Metrics<a class="headerlink" href="#core-metrics" title="Permanent link">¶</a></h2>
 <h3 id="mean-squared-error-mse">Mean Squared Error (MSE)<a class="headerlink" href="#mean-squared-error-mse" title="Permanent link">¶</a></h3>
@@ -1116,7 +1117,7 @@ L_\tau(y, \hat{y}) = \begin{cases}
 </div>
 <hr/>
 <h2 id="mlflow-metric-logging">MLflow Metric Logging<a class="headerlink" href="#mlflow-metric-logging" title="Permanent link">¶</a></h2>
-<p>During training, all metrics are logged to MLflow under structured namespaces:</p>
+<p>During training, the previously specified metrics of each transformer phase are logged to MLflow under structured namespaces:</p>
 <table>
 <thead>
 <tr>
@@ -1251,7 +1252,7 @@ L_\tau(y, \hat{y}) = \begin{cases}
 <p><code>plot_residuals_analysis()</code> produces a 4-panel figure:</p>
 <ol>
 <li><strong>Time series</strong> — Original vs corrected predictions with uncertainty bands (<span class="arithmatex">\(\pm 1.96 \sigma\)</span>)</li>
-<li><strong>Residuals over time</strong> — Are residuals stationary?</li>
+<li><strong>Residuals over time</strong> — Plot of the residual error at each time step</li>
 <li><strong>Scatter plot</strong> — Predicted vs actual with <span class="arithmatex">\(R^2\)</span> line</li>
 <li><strong>Error distribution</strong> — Histogram of residuals with Gaussian fit</li>
 </ol>

@@ -49,7 +49,7 @@ system:
 # MLflow configuration
 mlflow:
   tracking_uri: "file:./mlruns"
-  experiment_name: "Prova_FullPooling1_TRANSFORMER1_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH" #TRANSFORMER3 
+  experiment_name: "Prova_FullPooling2_TRANSFORMER1_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH" #TRANSFORMER3 
 
 # Hydra multirun configuration
 hydra:

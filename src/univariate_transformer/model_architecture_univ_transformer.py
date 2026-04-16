@@ -93,28 +93,37 @@ class RevIN(layers.Layer):
         super(RevIN, self).__init__(**kwargs)
         self.eps = eps
         self.detach_grad = detach_grad
-        # These will store the mean and stdev of the current batch/instance
-        self.mean = None
-        self.stdev = None
 
-    def call(self, x, mode='norm'):
+    def call(self, x, mode='norm', mean=None, stdev=None):
         if mode == 'norm':
-            self._get_statistics(x)
-            x = (x - self.mean) / self.stdev
-            return x
+            mean, stdev = self._get_statistics(x)
+            x_norm = (x - mean) / stdev
+            return x_norm, mean, stdev
+
         elif mode == 'denorm':
-            # Use the statistics stored during the last 'norm' call
-            dims = x.shape[-1]
-            x = x * self.stdev[:, :, :dims] + self.mean[:, :, :dims]
-            return x
+            if mean is None or stdev is None:
+                raise ValueError("For mode='denorm', mean and stdev must be provided.")
+            dims = tf.shape(x)[-1]
+            return x * stdev[:, :, :dims] + mean[:, :, :dims]
+
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
 
     def _get_statistics(self, x):
-        # Calculate mean and stdev across the time dimension (axis 1)
-        # Assuming shape: (batch, time_steps, features)
-        self.mean = tf.reduce_mean(x, axis=1, keepdims=True)
-        self.stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
-        
+        mean = tf.reduce_mean(x, axis=1, keepdims=True)
+        stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
+
         if self.detach_grad:
-            self.mean = tf.stop_gradient(self.mean)
-            self.stdev = tf.stop_gradient(self.stdev)
+            mean = tf.stop_gradient(mean)
+            stdev = tf.stop_gradient(stdev)
+
+        return mean, stdev
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "eps": self.eps,
+            "detach_grad": self.detach_grad,
+        })
+        return config
 

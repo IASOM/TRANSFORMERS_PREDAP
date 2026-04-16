@@ -233,6 +233,14 @@ def load_trained_model(model_path):
     
     print(f"Loading model from: {model_path}")
     tf.keras.backend.clear_session()
+
+    gpus = tf.config.list_physical_devices('GPU')
+    for gpu in gpus:
+        try:
+            tf.config.experimental.reset_memory_stats(gpu)
+        except Exception:
+            pass
+
     model = tf.keras.models.load_model(
         model_path, 
         custom_objects={

@@ -1146,7 +1146,7 @@
 <h2 id="phase-2-diagnostic-residual-transformer">Phase 2: Diagnostic Residual Transformer<a class="headerlink" href="#phase-2-diagnostic-residual-transformer" title="Permanent link">¶</a></h2>
 <p>After the univariate model produces baseline predictions <span class="arithmatex">\(\hat{y}_1\)</span>, the residuals <span class="arithmatex">\(r_1 = y - \hat{y}_1\)</span> are modeled using diagnostic covariates selected by the upstream LMLR + Granger-Causal pipeline.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h3>
-<p>The residual model uses a <strong>hybrid LSTM-Transformer</strong> design:</p>
+<p>The residual model uses a <strong>Transformer</strong> design:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a>RevIN → Dense Projection → Positional Encoding → Transformer Encoder × N
 </span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a>→ AveragePooling1D(14) → Flatten → MLP → Dense(forecast) → RevIN Denorm
 </span></code></pre></div>
@@ -1290,7 +1290,7 @@ PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d}}\right), \quad PE_{(pos, 2i+1
 <tr>
 <td>Informer</td>
 <td><code>build_informer_model()</code></td>
-<td>Long sequences (lookback &gt; 60)</td>
+<td>Memory-efficient Long sequences (lookback &gt; 60)</td>
 </tr>
 <tr>
 <td>LogSparse</td>

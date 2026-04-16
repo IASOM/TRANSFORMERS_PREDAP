@@ -38,7 +38,7 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 4
+    epochs: int = 400
     batch_size: int = 256
     early_stop_patience: int = 50
     shuffle_data: bool = True
@@ -47,6 +47,10 @@ class BaseTransformerConfig(ABC):
     # ==================== DATA PARAMETERS ====================
     data_path: str = '../data/FINAL_DB/full_CAT1.parquet'
     diagnostic_covariates_path: str = f'../data/best_features/BEST_features_NOSMOOTH_'
+    production_predictions_dir: str = "../production_predictions/final_output_predictions"
+    production_predictions_file: str = "../production_predictions/final_output_predictions.parquet"
+    production_metrics_file: str = "../production_predictions/production_evaluation_metrics.parquet"
+    
     cutoff_date: str = "2008-01-01"
     final_cutoff_date: str = "2025-09-30"#"2021-06-30"#
     positional_encoding: bool = True

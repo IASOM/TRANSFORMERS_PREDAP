@@ -59,7 +59,7 @@ def build_base_model(input_shape, head_size, num_heads, ff_dim, num_transformer_
     revin_layer = RevIN()
 
     # 3. Normalize Input
-    x = revin_layer(inputs, mode='norm')
+    x, mean, stdev = revin_layer(inputs, mode='norm')
     #x = inputs  # initial input
     
     d_model = max(head_size * num_heads, 32)
@@ -74,8 +74,8 @@ def build_base_model(input_shape, head_size, num_heads, ff_dim, num_transformer_
         x = transformer_encoder(x, head_size, num_heads, ff_dim, activation_function, dropout)  # uses previous defined trans_encoder layer
 
     #x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel
-    #if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
-    x = layers.AveragePooling1D(14, data_format="channels_first")(x) # pooling 7 by default
+    if input_shape[0] >= 60:  # Only apply pooling if sequence length is sufficient
+        x = layers.AveragePooling1D(30, data_format="channels_first")(x) # pooling 7 by default
     #query = tf.Variable(tf.random.normal((1, 1, d_model)), trainable=True)
     # Broadcast query to match batch size
     #query = LearnableQuery(d_model)(inputs)
@@ -96,7 +96,7 @@ def build_base_model(input_shape, head_size, num_heads, ff_dim, num_transformer_
    
     outputs = layers.Dense(n_pred)(x)
     outputs = layers.Reshape((n_pred, 1))(outputs)
-    outputs = revin_layer(outputs, mode='denorm')
+    outputs = revin_layer(outputs, mode='denorm', mean=mean, stdev=stdev)  # denormalize output to original scale
     outputs = layers.Reshape((n_pred,))(outputs)
     #outputs = layers.Permute((2, 1))(outputs)
 
@@ -172,27 +172,36 @@ class RevIN(layers.Layer):
         super(RevIN, self).__init__(**kwargs)
         self.eps = eps
         self.detach_grad = detach_grad
-        # These will store the mean and stdev of the current batch/instance
-        self.mean = None
-        self.stdev = None
 
-    def call(self, x, mode='norm'):
+    def call(self, x, mode='norm', mean=None, stdev=None):
         if mode == 'norm':
-            self._get_statistics(x)
-            x = (x - self.mean) / self.stdev
-            return x
+            mean, stdev = self._get_statistics(x)
+            x_norm = (x - mean) / stdev
+            return x_norm, mean, stdev
+
         elif mode == 'denorm':
-            # Use the statistics stored during the last 'norm' call
-            dims = x.shape[-1]
-            x = x * self.stdev[:, :, :dims] + self.mean[:, :, :dims]
-            return x
+            if mean is None or stdev is None:
+                raise ValueError("For mode='denorm', mean and stdev must be provided.")
+            dims = tf.shape(x)[-1]
+            return x * stdev[:, :, :dims] + mean[:, :, :dims]
+
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
 
     def _get_statistics(self, x):
-        # Calculate mean and stdev across the time dimension (axis 1)
-        # Assuming shape: (batch, time_steps, features)
-        self.mean = tf.reduce_mean(x, axis=1, keepdims=True)
-        self.stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
-        
+        mean = tf.reduce_mean(x, axis=1, keepdims=True)
+        stdev = tf.math.reduce_std(x, axis=1, keepdims=True) + self.eps
+
         if self.detach_grad:
-            self.mean = tf.stop_gradient(self.mean)
-            self.stdev = tf.stop_gradient(self.stdev)
+            mean = tf.stop_gradient(mean)
+            stdev = tf.stop_gradient(stdev)
+
+        return mean, stdev
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "eps": self.eps,
+            "detach_grad": self.detach_grad,
+        })
+        return config

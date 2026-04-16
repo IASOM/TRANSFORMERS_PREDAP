@@ -164,7 +164,14 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         return univ_model, diagnostics_model, seasonal_model
 
     
-    def run_reconstruct_save_results_pipeline(self, code: str, LOOKBACK_LIST: List[int], FORECAST_LIST: List[int], final_output_predictions: Optional[np.ndarray], final_output_df: pd.DataFrame):
+    def run_reconstruct_save_results_pipeline(
+            self, 
+            code: str, 
+            LOOKBACK_LIST: List[int], 
+            FORECAST_LIST: List[int], 
+            final_output_predictions: Optional[np.ndarray], 
+            final_output_df: pd.DataFrame
+            ) -> pd.DataFrame:
         """Runs the full pipeline to reconstruct the model, make predictions, and save results for a given code and list of lookback and forecast combinations. 
         Args:
             code (str): The code for which to run the pipeline (e.g., 'demanda__TOTAL').
@@ -285,6 +292,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         """
         
         table = pa.Table.from_pandas(final_output_df, preserve_index=False)
+        output_path = self.config.production_predictions_dir
 
         ds.write_dataset(
             table,
@@ -335,7 +343,8 @@ class ModelPredictionPipeline(DataPreparationInProduction):
 
                     })
         metrics_df = pd.concat([metrics_df, pd.DataFrame(results_accumulator)], ignore_index=True)
-        metrics_df.to_parquet("../production_predictions/production_evaluation_metrics.parquet", index=False)
+        output_path = self.config.production_metrics_file
+        metrics_df.to_parquet(output_path, index=False)
         return metrics_df
 
         

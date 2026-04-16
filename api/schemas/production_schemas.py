@@ -39,8 +39,8 @@ class AddNewDataRequest(BaseModel):
 
 class ModelReconstructionRequest(BaseModel):
     code: str = Field(..., description="The code for which to reconstruct the model (e.g., 'code1').")
-    forecast_horizon: int = Field(..., description="The forecast horizon (lag) for which to reconstruct the model (e.g., 7).")
-    code: str = Field(..., description="The code for which to reconstruct the model (e.g., 'code1').")
+    lookback_list: List[int] = Field(..., description="List of lookback windows.")
+    forecast_horizon_list: List[int] = Field(..., description="List of forecast horizons.")
     head_size: int = Field(..., description="The size of each attention head.")
     num_heads: int = Field(..., description="The number of attention heads.")
     ff_dim: int = Field(..., description="The dimensionality of the feedforward network.")

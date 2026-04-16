@@ -87,9 +87,9 @@ def compute_dynamic_batch_size(lookback, forecast):
     gpus = tf.config.list_physical_devices('GPU')
 
     if lookback <= 14 and forecast <= 14:
-        batch_size = 2048
+        batch_size = 4096
     if lookback <= 30 and forecast <= 30:
-        batch_size = 512
+        batch_size = 1024
     elif (30 <= lookback <= 60) and forecast <= 60:
         batch_size = 256
     elif 60 <= lookback <= 128 and forecast<= 128:
@@ -107,14 +107,34 @@ def compute_dynamic_batch_size(lookback, forecast):
 
 
 def memory_cleanup():
+    """
+    Clean up GPU memory between training phases.
+    
+    NOTE: Do NOT use numba cuda.device.reset() — it destroys the CUDA context
+    and makes TensorFlow unable to use the GPU for the rest of the process.
+    """
+    # Clear Keras session (releases model graphs and cached tensors)
     K.clear_session()
-    tf.compat.v1.reset_default_graph() # Force reset of the TF graph
+    
+    # Reset the default graph (TF1 compat, still useful for freeing resources)
+    tf.compat.v1.reset_default_graph()
+    
+    # Force Python garbage collection
     gc.collect()
+    
+    # Close all matplotlib figures to free memory
     plt.close('all')
-    # This is a trick to force the GPU to synchronise and clear
-    from numba import cuda
+    
+    # Free unused C memory back to the OS
     try:
-        device = cuda.get_current_device()
-        device.reset()
-    except:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
         pass
+    
+    # Reset GPU memory stats (does NOT destroy the CUDA context)
+    gpus = tf.config.list_physical_devices('GPU')
+    for gpu in gpus:
+        try:
+            tf.config.experimental.reset_memory_stats(gpu)
+        except Exception:
+            pass
