@@ -20,7 +20,7 @@ from univariate_transformer import plt_model, plot_predictions_with_waves, extra
 from residual_multivariate_transformers import load_base_model_transformer
 
 
-def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None, eliminate_covid_data=False, covid_dates=None, relevant_feature_cols=None, batch_size = 32):
+def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, max_date, covid_token = False, MODEL_FOLDER='models_univariate_transformer', df_waves=None, scaler = None, eliminate_covid_data=False, covid_dates=None, relevant_feature_cols=None, batch_size = 32, split_ratio=None):
     print(f"\n--- Evaluating model: {model_name} ---")
         
     # Extract parameters from filename
@@ -50,7 +50,8 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
         scaler=scaler, 
         eliminate_covid_data=eliminate_covid_data, 
         covid_dates=covid_dates, 
-        relevant_feature_cols=relevant_feature_cols
+        relevant_feature_cols=relevant_feature_cols, 
+        split_ratio=split_ratio
     )
 
     X_test_orig, Y_test_orig = data_preparation.prepare_data_not_normalized(
@@ -66,7 +67,8 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
         univariate=True, 
         eliminate_covid_data=eliminate_covid_data, 
         covid_dates=covid_dates, 
-        relevant_feature_cols=relevant_feature_cols
+        relevant_feature_cols=relevant_feature_cols,
+        split_ratio=split_ratio
     )
 
 
@@ -89,7 +91,10 @@ def evaluate_univ_transformer(model_name, input_directory, code,  cutoff_date, m
     
     # Inverse transform predictions
     predictions_to_plot = data_preparation.inverse_transform_predictions(
-        predictions, original_scale_df, code=code, forecast=forecast, lookback=lookback, cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+        predictions, original_scale_df, code=code, forecast=forecast, lookback=lookback, 
+        cutoff_date=cutoff_date, max_date = max_date, scaler=scaler, 
+        eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates,
+        split_ratio=split_ratio
     )
     
     # Evaluate model

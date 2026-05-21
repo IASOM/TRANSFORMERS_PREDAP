@@ -9,6 +9,9 @@ copyright: Copyright &copy; 2024–2026 Predap Team
 
 theme:
   name: material
+  font:
+    text: Source Sans 3
+    code: JetBrains Mono
   features:
     - navigation.tabs
     - navigation.tabs.sticky
@@ -22,20 +25,9 @@ theme:
     - content.code.annotate
     - content.tabs.link
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: deep purple
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: deep purple
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+    - scheme: default
+      primary: blue
+      accent: orange
   icon:
     repo: fontawesome/brands/github
 
@@ -92,6 +84,9 @@ extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - https://unpkg.com/mermaid/dist/mermaid.min.js
 
+extra_css:
+  - stylesheets/rumia-brand.css
+
 extra:
   social:
     - icon: fontawesome/brands/github
@@ -115,6 +110,8 @@ nav:
           - Data Preparation: api-reference/python/data-preparation.md
           - Utilities: api-reference/python/utils.md
       - REST API (FastAPI): api-reference/rest-api.md
+      - Pydantic Models: api-reference/pydantic-models.md
+      - External API Report: api-reference/external-api-report.md
   - Tutorials:
       - Training Your First Model: tutorials/train-custom-model.md
       - Grid Search & Hyperparameter Tuning: tutorials/grid-search.md

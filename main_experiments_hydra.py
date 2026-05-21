@@ -66,8 +66,9 @@ if gpus:
 
 # Register custom resolver for loading JSON codes list
 OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
+config_name = "config_production.yaml"  
 
-@hydra.main(version_base=None, config_path="conf", config_name="grid_search_V1.yaml")
+@hydra.main(version_base=None, config_path="conf", config_name=config_name)
 def main_experiment(cfg: DictConfig) -> None:
     """Main experiment function decorated with Hydra for parameter sweeping."""
     
@@ -105,7 +106,7 @@ def main_experiment(cfg: DictConfig) -> None:
 
     
     # Start MLflow run for this specific configuration
-    run_name = f"Prova_FullPooling2_TRANSFORMER1_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}" #TRANSFORMER3
+    run_name = f"1.0_Production_TRANSFORMER_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}" #TRANSFORMER3
     with mlflow.start_run(run_name=run_name) as run:
         print(f"\n🚀 Starting MLflow run: {run_name}")
         print(f"   • Run ID: {run.info.run_id}")
@@ -171,19 +172,24 @@ def main_experiment(cfg: DictConfig) -> None:
         univ_outputs = pipeline.run_complete_pipeline()
         model = univ_outputs.model
         model_name = univ_outputs.model_name
-        loss = univ_outputs.loss
-        mae = univ_outputs.mae
-        mse = univ_outputs.mse
-        rmse = univ_outputs.rmse
-        wape = univ_outputs.wape
-        
+        loss = float(univ_outputs.loss)
+        mae = float(univ_outputs.mae)
+        mse = float(univ_outputs.mse)
+        rmse = float(univ_outputs.rmse)
+        wape = float(univ_outputs.wape)
+
         mlflow.keras.log_model(model, artifact_path="univariate_model")
+        del model  # Clear model from memory before loading history to free up GPU memory
         
         load_mlflow_model_history(model_name, model_type="univariate_transformer")
 
         univ_end_time = datetime.now()
         univ_duration = (univ_end_time - univ_start_time).total_seconds()
+        univ_duration = float(univ_duration)  # Ensure it's a standard float for MLflow logging
+
+
         
+
         mlflow.log_metrics({
             "duration/phase_1_univariate_transformer_duration_seconds": univ_duration,
             "duration/phase_1_univariate_transformer_duration_minutes": univ_duration / 60,
@@ -233,28 +239,31 @@ def main_experiment(cfg: DictConfig) -> None:
 
         pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
         diagnostic_outputs = pipeline.run_complete_pipeline()
-        predictions_train_corrected = diagnostic_outputs.predictions_train_corrected
-        predictions_test_corrected = diagnostic_outputs.predictions_test_corrected
+        predictions_train_corrected = np.array(diagnostic_outputs.predictions_train_corrected, copy = True)
+        predictions_test_corrected = np.array(diagnostic_outputs.predictions_test_corrected, copy = True)
         residual_diagnostics_model = diagnostic_outputs.residual_diagnostics_model
         residual_diagnostics_model_name = diagnostic_outputs.residual_diagnostics_model_name
-        corrected_diagnostics_mae = diagnostic_outputs.corrected_diagnostics_mae
-        corrected_diagnostics_mse = diagnostic_outputs.corrected_diagnostics_mse
-        corrected_diagnostics_rmse = diagnostic_outputs.corrected_diagnostics_rmse
-        corrected_diagnostics_wape = diagnostic_outputs.corrected_diagnostics_wape
+        corrected_diagnostics_mae = float(diagnostic_outputs.corrected_diagnostics_mae)
+        corrected_diagnostics_mse = float(diagnostic_outputs.corrected_diagnostics_mse)
+        corrected_diagnostics_rmse = float(diagnostic_outputs.corrected_diagnostics_rmse)
+        corrected_diagnostics_wape = float(diagnostic_outputs.corrected_diagnostics_wape)
+
+
 
         mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
+        del residual_diagnostics_model  # Clear model from memory before loading history to free up GPU memory
         load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
         
         diag_end_time = datetime.now()
         diag_duration = (diag_end_time - diag_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_2_residual_diagnostics_transformer_duration_seconds": diag_duration,
-            "duration/phase_2_residual_diagnostics_transformer_duration_minutes": diag_duration / 60,
-            "eval/residual_diagnostics_model_mae": corrected_diagnostics_mae,
-            "eval/residual_diagnostics_model_mse": corrected_diagnostics_mse,    
-            "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
-            "eval/residual_diagnostics_model_wape": corrected_diagnostics_wape,
+            "duration/phase_2_residual_diagnostics_transformer_duration_seconds": float(diag_duration),
+            "duration/phase_2_residual_diagnostics_transformer_duration_minutes": float(diag_duration / 60),
+            "eval/residual_diagnostics_model_mae": float(corrected_diagnostics_mae),
+            "eval/residual_diagnostics_model_mse": float(corrected_diagnostics_mse),
+            "eval/residual_diagnostics_model_rmse": float(corrected_diagnostics_rmse),
+            "eval/residual_diagnostics_model_wape": float(corrected_diagnostics_wape),
         })
         
         #Clear the GPU memory and possible memory garbage
@@ -290,14 +299,14 @@ def main_experiment(cfg: DictConfig) -> None:
 
         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
         seasonal_outputs = pipeline.run_complete_pipeline()
-        predictions_train_corrected = seasonal_outputs.predictions_train_corrected
-        predictions_test_corrected = seasonal_outputs.predictions_test_corrected
+        predictions_train_corrected = np.array(seasonal_outputs.predictions_train_corrected, copy = True)
+        predictions_test_corrected = np.array(seasonal_outputs.predictions_test_corrected, copy = True)
         residual_seasonal_model = seasonal_outputs.residual_diagnostics_model
         residual_seasonal_model_name = seasonal_outputs.residual_diagnostics_model_name
-        corrected_seasonal_mae = seasonal_outputs.corrected_diagnostics_mae
-        corrected_seasonal_mse = seasonal_outputs.corrected_diagnostics_mse
-        corrected_seasonal_rmse = seasonal_outputs.corrected_diagnostics_rmse
-        corrected_seasonal_wape = seasonal_outputs.corrected_diagnostics_wape
+        corrected_seasonal_mae = float(seasonal_outputs.corrected_diagnostics_mae)
+        corrected_seasonal_mse = float(seasonal_outputs.corrected_diagnostics_mse)
+        corrected_seasonal_rmse = float(seasonal_outputs.corrected_diagnostics_rmse)
+        corrected_seasonal_wape = float(seasonal_outputs.corrected_diagnostics_wape)
 
         mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
         load_mlflow_model_history(residual_seasonal_model_name, model_type="residual_seasonal_transformer")
@@ -307,14 +316,14 @@ def main_experiment(cfg: DictConfig) -> None:
         total_duration = (seasonal_end_time - univ_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_3_residual_seasonal_transformer_duration_seconds": seasonal_duration,
-            "duration/phase_3_residual_seasonal_transformer_duration_minutes": seasonal_duration / 60,
-            "total_training_duration_seconds": total_duration,
-            "total_training_duration_minutes": total_duration / 60,
-            "eval/residual_seasonal_model_mae": corrected_seasonal_mae,
-            "eval/residual_seasonal_model_mse": corrected_seasonal_mse,
-            "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse,
-            "eval/residual_seasonal_model_wape": corrected_seasonal_wape,
+            "duration/phase_3_residual_seasonal_transformer_duration_seconds": float(seasonal_duration),
+            "duration/phase_3_residual_seasonal_transformer_duration_minutes": float(seasonal_duration / 60),
+            "total_training_duration_seconds": float(total_duration),
+            "total_training_duration_minutes": float(total_duration / 60),
+            "eval/residual_seasonal_model_mae": float(corrected_seasonal_mae),
+            "eval/residual_seasonal_model_mse": float(corrected_seasonal_mse),
+            "eval/residual_seasonal_model_rmse": float(corrected_seasonal_rmse),
+            "eval/residual_seasonal_model_wape": float(corrected_seasonal_wape),
         })
         
         # Use the final seasonal MSE as the comparison metric
@@ -322,10 +331,10 @@ def main_experiment(cfg: DictConfig) -> None:
         
         # Log final metrics for this run
         mlflow.log_metrics({
-            "final/seasonal_mse": current_mse,
-            "final/seasonal_mae": corrected_seasonal_mae,
-            "final/seasonal_rmse": corrected_seasonal_rmse,
-            "final/seasonal_wape": corrected_seasonal_wape,
+            "final/seasonal_mse": float(current_mse),
+            "final/seasonal_mae": float(corrected_seasonal_mae),
+            "final/seasonal_rmse": float(corrected_seasonal_rmse),
+            "final/seasonal_wape": float(corrected_seasonal_wape),
         })
         
         print(f"✅ Completed run for {CODE} - lb:{lookback} fh:{forecast}")
@@ -334,9 +343,10 @@ def main_experiment(cfg: DictConfig) -> None:
         #Clear the GPU memory and possible memory garbage
         del seasonal_outputs
         del pipeline
+        del residual_seasonal_model, univariate_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
         memory_cleanup()
         plt.close('all')
-        del model, residual_seasonal_model, univariate_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
+        
 if __name__ == "__main__":
     main_experiment()
     cleanup_ram()

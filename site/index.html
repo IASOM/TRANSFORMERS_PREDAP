@@ -9,17 +9,18 @@
 <meta content="Predap Engineering Team" name="author"/>
 <link href="getting-started/installation/" rel="next"/>
 <link href="assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.7.3" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
 <title>Predap — Healthcare Demand Forecasting</title>
 <link href="assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
 <link href="assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
-<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Source Sans 3";--md-code-font:"JetBrains Mono"}</style>
 <link href="assets/_mkdocstrings.css" rel="stylesheet"/>
+<link href="stylesheets/rumia-brand.css" rel="stylesheet"/>
 <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
 </head>
-<body data-md-color-accent="deep-purple" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<body data-md-color-accent="orange" data-md-color-primary="blue" data-md-color-scheme="default" dir="ltr">
 <input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
@@ -55,14 +56,7 @@
 </div>
 </div>
 <form class="md-header__option" data-md-component="palette">
-<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="deep-purple" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
-<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
-</label>
-<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="deep-purple" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
-<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
-</label>
+<input aria-hidden="true" class="md-option" data-md-color-accent="orange" data-md-color-media="" data-md-color-primary="blue" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
 <label class="md-header__button md-icon" for="__search">
@@ -245,19 +239,50 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#value-proposition">
+<a class="md-nav__link" href="#what-predap-delivers">
 <span class="md-ellipsis">
       
-        Value Proposition
+        What Predap Delivers
       
     </span>
 </a>
+<nav aria-label="What Predap Delivers" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reliable-forecasting">
+<span class="md-ellipsis">
+      
+        Reliable Forecasting
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#designed-for-teams">
+<span class="md-ellipsis">
+      
+        Designed for Teams
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#architecture-overview">
 <span class="md-ellipsis">
       
         Architecture Overview
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#experiment-tracking">
+<span class="md-ellipsis">
+      
+        Experiment Tracking
       
     </span>
 </a>
@@ -272,28 +297,19 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#key-capabilities">
+<span class="md-ellipsis">
+      
+        Key Capabilities
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#quick-links">
 <span class="md-ellipsis">
       
         Quick Links
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#project-structure">
-<span class="md-ellipsis">
-      
-        Project Structure
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#supported-model-architectures">
-<span class="md-ellipsis">
-      
-        Supported Model Architectures
       
     </span>
 </a>
@@ -546,6 +562,30 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="api-reference/pydantic-models/">
+<span class="md-ellipsis">
+    
+  
+    Pydantic Models
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="api-reference/external-api-report/">
+<span class="md-ellipsis">
+    
+  
+    External API Report
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -750,19 +790,50 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#value-proposition">
+<a class="md-nav__link" href="#what-predap-delivers">
 <span class="md-ellipsis">
       
-        Value Proposition
+        What Predap Delivers
       
     </span>
 </a>
+<nav aria-label="What Predap Delivers" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#reliable-forecasting">
+<span class="md-ellipsis">
+      
+        Reliable Forecasting
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#designed-for-teams">
+<span class="md-ellipsis">
+      
+        Designed for Teams
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#architecture-overview">
 <span class="md-ellipsis">
       
         Architecture Overview
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#experiment-tracking">
+<span class="md-ellipsis">
+      
+        Experiment Tracking
       
     </span>
 </a>
@@ -777,28 +848,19 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#key-capabilities">
+<span class="md-ellipsis">
+      
+        Key Capabilities
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#quick-links">
 <span class="md-ellipsis">
       
         Quick Links
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#project-structure">
-<span class="md-ellipsis">
-      
-        Project Structure
-      
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
-<a class="md-nav__link" href="#supported-model-architectures">
-<span class="md-ellipsis">
-      
-        Supported Model Architectures
       
     </span>
 </a>
@@ -810,18 +872,39 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
+<div class="rumia-hero">
+<p class="rumia-eyebrow">RUMIA HealthTech Documentation</p>
 <h1 id="predap-healthcare-demand-forecasting">Predap — Healthcare Demand Forecasting<a class="headerlink" href="#predap-healthcare-demand-forecasting" title="Permanent link">¶</a></h1>
-<p><strong>Predap</strong> is a deep learning ecosystem for forecasting diagnostic visit demand in healthcare systems. It uses a <strong>three-phase Transformer-based residual correction pipeline</strong> with production-ready inference capabilities via FastAPI.</p>
-<hr/>
-<h2 id="value-proposition">Value Proposition<a class="headerlink" href="#value-proposition" title="Permanent link">¶</a></h2>
+<p>Predap is a deep learning ecosystem for forecasting diagnostic visit demand in healthcare systems. It uses a three-phase Transformer-based residual correction pipeline with production-ready inference capabilities via FastAPI.</p>
+<div class="rumia-cta-row">
+
+[Installation](getting-started/installation.md){ .md-button .md-button--primary }
+[Quickstart](getting-started/quickstart.md){ .md-button }
+[API Reference](api-reference/rest-api.md){ .md-button }
+
+</div>
+</div>
+<h2 id="what-predap-delivers">What Predap Delivers<a class="headerlink" href="#what-predap-delivers" title="Permanent link">¶</a></h2>
+<div class="rumia-grid">
+<div class="rumia-card">
+<h3 id="reliable-forecasting">Reliable Forecasting<a class="headerlink" href="#reliable-forecasting" title="Permanent link">¶</a></h3>
+<p>High-accuracy multi-horizon predictions with a transparent residual correction pipeline.</p>
 <ul>
-<li><strong>Accurate multi-horizon forecasts</strong> of healthcare diagnostic visits (1 to 365 days ahead)</li>
-<li><strong>Three-phase residual correction</strong> progressively refines predictions from a univariate baseline through diagnostic and seasonal enrichment</li>
-<li><strong>Production-ready</strong>: quantized models, FastAPI endpoints, automated data ingestion</li>
-<li><strong>Experiment tracking</strong> with MLflow and Hydra-based grid search</li>
-<li><strong>COVID-aware</strong>: built-in pandemic wave handling with Catalan public health calendar</li>
+<li>1 to 365 days ahead</li>
+<li>Structured experiment tracking</li>
+<li>Production-ready inference</li>
 </ul>
-<hr/>
+</div>
+<div class="rumia-card">
+<h3 id="designed-for-teams">Designed for Teams<a class="headerlink" href="#designed-for-teams" title="Permanent link">¶</a></h3>
+<p>Clear navigation, calm layouts, and documentation patterns that support technical reading.</p>
+<ul>
+<li>FastAPI deployment</li>
+<li>Hydra experiments</li>
+<li>MkDocs Material base</li>
+</ul>
+</div>
+</div>
 <h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>graph TD
     subgraph Data Ingestion
@@ -830,28 +913,28 @@
         C --&gt; D[Cyclical Encodings + Holiday/Vacation Flags]
     end
 
-    subgraph Phase 1 — Univariate Transformer
+    subgraph Phase 1 [Phase 1 - Univariate Transformer]
         D --&gt; E[RevIN Normalization]
         E --&gt; F[Positional Encoding]
-        F --&gt; G[Multi-Head Self-Attention × N Blocks]
+        F --&gt; G[Multi-Head Self-Attention x N Blocks]
         G --&gt; H[AveragePooling1D + MLP Head]
-        H --&gt; I[Baseline Forecast ŷ₁]
+        H --&gt; I[Baseline Forecast y_1]
     end
 
-    subgraph Phase 2 — Diagnostic Residual Transformer
-        I --&gt; J[Compute Residuals: r₁ = y − ŷ₁]
+    subgraph Phase 2 [Phase 2 - Diagnostic Residual Transformer]
+        I --&gt; J[Compute Residuals: r_1 = y - y_1]
         K[Diagnostic Covariates LMLR + GCausal] --&gt; L
         J --&gt; L[Hybrid LSTM-Transformer]
-        L --&gt; M[Predicted Residuals r̂₁]
-        M --&gt; N[Corrected Forecast ŷ₂ = ŷ₁ + r̂₁]
+        L --&gt; M[Predicted Residuals r_hat_1]
+        M --&gt; N[Corrected Forecast y_2 = y_1 + r_hat_1]
     end
 
-    subgraph Phase 3 — Seasonal Residual Transformer
-        N --&gt; O[Compute Residuals: r₂ = y − ŷ₂]
-        P[Seasonal Covariates: DoW / Month / Holidays] --&gt; Q
+    subgraph Phase 3 [Phase 3 - Seasonal Residual Transformer]
+        N --&gt; O[Compute Residuals: r_2 = y - y_2]
+        P[Seasonal Covariates DoW / Month / Holidays] --&gt; Q
         O --&gt; Q[Hybrid LSTM-Transformer]
-        Q --&gt; R[Predicted Residuals r̂₂]
-        R --&gt; S[Final Forecast ŷ₃ = ŷ₂ + r̂₂]
+        Q --&gt; R[Predicted Residuals r_hat_2]
+        R --&gt; S[Final Forecast y_3 = y_2 + r_hat_2]
     end
 
     subgraph Production
@@ -860,11 +943,13 @@
         U --&gt; V[Client Applications]
     end
 
+</code></pre>
+<h2 id="experiment-tracking">Experiment Tracking<a class="headerlink" href="#experiment-tracking" title="Permanent link">¶</a></h2>
+<pre class="mermaid"><code>graph TD
     subgraph Experiment Tracking
         W[MLflow] --&gt; X[Metrics + Artifacts + Models]
         Y[Hydra Grid Search] --&gt; W
     end</code></pre>
-<hr/>
 <h2 id="three-phase-pipeline-summary">Three-Phase Pipeline Summary<a class="headerlink" href="#three-phase-pipeline-summary" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -896,73 +981,18 @@
 </tr>
 </tbody>
 </table>
-<hr/>
+<h2 id="key-capabilities">Key Capabilities<a class="headerlink" href="#key-capabilities" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Accurate multi-horizon forecasts</strong> of healthcare diagnostic visits from 1 to 365 days ahead</li>
+<li><strong>Three-phase residual correction</strong> that progressively refines predictions from baseline to seasonal enrichment</li>
+<li><strong>Production-ready deployment</strong> with quantized models, FastAPI endpoints, and automated data ingestion</li>
+<li><strong>Experiment tracking</strong> with MLflow and Hydra-based grid search</li>
+<li><strong>COVID-aware logic</strong> built around pandemic wave handling and the Catalan public health calendar</li>
+</ul>
 <h2 id="quick-links">Quick Links<a class="headerlink" href="#quick-links" title="Permanent link">¶</a></h2>
 <p><a class="md-button md-button--primary" href="getting-started/installation/">Installation</a>
 <a class="md-button" href="getting-started/quickstart/">5-Minute Quickstart</a>
 <a class="md-button" href="api-reference/rest-api/">API Reference</a></p>
-<hr/>
-<h2 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>TRANSFORMERS_PREDAP/
-</span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>├── main.py                          # Main training (3-phase + MLflow)
-</span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>├── main_experiments_hydra.py        # Hydra-based grid search runner
-</span><span id="__span-0-4"><a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a>├── main_grid_search_hyperparameters.py
-</span><span id="__span-0-5"><a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a>├── api/                             # FastAPI REST API
-</span><span id="__span-0-6"><a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a>│   ├── main.py                      # App entry point
-</span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a>│   ├── routers/production.py        # /production endpoints
-</span><span id="__span-0-8"><a href="#__codelineno-0-8" id="__codelineno-0-8" name="__codelineno-0-8"></a>│   └── schemas/                     # Pydantic request models
-</span><span id="__span-0-9"><a href="#__codelineno-0-9" id="__codelineno-0-9" name="__codelineno-0-9"></a>├── conf/                            # Hydra YAML configurations
-</span><span id="__span-0-10"><a href="#__codelineno-0-10" id="__codelineno-0-10" name="__codelineno-0-10"></a>├── production/                      # Production deployment pipelines
-</span><span id="__span-0-11"><a href="#__codelineno-0-11" id="__codelineno-0-11" name="__codelineno-0-11"></a>│   ├── add_new_data_pipeline.py     # AddNewDataPipeline
-</span><span id="__span-0-12"><a href="#__codelineno-0-12" id="__codelineno-0-12" name="__codelineno-0-12"></a>│   ├── model_reconstruction_pipeline.py  # ModelPredictionPipeline
-</span><span id="__span-0-13"><a href="#__codelineno-0-13" id="__codelineno-0-13" name="__codelineno-0-13"></a>│   └── model_quantization_pipeline.py    # ModelQuantizationPipeline
-</span><span id="__span-0-14"><a href="#__codelineno-0-14" id="__codelineno-0-14" name="__codelineno-0-14"></a>├── src/                             # Core library
-</span><span id="__span-0-15"><a href="#__codelineno-0-15" id="__codelineno-0-15" name="__codelineno-0-15"></a>│   ├── config/                      # BaseTransformerConfig dataclass
-</span><span id="__span-0-16"><a href="#__codelineno-0-16" id="__codelineno-0-16" name="__codelineno-0-16"></a>│   ├── utils/                       # Data prep, evaluation, experiments
-</span><span id="__span-0-17"><a href="#__codelineno-0-17" id="__codelineno-0-17" name="__codelineno-0-17"></a>│   ├── univariate_transformer/      # Phase 1 model + training + eval
-</span><span id="__span-0-18"><a href="#__codelineno-0-18" id="__codelineno-0-18" name="__codelineno-0-18"></a>│   ├── residual_multivariate_transformers/  # Phases 2 &amp; 3
-</span><span id="__span-0-19"><a href="#__codelineno-0-19" id="__codelineno-0-19" name="__codelineno-0-19"></a>│   ├── main_train_univ_transformer_class.py
-</span><span id="__span-0-20"><a href="#__codelineno-0-20" id="__codelineno-0-20" name="__codelineno-0-20"></a>│   ├── main_train_diagnostic_residual_transformer_class.py
-</span><span id="__span-0-21"><a href="#__codelineno-0-21" id="__codelineno-0-21" name="__codelineno-0-21"></a>│   └── main_train_seasonal_residual_transformer_class.py
-</span><span id="__span-0-22"><a href="#__codelineno-0-22" id="__codelineno-0-22" name="__codelineno-0-22"></a>├── models/                          # Saved .keras model weights
-</span><span id="__span-0-23"><a href="#__codelineno-0-23" id="__codelineno-0-23" name="__codelineno-0-23"></a>├── mlruns/                          # MLflow experiment data
-</span><span id="__span-0-24"><a href="#__codelineno-0-24" id="__codelineno-0-24" name="__codelineno-0-24"></a>├── plots/                           # Generated visualizations
-</span><span id="__span-0-25"><a href="#__codelineno-0-25" id="__codelineno-0-25" name="__codelineno-0-25"></a>└── notebooks/                       # Jupyter analysis notebooks
-</span></code></pre></div>
-<hr/>
-<h2 id="supported-model-architectures">Supported Model Architectures<a class="headerlink" href="#supported-model-architectures" title="Permanent link">¶</a></h2>
-<p>Predap ships with four Transformer variants selectable at build time:</p>
-<table>
-<thead>
-<tr>
-<th>Architecture</th>
-<th>Description</th>
-<th>Key Innovation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Base Transformer</strong></td>
-<td>Standard multi-head attention encoder</td>
-<td>RevIN + cosine LR schedule</td>
-</tr>
-<tr>
-<td><strong>Informer</strong></td>
-<td>Distilling layers with ProbSparse attention</td>
-<td>Reduced quadratic complexity</td>
-</tr>
-<tr>
-<td><strong>LogSparse Transformer</strong></td>
-<td>Logarithmic sparse attention masking</td>
-<td>Local + powers-of-2 connectivity</td>
-</tr>
-<tr>
-<td><strong>LSTNet</strong></td>
-<td>CNN → GRU + Skip-GRU + linear AR</td>
-<td>Hybrid sequential architecture</td>
-</tr>
-</tbody>
-</table>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>

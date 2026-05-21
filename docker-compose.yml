@@ -19,7 +19,14 @@ services:
     volumes:
       # Conecta la carpeta física del servidor (izquierda) con la del contenedor (derecha)
       - ${RELATIVE_MODELS_PATH}:/app/${MODELS_FOLDER_NAME}
-      - ${RRELATIVE_SAVE_DATA_PATH}:/app/${DATA_FOLDER_NAME}
-      - ${RRELATIVE_READ_DATA_PATH}:/app/${DATA_FOLDER_NAME}
+      - ${RELATIVE_SAVE_DATA_PATH}:/app/${SAVE_DATA_FOLDER_NAME}
+      - ${RELATIVE_READ_DATA_PATH}:/app/${READ_DATA_FOLDER_NAME}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1  # This reserves exactly ONE GPU
+              capabilities: [gpu]
 
      

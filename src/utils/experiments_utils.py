@@ -10,6 +10,7 @@ from tensorflow.keras import backend as K
 import tensorflow as tf
 
 _original_read_csv = pd.read_csv
+_in_smart_read = False
 
 def cleanup_ram():
     plt.close('all')
@@ -34,6 +35,33 @@ def smart_read(file_path, **kwargs):
         # Llama a la función original pd.read_csv para CSVs y otros
         print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
         return _original_read_csv(file_path, **kwargs)
+    
+'''def smart_read(file_path, **kwargs):
+    """
+    Función que sustituye a pd.read_csv.
+    Detecta automáticamente si la extensión es .parquet o .csv
+    y llama a la función de lectura apropiada.
+    """
+    global _in_smart_read
+    
+    # If we are already inside a smart_read execution, bypass and call original read_csv
+    if _in_smart_read:
+        return _original_read_csv(file_path, **kwargs)
+        
+    try:
+        _in_smart_read = True
+        
+        if str(file_path).lower().endswith('.parquet'):
+            print(f"-> INFO: Leyendo {file_path} como PARQUET.")
+            # Explicitly force the engine to prevent fallback loops if needed
+            return pd.read_parquet(file_path, **kwargs)
+        else:
+            print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
+            return _original_read_csv(file_path, **kwargs)
+            
+    finally:
+        # Crucial: Always reset the flag, even if reading fails
+        _in_smart_read = False'''
     
 
 # Utility function for safe float conversion

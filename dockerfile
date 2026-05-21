@@ -1,5 +1,5 @@
 # Use an official light python image 
-FROM python:3.12.3-slim
+FROM nvcr.io/nvidia/tensorflow:25.02-tf2-py3
 
 
 #Stablish the working directory inside the container

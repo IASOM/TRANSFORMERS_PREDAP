@@ -102,7 +102,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
     
     input_layer = keras.Input(shape=input_shape)
     revin_layer = RevIN()
-    x, revin_mean, revin_stdev = revin_layer(input_layer, mode='norm')
+    x, mean, stdev = revin_layer(input_layer, mode='norm')
     
     d_model = max(transformer_params['head_size'] * transformer_params['num_heads'], 32)
     x = layers.Dense(d_model)(x)
@@ -165,7 +165,7 @@ def hybrid_lstm_transformer_model(input_shape, forecast,
 
     # Reshape Outputs
     outputs = layers.Reshape((forecast, 1))(outputs)
-    outputs = revin_layer(outputs, mode='denorm', mean=revin_mean, stdev=revin_stdev)
+    outputs = revin_layer(outputs, mode='denorm', mean=mean, stdev=stdev)
     outputs = layers.Reshape((forecast,))(outputs)
 
 

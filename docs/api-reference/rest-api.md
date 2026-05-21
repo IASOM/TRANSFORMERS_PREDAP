@@ -1,150 +1,207 @@
 # REST API (FastAPI)
 
-Predap exposes a production-ready REST API built with **FastAPI** for model inference, data management, and pipeline orchestration.
+Predap exposes a production-facing REST API built with FastAPI and typed request models powered by Pydantic.
 
----
+## API Surface
 
-## Starting the Server
+- Application entrypoint: `api/main.py`
+- Router namespace: `api/routers/production.py`
+- Pydantic schemas: `api/schemas/production_schemas.py`
+- Prefix for production endpoints: `/production`
+
+## Run and Inspect
 
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The API is available at:
+Interactive contracts are available at runtime:
 
-- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
-- **OpenAPI JSON**: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
+- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- OpenAPI spec: [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
 
----
+## Endpoint Reference
 
-## App Configuration
+### GET /
 
-```python
-# api/main.py
-from fastapi import FastAPI
-from api.routers import production
+Health-check style root endpoint.
 
-app = FastAPI(title="Predap API")
-app.include_router(production.router)
+- Handler: `api/main.py` -> `root`
+- Success response:
+
+```json
+{
+  "message": "Welcome, the Predap API is running!"
+}
 ```
 
----
+### POST /production/add_new_data
 
-## Endpoints
+Appends one new row to the production dataset.
 
-All production endpoints are mounted under the `/production` prefix.
+Behavior:
 
-### `POST /production/add_new_data`
+- If `provided_data` is omitted, the pipeline imputes values using a seasonal strategy.
+- Optional request fields fall back to values from `BaseTransformerConfig`.
+- Persisted output is written to `save_path`.
 
-Appends a new row of data to the dataset. If manual data is not provided, values are imputed using a **3-year seasonal mean** (same day/month from the 3 most recent years).
+Request model: `AddNewDataRequest`.
 
-**Request Body** (`AddNewDataRequest`):
+Sample request:
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `new_data_path` | `str?` | Config default | Path to the source `.parquet` file |
-| `cutoff_date` | `str?` | `"2008-01-01"` | Start boundary for data processing |
-| `max_date` | `str?` | `"2025-09-30"` | Upper boundary for data timeline |
-| `eliminate_covid_data` | `bool?` | `false` | Exclude COVID years from mean calculations |
-| `covid_token` | `bool?` | `true` | Add/maintain COVID period flag |
-| `provided_data` | `list[float]?` | `null` | Manual values for the new row (must match feature count) |
-| `save_path` | `str?` | `"../data/FINAL_DB1"` | Output directory for updated file |
-| `delete_old` | `bool?` | `true` | Delete existing file before saving |
+```json
+{
+  "new_data_path": "../data/FINAL_DB/full_CAT1.parquet",
+  "cutoff_date": "2008-01-01",
+  "max_date": "2025-09-30",
+  "eliminate_covid_data": true,
+  "covid_token": true,
+  "provided_data": [10.4, 11.2, 9.8],
+  "save_path": "../data/FINAL_DB1",
+  "delete_old": true
+}
+```
 
-**Response:**
+Sample success response:
 
 ```json
 {
   "status": "success",
   "message": "New data added successfully!",
-  "saved_path": "/path/to/saved/file.parquet",
+  "saved_path": "../data/FINAL_DB1/full_CAT1.parquet",
   "total_rows": 6205,
-  "new_row": { "timestamp": "2025-10-01", "J00": 45.0, ... }
+  "new_row": {
+    "timestamp": "2025-10-01 00:00:00",
+    "J00": 45.0
+  }
 }
 ```
 
----
+Error responses:
 
-### `GET /production/model_reconstruction_pipeline`
+- `404`: source data file not found.
+- `500`: pipeline or persistence failure.
 
-Triggers the full model reconstruction pipeline: loads quantized model weights, reconstructs the architecture, generates predictions, and saves partitioned Parquet output.
+### POST /production/model_reconstruction_pipeline
 
-**Request Body** (`ModelReconstructionRequest`):
+Starts model reconstruction and prediction as an asynchronous background job.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `code` | `str` | Target diagnostic code (e.g., `"J00"`) |
-| `forecast_horizon` | `int` | Forecast horizon in days |
-| `head_size` | `int` | Attention head dimensionality |
-| `num_heads` | `int` | Number of attention heads |
-| `ff_dim` | `int` | Feed-forward hidden dimension |
-| `num_transformer_blocks` | `int` | Number of Transformer blocks |
-| `mlp_units` | `int` | Units per MLP layer |
-| `activation_function` | `str` | Activation function name |
-| `dropout` | `float` | Dropout rate (default: `0.0`) |
-| `learning_rate` | `float` | Learning rate (default: `0.001`) |
-| `epochs` | `int` | Number of training epochs (default: `50`) |
-| `batch_size` | `int` | Batch size (default: `32`) |
-| `cutoff_date` | `str` | Training data cutoff date |
-| `covid_token` | `bool` | COVID token flag (default: `true`) |
-| `positional_encoding` | `bool` | Positional encoding flag (default: `true`) |
-| `evaluate_model` | `bool` | Run evaluation after reconstruction (default: `true`) |
-| `data_path` | `str` | Path to input data directory |
-| `save_path` | `str` | Path to save results |
+Key points:
 
-**Response:**
+- Returns `202 Accepted` immediately.
+- Creates a Redis-backed job record with a generated `job_id`.
+- Executes reconstruction in background via FastAPI `BackgroundTasks`.
+- Poll job status using `GET /production/model_reconstruction_pipeline/{job_id}`.
+
+Request model: `ModelReconstructionRequest`.
+
+Sample request:
+
+```json
+{
+  "code": "J00",
+  "lookback_list": [30],
+  "forecast_horizon_list": [7, 30],
+  "head_size": 128,
+  "num_heads": 4,
+  "ff_dim": 512,
+  "num_transformer_blocks": 4,
+  "mlp_units": 128,
+  "activation_function": "relu",
+  "dropout": 0.1,
+  "learning_rate": 0.001,
+  "epochs": 50,
+  "batch_size": 32,
+  "cutoff_date": "2025-09-30",
+  "covid_token": true,
+  "positional_encoding": true,
+  "evaluate_model": true,
+  "data_path": "../data/FINAL_DB/full_CAT1.parquet",
+  "save_path": "../production_predictions/final_output_predictions"
+}
+```
+
+Sample `202` response:
+
+```json
+{
+  "status": "queued",
+  "job_id": "4f1ec6f5-3f6f-4fd4-9f9d-7da9dcdbed13",
+  "status_endpoint": "/production/model_reconstruction_pipeline/4f1ec6f5-3f6f-4fd4-9f9d-7da9dcdbed13",
+  "message": "Model reconstruction started in the background."
+}
+```
+
+Potential errors:
+
+- `422`: invalid request body (Pydantic validation failure).
+- `503`: Redis unavailable while creating job.
+
+### GET /production/model_reconstruction_pipeline/{job_id}
+
+Returns job status and (if available) result payload.
+
+Job statuses:
+
+- `queued`
+- `running`
+- `succeeded`
+- `failed`
+
+Sample succeeded response:
+
+```json
+{
+  "job_id": "4f1ec6f5-3f6f-4fd4-9f9d-7da9dcdbed13",
+  "status": "succeeded",
+  "created_at": "2026-04-21T09:34:55.402631+00:00",
+  "updated_at": "2026-04-21T09:36:22.778281+00:00",
+  "finished_at": "2026-04-21T09:36:22.777902+00:00",
+  "error": null,
+  "result": {
+    "rows": 1240,
+    "output_path": "../production_predictions/final_output_predictions"
+  }
+}
+```
+
+Potential errors:
+
+- `404`: unknown or expired job id.
+- `503`: Redis unavailable while reading status.
+
+### DELETE /production/delete_old_data
+
+Runs cleanup of outdated forecast rows in the production predictions dataset.
+
+Sample success response:
 
 ```json
 {
   "status": "success",
-  "message": "Model reconstruction pipeline triggered successfully!",
-  "final_output_df": [100, 8]
+  "message": "Old data deleted successfully from: ../production_predictions/final_output_predictions.parquet",
+  "updated_dataset_path": "../production_predictions/final_output_predictions.parquet"
 }
 ```
 
----
+Potential errors:
 
-### `DELETE /production/delete_old_data`
+- `500`: cleanup pipeline failure.
 
-Removes expired forecast rows from the production predictions dataset. A row is deleted when the difference between `target_date` and `forecast_date` equals the `forecast` horizon value.
+## Pydantic Validation Model Reference
 
-**No request body required.** Uses hardcoded paths:
+Detailed field-by-field schema documentation is in [Pydantic Models](pydantic-models.md).
 
-- Predictions: `../production_predictions/final_output_predictions.parquet`
-- Metrics: `../production_predictions/production_evaluation_metrics.parquet`
-- Real data: `../data/FINAL_DB/full_CAT1.parquet`
+## Operational Notes
 
-**Response:**
+- Redis URL comes from `REDIS_URL` (default: `redis://redis:6379/0`).
+- Job metadata TTL comes from `JOB_TTL_SECONDS` (default: `86400`).
+- The model reconstruction endpoint is asynchronous by design; clients should poll the status endpoint.
 
-```json
-{
-  "status": "success",
-  "message": "Old data deleted successfully from: /path/to/updated.parquet",
-  "updated_dataset_path": "/path/to/updated.parquet"
-}
-```
+## External Distribution
 
----
+A client-facing report is available in markdown and PDF:
 
-## Production Pipeline Classes
-
-The API endpoints delegate to these pipeline classes:
-
-| Class | Module | Responsibility |
-|-------|--------|---------------|
-| `AddNewDataPipeline` | `production/add_new_data_pipeline.py` | Append data using seasonal mean imputation |
-| `ModelPredictionPipeline` | `production/model_reconstruction_pipeline.py` | Reconstruct model → predict → save Parquet |
-| `DataPreparationInProduction` | `production/data_preparation_in_poduction.py` | Base class for production data prep |
-
----
-
-## Error Handling
-
-All endpoints return standard HTTP error codes:
-
-| Code | Condition |
-|------|-----------|
-| `200` | Success |
-| `404` | Data file not found |
-| `500` | Internal processing error (details in response body) |
+- Markdown: [External API Report](external-api-report.md)
+- PDF: [Predap API External Report (PDF)](Predap_API_External_Report.pdf)

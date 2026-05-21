@@ -11,9 +11,21 @@ import argparse
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.univariate_transformer.model_architecture_univ_transformer import (
-    PositionalEncoding, RevIN
+    build_base_model,
+    PositionalEncoding as UnivPositionalEncoding,
+    RevIN as UnivRevIN,
 )
+
+from src.residual_multivariate_transformers.model_architecture_residual_transformer import (
+    hybrid_lstm_transformer_model,
+    PositionalEncoding as ResidualPositionalEncoding,
+    RevIN as ResidualRevIN,
+    CustomCosineDecay as ResidualCustomCosineDecay,
+
+)
+
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -24,10 +36,19 @@ from production.data_preparation_in_poduction import DataPreparationInProduction
 scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
 
 
-CUSTOM_OBJECTS = {
-    'RevIN': RevIN,
-    'PositionalEncoding': PositionalEncoding
+CUSTOM_OBJECTS_UNIV = {
+    "UnivariateTransformer": build_base_model,
+    'RevIN': UnivRevIN,
+    'PositionalEncoding': UnivPositionalEncoding,
+
 }   
+
+CUSTOM_OBJECTS_RESIDUAL = {
+    "ResidualTransformer": hybrid_lstm_transformer_model,
+    "RevIN": ResidualRevIN,
+    "PositionalEncoding": ResidualPositionalEncoding,
+    "CustomCosineDecay": ResidualCustomCosineDecay,
+}
 
 class ModelQuantizationPipeline(DataPreparationInProduction):
     """Pipeline for loading, quantizing, and evaluating Keras models in a production setting."""
@@ -51,12 +72,13 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
         local_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path=model_name_in_run)
         actual_model_path = os.path.join(local_path, "data", "model.keras")
         #model_uri = f"runs:/{run_id}/{model_name_in_run}"
-
+        
         # Load the model with safe_mode=False to handle custom layers properly
         with tf.keras.utils.custom_object_scope(custom_objects or {}):
             model = tf.keras.models.load_model(
                 actual_model_path,
-                compile=False
+                compile=False,
+                safe_mode=False
             )
         
         return model
@@ -156,8 +178,8 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
             ValueError: If no run is found that matches the specified configuration.
         """
 
-        run_name_prefix = f"full_TRANSFORMER3_transformer_{code}_lb{lookback}_fh{forecast}"
-
+        #run_name_prefix = f"full_TRANSFORMER3_transformer_{code}_lb{lookback}_fh{forecast}"
+        run_name_prefix = f"1.0_Production_TRANSFORMER_{code}_lb{lookback}_fh{forecast}"
         filter_string = f"attributes.run_name LIKE '{run_name_prefix}%'"
         
         runs = mlflow.search_runs(experiment_names = exp_names,
@@ -226,7 +248,7 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
         )
 
 
-        categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation"]
+        categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation", "Is_Weekend"]#
 
 
         # --- 2. INFERENCE PHASE ---
@@ -247,7 +269,8 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
             predictions_test=predictions_test, 
             scaler=scaler, 
         )
-
+        X_test_seasonal_covs = np.concatenate([X_test_seasonal_covs, predictions_test[:,:,np.newaxis]], axis=-1) 
+        X_test_seasonal_covs = X_test_seasonal_covs.astype(np.float32)
 
         pred_seasonal_residuals = seasonal_model.predict(X_test_seasonal_covs, verbose=0)
 
@@ -308,9 +331,9 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
 
         run_id = self.load_mlflow_run_id_by_name(exp_names=exp_names, code=code, forecast=forecast, lookback=lookback, model_type=None, lr=1e-5)
 
-        univ_model = self.load_mlflow_model(run_id, univ_model_name_in_run, custom_objects= CUSTOM_OBJECTS) 
-        diagnostics_model = self.load_mlflow_model(run_id, diag_model_name_in_run, custom_objects= CUSTOM_OBJECTS)
-        seasonal_model = self.load_mlflow_model(run_id, seasonal_model_name_in_run, custom_objects= CUSTOM_OBJECTS)
+        univ_model = self.load_mlflow_model(run_id, univ_model_name_in_run, custom_objects= CUSTOM_OBJECTS_UNIV) 
+        diagnostics_model = self.load_mlflow_model(run_id, diag_model_name_in_run, custom_objects= CUSTOM_OBJECTS_RESIDUAL)
+        seasonal_model = self.load_mlflow_model(run_id, seasonal_model_name_in_run, custom_objects= CUSTOM_OBJECTS_RESIDUAL)
             
 
         quant_univ_model = self.manual_weight_quantization(univ_model, model_name="univariate_model")
@@ -326,15 +349,27 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
 
 
 if __name__ == "__main__":
-    CODES_LIST = ['demanda__TOTAL', 'demanda__SERVEI_CODI__URG', 'B34','J00', 'I10', 'M54','Ch01#subch01#A00-A09']
+    CODES_LIST = ["demanda__SERVEI_CODI__INF",
+                    "demanda__SERVEI_CODI__INFP",
+                    "demanda__SERVEI_CODI__MF",
+                    "demanda__SERVEI_CODI__PED",
+                    "demanda__SERVEI_CODI__URG",
+                    "demanda__TIPUS_CLASS__9T",
+                    "demanda__TIPUS_CLASS__C9C",
+                    "demanda__TIPUS_CLASS__C9R",
+                    "demanda__TIPUS_CLASS__CALTRE",
+                    "demanda__TIPUS_CLASS__D9D",
+                    "demanda__TIPUS_CLASS__DALTRE"
+                    ]#['demanda__TOTAL', 'demanda__SERVEI_CODI__URG', 'B34','J00', 'I10', 'M54','Ch01#subch01#A00-A09']
+    
     LOOKBACK_LIST = [7, 14, 60, 60, 182,182]
     FORECAST_LIST = [7, 14, 30, 60, 182,365]
 
 
-    input_directory = '../data/FINAL_DB/full_CAT1.parquet'
+    input_directory = '../data/FINAL_DB/finals_combined.csv'
     models_directory = '../transformer_outputs/models_covid_token'
     scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
-    max_date = '2025-09-30'
+    max_date = '2027-09-30'
     cutoff_date = '2008-01-01'
     eliminate_covid_data = False
     covid_dates = None
@@ -345,8 +380,8 @@ if __name__ == "__main__":
             default_config = BaseTransformerConfig()
 
             run_quantization_pipeline = ModelQuantizationPipeline(config=default_config)
-            exp_names = ["full_TRANSFORMER3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210", "full_TRANSFORMER3_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212"]
-
+            #exp_names = ["full_TRANSFORMER3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210", "full_TRANSFORMER3_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212"]
+            exp_names = ['1.0_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260514']
             univ_model, diagnostics_model, seasonal_model, quant_univ_model, quant_diagnostics_model, quant_seasonal_model = run_quantization_pipeline.run_quantization_pipeline(
                 exp_names=exp_names,
                 input_directory=input_directory,

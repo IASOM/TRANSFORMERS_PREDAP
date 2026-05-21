@@ -8,7 +8,7 @@ data:
   data_path: '../data/FINAL_DB/full_CAT1.parquet'
   codes_path: '../data/FINAL_DB/targets_CAT.json'
 
-experiment_setup: "7_7"  # Default experiment setup
+experiment_setup: "365_182"  # Default experiment setup
 
 
 experiment_pairs:

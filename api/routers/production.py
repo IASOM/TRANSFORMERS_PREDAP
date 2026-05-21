@@ -263,8 +263,20 @@ def delete_old_data():
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting old data: {str(e)}")
+
+
+@router.get("/read_data")
+def read_data(data_path: str, code: str):
+    """
+    Reads the dataset and prepares it for plotting the time series trajectory and tendency analysis for a specific diagnostic code.
     
-
-
-
+    Args:
+        data_path (str): The path to the dataset file (e.g., CSV or Parquet).
+        code (str): The diagnostic code for which to prepare the data.
+    
+    Returns:
+        pd.DataFrame: The prepared dataset for the specified diagnostic code.
+    """
+    # Implementation for reading and preparing data
+    pass
 

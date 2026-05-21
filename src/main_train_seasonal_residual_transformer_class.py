@@ -60,7 +60,7 @@ class SeasonalResidualTransformerConfig(BaseTransformerConfig):
     config_object: Optional[Any] = field(default=None)
     predictions_train_corrected: Optional[Any] = None
     predictions_test_corrected: Optional[Any] = None
-    categorical_vars: List[str] = field(default_factory=lambda: ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation"])
+    categorical_vars: List[str] = field(default_factory=lambda: ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation", "Is_Weekend"])
 
     # Visualization and evaluation flags
     plot_stepwise_errors: bool = field(default=True)
@@ -198,6 +198,7 @@ class SeasonalResidualTransformerPipeline:
             scaler = self.config.scaler,
             eliminate_covid_data=self.config.eliminate_covid_data,
             covid_dates=self.config.covid_dates,
+            split_ratio=self.config.default_split_ratio
 
         )
         
@@ -425,7 +426,8 @@ class SeasonalResidualTransformerPipeline:
             train=False, 
             univariate=True,
             eliminate_covid_data=self.config.eliminate_covid_data, 
-            covid_dates=self.config.covid_dates
+            covid_dates=self.config.covid_dates,
+            split_ratio = self.config.default_split_ratio
         )
         
         # Inverse transform predictions

@@ -289,7 +289,7 @@ def load_mlflow_model(run_id, model_name_in_run, custom_objects=None):
     #model = mlflow.keras.load_model(model_uri, custom_objects=custom_objects, safe_mode = False)
     return model
 
-def univariate_transformer_phase(input_directory, code, lookback, forecast, cutoff_date, max_date,scaler,eliminate_covid_data=False, relevant_feature_cols=None):
+def univariate_transformer_phase(input_directory, code, lookback, forecast, cutoff_date, max_date,scaler,eliminate_covid_data=False, relevant_feature_cols=None, split_ratio: float = 0.8):
     # Prepare test data
     X_test, Y_test = data_preparation.prepare_data(
         input_directory, 
@@ -303,8 +303,8 @@ def univariate_transformer_phase(input_directory, code, lookback, forecast, cuto
         univariate=True, 
         scaler=scaler, 
         eliminate_covid_data=eliminate_covid_data, 
-
-        relevant_feature_cols=relevant_feature_cols
+        relevant_feature_cols=relevant_feature_cols,
+        split_ratio=split_ratio
     )
 
     X_test_orig, Y_test_orig = data_preparation.prepare_data_not_normalized(
@@ -319,8 +319,8 @@ def univariate_transformer_phase(input_directory, code, lookback, forecast, cuto
         debug=True, 
         univariate=True, 
         eliminate_covid_data=eliminate_covid_data, 
-
-        relevant_feature_cols=relevant_feature_cols
+        relevant_feature_cols=relevant_feature_cols,
+        split_ratio=split_ratio
     )
 
     
@@ -341,10 +341,10 @@ def univariate_transformer_phase(input_directory, code, lookback, forecast, cuto
 
 
 
-def diagnostics_transformer_phase(code, lookback, forecast, final_cutoff_date, scaler):
+def diagnostics_transformer_phase(code, lookback, forecast, final_cutoff_date, scaler, split_ratio: float = 0.8):
     train_split, test_split = split_train_test(
             pd.read_csv(data_path), 
-            split_ratio=0.8, 
+            split_ratio=split_ratio, 
             cutoff_date = cutoff_date,
             max_date = final_cutoff_date,
             scaler =scaler
@@ -370,7 +370,8 @@ def diagnostics_transformer_phase(code, lookback, forecast, final_cutoff_date, s
         univariate=False,
         scaler = scaler,
         eliminate_covid_data=False,
-        covid_dates=None
+        covid_dates=None,
+        split_ratio=split_ratio
     )
     
     print(f"Training covariates shape: {X_train_covs.shape}")
@@ -392,13 +393,14 @@ def diagnostics_transformer_phase(code, lookback, forecast, final_cutoff_date, s
         scaler = scaler,
         eliminate_covid_data=False,
         covid_dates=None,
+        split_ratio=split_ratio
     )
     
     print(f"Test covariates shape: {X_test_covs.shape}")
     return X_train_covs, X_test_covs
 
 
-def seasonal_transformer_phase(code, forecast, lookback,cutoff_date, final_cutoff_date, categorical_vars,predictions_train, predictions_test, default_split_ratio=0.8, scaler=None):
+def seasonal_transformer_phase(code, forecast, lookback,cutoff_date, final_cutoff_date, categorical_vars,predictions_train, predictions_test, scaler=None, split_ratio: float = 0.8):
     df = pd.read_csv(data_path)
     # Prepare seasonal features for training data
     print("Preparing seasonal features for training data...")
@@ -410,12 +412,13 @@ def seasonal_transformer_phase(code, forecast, lookback,cutoff_date, final_cutof
         scaler = scaler,
         eliminate_covid_data=False, 
         covid_dates=None,
+
     )
     
     # Load and split the original data for covariate extraction
     df_train_processed, df_test_processed = split_train_test(
         df_processed, 
-        split_ratio=0.8, 
+        split_ratio=split_ratio, 
         cutoff_date=cutoff_date,
         max_date = final_cutoff_date,
         scaler = scaler, 
@@ -469,7 +472,7 @@ if __name__ == '__main__':
 
         input_directory = '../data/FINAL_DB/full_CAT1.parquet'
         code = code
-        max_date = '2025-09-30'
+        max_date = '2027-09-30'
         eliminate_covid_data = False
         covid_dates = None
         

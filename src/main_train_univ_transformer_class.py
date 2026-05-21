@@ -177,7 +177,8 @@ class UnivariateTransformerPipeline:
             scaler = self.config.scaler,
             eliminate_covid_data = self.config.eliminate_covid_data,
             covid_dates = self.config.covid_dates,
-            relevant_feature_cols=self.diagnostic_covariates_list
+            relevant_feature_cols=self.diagnostic_covariates_list,
+            split_ratio=self.config.default_split_ratio
         )
         
         finish_time = time.perf_counter()
@@ -356,7 +357,8 @@ class UnivariateTransformerPipeline:
             eliminate_covid_data = self.config.eliminate_covid_data,
             covid_dates = self.config.covid_dates,
             relevant_feature_cols=self.diagnostic_covariates_list,
-            batch_size=self.config.batch_size
+            batch_size=self.config.batch_size,
+            split_ratio=self.config.default_split_ratio,
             
         )
         

@@ -10,17 +10,18 @@
 <link href="../../../user-guide/configuration/" rel="prev"/>
 <link href="../residual-transformers/" rel="next"/>
 <link href="../../../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.7.3" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
 <title>Univariate Transformer - Predap — Healthcare Demand Forecasting</title>
 <link href="../../../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
 <link href="../../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
-<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Source Sans 3";--md-code-font:"JetBrains Mono"}</style>
 <link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<link href="../../../stylesheets/rumia-brand.css" rel="stylesheet"/>
 <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
 </head>
-<body data-md-color-accent="deep-purple" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<body data-md-color-accent="orange" data-md-color-primary="blue" data-md-color-scheme="default" dir="ltr">
 <input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
@@ -56,14 +57,7 @@
 </div>
 </div>
 <form class="md-header__option" data-md-component="palette">
-<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="deep-purple" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
-<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
-</label>
-<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="deep-purple" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
-<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
-</label>
+<input aria-hidden="true" class="md-option" data-md-color-accent="orange" data-md-color-media="" data-md-color-primary="blue" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
 <label class="md-header__button md-icon" for="__search">
@@ -914,6 +908,30 @@
     
   
     REST API (FastAPI)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../pydantic-models/">
+<span class="md-ellipsis">
+    
+  
+    Pydantic Models
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../external-api-report/">
+<span class="md-ellipsis">
+    
+  
+    External API Report
   
 
     
@@ -2182,8 +2200,7 @@ Defaults to 50 epochs total and 20 warmup steps.</p>
 </table>
 <details class="mkdocstrings-source">
 <summary>Source code in <code>src/univariate_transformer/transformer_architechtures/model_architechture_base_tranformer.py</code></summary>
-<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-39"> 39</a></span>
-<span class="normal"><a href="#__codelineno-0-40"> 40</a></span>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-40"> 40</a></span>
 <span class="normal"><a href="#__codelineno-0-41"> 41</a></span>
 <span class="normal"><a href="#__codelineno-0-42"> 42</a></span>
 <span class="normal"><a href="#__codelineno-0-43"> 43</a></span>
@@ -2246,71 +2263,72 @@ Defaults to 50 epochs total and 20 warmup steps.</p>
 <span class="normal"><a href="#__codelineno-0-100">100</a></span>
 <span class="normal"><a href="#__codelineno-0-101">101</a></span>
 <span class="normal"><a href="#__codelineno-0-102">102</a></span>
-<span class="normal"><a href="#__codelineno-0-103">103</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_base_model</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">head_size</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">ff_dim</span><span class="p">,</span> <span class="n">num_transformer_blocks</span><span class="p">,</span> <span class="n">mlp_units</span><span class="p">,</span> <span class="n">activation_function</span> <span class="o">=</span> <span class="s2">"tanh"</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mlp_dropout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_pred</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos_encoding</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="w">    </span><span class="sd">"""</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="sd">    Build complete transformer model for univariate time series forecasting.</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">        input_shape: Shape of input data (sequence_length, features)</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">        head_size: Dimension of each attention head</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">        num_heads: Number of attention heads</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">        ff_dim: Dimension of feed-forward layer</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">        num_transformer_blocks: Number of transformer encoder blocks</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">        mlp_units: List of MLP layer dimensions</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">        dropout: Dropout rate for transformer layers</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">        mlp_dropout: Dropout rate for MLP layers</span>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">        n_pred: Number of prediction steps</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="sd">        Compiled Keras model</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="sd">    """</span>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a>    <span class="n">inputs</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">)</span>  <span class="c1"># defines input tensor</span>
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a>    <span class="n">revin_layer</span> <span class="o">=</span> <span class="n">RevIN</span><span class="p">()</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a>    <span class="c1"># 3. Normalize Input</span>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a>    <span class="n">x</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">stdev</span> <span class="o">=</span> <span class="n">revin_layer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'norm'</span><span class="p">)</span>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a>    <span class="c1">#x = inputs  # initial input</span>
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a>
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>    <span class="n">d_model</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">head_size</span> <span class="o">*</span> <span class="n">num_heads</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">d_model</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="c1">#x = layers.Dense(d_model)(inputs)</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a>    <span class="c1">#x = layers.Activation(activation_function)(x)</span>
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a>    <span class="k">if</span> <span class="n">pos_encoding</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">PositionalEncoding</span><span class="p">(</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d_model</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># add positional encoding if enabled</span>
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_transformer_blocks</span><span class="p">):</span>  <span class="c1"># apply num_transformer_blocks transformer encoder layers seq.</span>
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">transformer_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">head_size</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">ff_dim</span><span class="p">,</span> <span class="n">activation_function</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>  <span class="c1"># uses previous defined trans_encoder layer</span>
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="c1">#x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel</span>
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="c1">#if input_shape[0] &gt;= 60:  # Only apply pooling if sequence length is sufficient</span>
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">AveragePooling1D</span><span class="p">(</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data_format</span><span class="o">=</span><span class="s2">"channels_first"</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># pooling 7 by default</span>
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>    <span class="c1">#query = tf.Variable(tf.random.normal((1, 1, d_model)), trainable=True)</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="c1"># Broadcast query to match batch size</span>
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="c1">#query = LearnableQuery(d_model)(inputs)</span>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>    <span class="c1"># Cross-Attention: Query (Target) looks at Keys/Values (Input Variables)</span>
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="c1"># x shape: (batch, num_features, d_model)</span>
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="c1">#x2 = layers.MaxPooling1D(7,data_format="channels_first")(x)</span>
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="c1">#x = layers.Concatenate()([x1, x2])</span>
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="c1">#x = layers.Dense(input_shape[1])(x)</span>
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>    <span class="c1">#x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)</span>
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Flatten</span><span class="p">()(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a>
-</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">mlp_units</span><span class="p">:</span>  <span class="c1"># multi layer perceptron (dropout to avoid overfitting)</span>
-</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation_function</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">mlp_dropout</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>
-</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">n_pred</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="n">n_pred</span><span class="p">,</span> <span class="mi">1</span><span class="p">))(</span><span class="n">outputs</span><span class="p">)</span>
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">revin_layer</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'denorm'</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">stdev</span><span class="o">=</span><span class="n">stdev</span><span class="p">)</span>  <span class="c1"># denormalize output to original scale</span>
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="n">n_pred</span><span class="p">,))(</span><span class="n">outputs</span><span class="p">)</span>
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>    <span class="c1">#outputs = layers.Permute((2, 1))(outputs)</span>
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="k">return</span> <span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#__codelineno-0-104">104</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_base_model</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">head_size</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">ff_dim</span><span class="p">,</span> <span class="n">num_transformer_blocks</span><span class="p">,</span> <span class="n">mlp_units</span><span class="p">,</span> <span class="n">activation_function</span> <span class="o">=</span> <span class="s2">"tanh"</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mlp_dropout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_pred</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos_encoding</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41"></a><span class="w">    </span><span class="sd">"""</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42"></a><span class="sd">    Build complete transformer model for univariate time series forecasting.</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43"></a>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45"></a><span class="sd">        input_shape: Shape of input data (sequence_length, features)</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46"></a><span class="sd">        head_size: Dimension of each attention head</span>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47"></a><span class="sd">        num_heads: Number of attention heads</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48"></a><span class="sd">        ff_dim: Dimension of feed-forward layer</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49"></a><span class="sd">        num_transformer_blocks: Number of transformer encoder blocks</span>
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50"></a><span class="sd">        mlp_units: List of MLP layer dimensions</span>
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="sd">        dropout: Dropout rate for transformer layers</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52"></a><span class="sd">        mlp_dropout: Dropout rate for MLP layers</span>
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53"></a><span class="sd">        n_pred: Number of prediction steps</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54"></a>
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="sd">        Compiled Keras model</span>
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="sd">    """</span>
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58"></a>    <span class="n">inputs</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">)</span>  <span class="c1"># defines input tensor</span>
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59"></a>
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60"></a>    <span class="n">revin_layer</span> <span class="o">=</span> <span class="n">RevIN</span><span class="p">()</span>
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61"></a>
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62"></a>    <span class="c1"># 3. Normalize Input</span>
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63"></a>    <span class="n">x</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">stdev</span> <span class="o">=</span> <span class="n">revin_layer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'norm'</span><span class="p">)</span>
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64"></a>    <span class="c1">#x = inputs  # initial input</span>
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65"></a>
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66"></a>    <span class="n">d_model</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">head_size</span> <span class="o">*</span> <span class="n">num_heads</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">d_model</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="c1">#x = layers.Dense(d_model)(inputs)</span>
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">LayerNormalization</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70"></a>    <span class="c1">#x = layers.Activation(activation_function)(x)</span>
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="k">if</span> <span class="n">pos_encoding</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">PositionalEncoding</span><span class="p">(</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d_model</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># add positional encoding if enabled</span>
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73"></a>
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74"></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_transformer_blocks</span><span class="p">):</span>  <span class="c1"># apply num_transformer_blocks transformer encoder layers seq.</span>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">transformer_encoder</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">head_size</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">ff_dim</span><span class="p">,</span> <span class="n">activation_function</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>  <span class="c1"># uses previous defined trans_encoder layer</span>
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76"></a>
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="c1">#x = layers.GlobalAveragePooling1D(data_format="channels_first")(x)  # reduces seq dimension (timesteps) averaging for each feature channel</span>
+</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="k">if</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">60</span><span class="p">:</span>  <span class="c1"># Only apply pooling if sequence length is sufficient</span>
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">AveragePooling1D</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">data_format</span><span class="o">=</span><span class="s2">"channels_first"</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># pooling 7 by default</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80"></a>    <span class="c1">#query = tf.Variable(tf.random.normal((1, 1, d_model)), trainable=True)</span>
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="c1"># Broadcast query to match batch size</span>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82"></a>    <span class="c1">#query = LearnableQuery(d_model)(inputs)</span>
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83"></a>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="c1"># Cross-Attention: Query (Target) looks at Keys/Values (Input Variables)</span>
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="c1"># x shape: (batch, num_features, d_model)</span>
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86"></a>
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="c1">#x2 = layers.MaxPooling1D(7,data_format="channels_first")(x)</span>
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="c1">#x = layers.Concatenate()([x1, x2])</span>
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89"></a>    <span class="c1">#x = layers.Dense(input_shape[1])(x)</span>
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90"></a>
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="c1">#x = layers.GlobalAveragePooling1D(data_format="channels_last")(x)</span>
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Flatten</span><span class="p">()(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93"></a>
+</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94"></a>    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">mlp_units</span><span class="p">:</span>  <span class="c1"># multi layer perceptron (dropout to avoid overfitting)</span>
+</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation_function</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96"></a>        <span class="n">x</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">mlp_dropout</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a>
+</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">n_pred</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="n">n_pred</span><span class="p">,</span> <span class="mi">1</span><span class="p">))(</span><span class="n">outputs</span><span class="p">)</span>
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">revin_layer</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'denorm'</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">stdev</span><span class="o">=</span><span class="n">stdev</span><span class="p">)</span>  <span class="c1"># denormalize output to original scale</span>
+</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>    <span class="n">outputs</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="n">n_pred</span><span class="p">,))(</span><span class="n">outputs</span><span class="p">)</span>
+</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>    <span class="c1">#outputs = layers.Permute((2, 1))(outputs)</span>
+</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>
+</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a>    <span class="k">return</span> <span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
 </span></code></pre></div></td></tr></table></div>
 </details>
 </div>

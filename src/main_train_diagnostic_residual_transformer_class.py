@@ -198,7 +198,8 @@ class DiagnosticResidualTransformerPipeline:
             max_date=self.config.final_cutoff_date,
             scaler = self.config.scaler,
             eliminate_covid_data=self.config.eliminate_covid_data,
-            covid_dates=self.config.covid_dates
+            covid_dates=self.config.covid_dates,
+            split_ratio = self.config.default_split_ratio,
         )
         
         # Load base model predictions or use provided corrected predictions
@@ -258,7 +259,8 @@ class DiagnosticResidualTransformerPipeline:
             univariate=False,
             scaler = self.config.scaler,
             eliminate_covid_data=self.config.eliminate_covid_data,
-            covid_dates=self.config.covid_dates
+            covid_dates=self.config.covid_dates,
+            split_ratio = self.config.default_split_ratio
         )
         
         print(f"Training covariates shape: {self.X_train_covs.shape}")
@@ -280,6 +282,7 @@ class DiagnosticResidualTransformerPipeline:
             scaler = self.config.scaler,
             eliminate_covid_data=self.config.eliminate_covid_data,
             covid_dates=self.config.covid_dates,
+            split_ratio = self.config.default_split_ratio
         )
         
         print(f"Test covariates shape: {self.X_test_covs.shape}")
@@ -430,7 +433,8 @@ class DiagnosticResidualTransformerPipeline:
             train=False, 
             univariate=True,
             eliminate_covid_data=self.config.eliminate_covid_data, 
-            covid_dates=self.config.covid_dates
+            covid_dates=self.config.covid_dates,
+            split_ratio = self.config.default_split_ratio
         )
         
         # Inverse transform predictions
@@ -557,16 +561,16 @@ class DiagnosticResidualTransformerPipeline:
         print("="*50)
         
         # Original model metrics
-        original_mae = mean_absolute_error(Y_test_to_plot, predictions_to_plot)
-        original_mse = mean_squared_error(Y_test_to_plot, predictions_to_plot)
-        original_rmse = np.sqrt(original_mse)
-        original_wape = np.sum(np.abs(Y_test_to_plot - predictions_to_plot)) / np.sum(Y_test_to_plot) * 100
+        original_mae = float(mean_absolute_error(Y_test_to_plot, predictions_to_plot))
+        original_mse = float(mean_squared_error(Y_test_to_plot, predictions_to_plot))
+        original_rmse = float(np.sqrt(original_mse))
+        original_wape = float(np.sum(np.abs(Y_test_to_plot - predictions_to_plot)) / np.sum(Y_test_to_plot) * 100)
         
         # Corrected model metrics
-        corrected_mae = mean_absolute_error(Y_test_to_plot, corrected_to_plot)
-        corrected_mse = mean_squared_error(Y_test_to_plot, corrected_to_plot)
-        corrected_rmse = np.sqrt(corrected_mse)
-        corrected_wape = np.sum(np.abs(Y_test_to_plot - corrected_to_plot)) / np.sum(Y_test_to_plot) * 100
+        corrected_mae = float(mean_absolute_error(Y_test_to_plot, corrected_to_plot))
+        corrected_mse = float(mean_squared_error(Y_test_to_plot, corrected_to_plot))
+        corrected_rmse = float(np.sqrt(corrected_mse))
+        corrected_wape = float(np.sum(np.abs(Y_test_to_plot - corrected_to_plot)) / np.sum(Y_test_to_plot) * 100)
         
         # Store metrics
         self.evaluation_metrics = {
@@ -578,10 +582,10 @@ class DiagnosticResidualTransformerPipeline:
             "corrected_mse": corrected_mse,
             "corrected_rmse": corrected_rmse,
             "corrected_wape": corrected_wape,
-            "mae_improvement": ((original_mae - corrected_mae) / original_mae * 100),
-            "mse_improvement": ((original_mse - corrected_mse) / original_mse * 100),
-            "rmse_improvement": ((original_rmse - corrected_rmse) / original_rmse * 100),
-            "wape_improvement": ((original_wape - corrected_wape) / original_wape * 100)
+            "mae_improvement": float((original_mae - corrected_mae) / original_mae * 100),
+            "mse_improvement": float((original_mse - corrected_mse) / original_mse * 100),
+            "rmse_improvement": float((original_rmse - corrected_rmse) / original_rmse * 100),
+            "wape_improvement": float((original_wape - corrected_wape) / original_wape * 100)
         }
         
         print("PERFORMANCE COMPARISON:")

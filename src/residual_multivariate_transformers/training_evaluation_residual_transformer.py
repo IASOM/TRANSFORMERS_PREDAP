@@ -13,6 +13,7 @@ import tensorflow as tf
 from datetime import datetime
 import json
 import pandas as pd
+import numpy as np
 
 from residual_multivariate_transformers.model_architecture_residual_transformer import PositionalEncoding, RevIN, CustomCosineDecay
 
@@ -344,10 +345,10 @@ def save_performance_results(model_name, original_mae, original_mse, original_rm
         print(f"Created directory: {output_dir}")
     
     # Calculate improvements
-    mae_improvement = ((original_mae - corrected_mae) / original_mae * 100) if original_mae != 0 else 0
-    mse_improvement = ((original_mse - corrected_mse) / original_mse * 100) if original_mse != 0 else 0
-    rmse_improvement = ((original_rmse - corrected_rmse) / original_rmse * 100) if original_rmse != 0 else 0
-    wape_improvement = ((original_wape - corrected_wape) / original_wape * 100) if original_wape != 0 else 0
+    mae_improvement = float((original_mae - corrected_mae) / original_mae * 100) if original_mae != 0 else 0
+    mse_improvement = float((original_mse - corrected_mse) / original_mse * 100) if original_mse != 0 else 0
+    rmse_improvement =float((original_rmse - corrected_rmse) / original_rmse * 100) if original_rmse != 0 else 0
+    wape_improvement =float((original_wape - corrected_wape) / original_wape * 100) if original_wape != 0 else 0
     
     # Create results dictionary
     results = {
@@ -360,24 +361,24 @@ def save_performance_results(model_name, original_mae, original_mse, original_rm
             "model_type": "Residual Multivariate Transformer"
         },
         "original_model_performance": {
-            "MAE": round(original_mae, 6),
-            "MSE": round(original_mse, 6),
-            "RMSE": round(original_rmse, 6),
-            "WAPE": round(original_wape, 6)
+            "MAE": round(float(original_mae), 6),
+            "MSE": round(float(original_mse), 6),
+            "RMSE": round(float(original_rmse), 6),
+            "WAPE": round(float(original_wape), 6)
         },
         "corrected_model_performance": {
-            "MAE": round(corrected_mae, 6),
-            "MSE": round(corrected_mse, 6),
-            "RMSE": round(corrected_rmse, 6),
-            "WAPE": round(corrected_wape, 6)
+            "MAE": round(float(corrected_mae), 6),
+            "MSE": round(float(corrected_mse), 6),
+            "RMSE": round(float(corrected_rmse), 6),
+            "WAPE": round(float(corrected_wape), 6)
 
         },
         "improvements": {
-            "MAE_improvement_percent": round(mae_improvement, 2),
-            "MSE_improvement_percent": round(mse_improvement, 2),
-            "RMSE_improvement_percent": round(rmse_improvement, 2),
-            "WAPE_improvement_percent": round(wape_improvement, 2),
-            "overall_assessment": "positive" if mae_improvement > 0 else "negative"
+            "MAE_improvement_percent": round(float(mae_improvement), 2),
+            "MSE_improvement_percent": round(float(mse_improvement), 2),
+            "RMSE_improvement_percent": round(float(rmse_improvement), 2),
+            "WAPE_improvement_percent": round(float(wape_improvement), 2),
+            "overall_assessment": "positive" if float(mae_improvement) > 0 else "negative"
         },
         "summary": {
             "best_metric": "MAE" if abs(mae_improvement) >= max(abs(mse_improvement), abs(rmse_improvement)) else 

@@ -103,7 +103,13 @@ def load_and_evaluate_models(model_folder='models', input_directory=None, code="
             
             # Prepare data with extracted parameters
             X_test, Y_test = data_preparation.prepare_data(
-                input_directory, code, lookback, forecast, debug=True, univariate=True, scaler=scaler, train=False, covid_token=False, cutoff_date=default_config.cutoff_date, max_date=default_config.final_cutoff_date, eliminate_covid_data=default_config.eliminate_covid_data, covid_dates=default_config.covid_dates
+                input_directory, code, lookback, forecast, 
+                debug=True, univariate=True, scaler=scaler, train=False, 
+                covid_token=False, cutoff_date=default_config.cutoff_date, 
+                max_date=default_config.final_cutoff_date, 
+                eliminate_covid_data=default_config.eliminate_covid_data, 
+                covid_dates=default_config.covid_dates,
+                split_ratio=default_config.default_split_ratio,
             )
             
             # Evaluate model

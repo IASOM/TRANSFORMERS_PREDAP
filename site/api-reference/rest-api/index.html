@@ -8,19 +8,20 @@
 <meta content="A high-performance deep learning ecosystem for forecasting healthcare diagnostic visit demand using Transformer-based residual correction pipelines, with a production-ready FastAPI inference API." name="description"/>
 <meta content="Predap Engineering Team" name="author"/>
 <link href="../python/utils/" rel="prev"/>
-<link href="../../tutorials/train-custom-model/" rel="next"/>
+<link href="../pydantic-models/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.7.3" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.6" name="generator"/>
 <title>REST API (FastAPI) - Predap — Healthcare Demand Forecasting</title>
 <link href="../../assets/stylesheets/main.484c7ddc.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.ab4e12ef.min.css" rel="stylesheet"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
-<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Source Sans 3";--md-code-font:"JetBrains Mono"}</style>
 <link href="../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<link href="../../stylesheets/rumia-brand.css" rel="stylesheet"/>
 <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
 </head>
-<body data-md-color-accent="deep-purple" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<body data-md-color-accent="orange" data-md-color-primary="blue" data-md-color-scheme="default" dir="ltr">
 <input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
@@ -56,14 +57,7 @@
 </div>
 </div>
 <form class="md-header__option" data-md-component="palette">
-<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="deep-purple" data-md-color-media="(prefers-color-scheme: light)" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
-<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
-</label>
-<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="deep-purple" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
-<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
-<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
-</label>
+<input aria-hidden="true" class="md-option" data-md-color-accent="orange" data-md-color-media="" data-md-color-primary="blue" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
 </form>
 <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
 <label class="md-header__button md-icon" for="__search">
@@ -491,33 +485,42 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#starting-the-server">
+<a class="md-nav__link" href="#api-surface">
 <span class="md-ellipsis">
       
-        Starting the Server
+        API Surface
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#app-configuration">
+<a class="md-nav__link" href="#run-and-inspect">
 <span class="md-ellipsis">
       
-        App Configuration
+        Run and Inspect
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#endpoints">
+<a class="md-nav__link" href="#endpoint-reference">
 <span class="md-ellipsis">
       
-        Endpoints
+        Endpoint Reference
       
     </span>
 </a>
-<nav aria-label="Endpoints" class="md-nav">
+<nav aria-label="Endpoint Reference" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#get">
+<span class="md-ellipsis">
+      
+        GET /
+      
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#post-productionadd_new_data">
 <span class="md-ellipsis">
@@ -528,10 +531,19 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#get-productionmodel_reconstruction_pipeline">
+<a class="md-nav__link" href="#post-productionmodel_reconstruction_pipeline">
 <span class="md-ellipsis">
       
-        GET /production/model_reconstruction_pipeline
+        POST /production/model_reconstruction_pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#get-productionmodel_reconstruction_pipelinejob_id">
+<span class="md-ellipsis">
+      
+        GET /production/model_reconstruction_pipeline/{job_id}
       
     </span>
 </a>
@@ -549,25 +561,58 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#production-pipeline-classes">
+<a class="md-nav__link" href="#pydantic-validation-model-reference">
 <span class="md-ellipsis">
       
-        Production Pipeline Classes
+        Pydantic Validation Model Reference
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#error-handling">
+<a class="md-nav__link" href="#operational-notes">
 <span class="md-ellipsis">
       
-        Error Handling
+        Operational Notes
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#external-distribution">
+<span class="md-ellipsis">
+      
+        External Distribution
       
     </span>
 </a>
 </li>
 </ul>
 </nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../pydantic-models/">
+<span class="md-ellipsis">
+    
+  
+    Pydantic Models
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../external-api-report/">
+<span class="md-ellipsis">
+    
+  
+    External API Report
+  
+
+    
+  </span>
+</a>
 </li>
 </ul>
 </nav>
@@ -773,33 +818,42 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#starting-the-server">
+<a class="md-nav__link" href="#api-surface">
 <span class="md-ellipsis">
       
-        Starting the Server
+        API Surface
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#app-configuration">
+<a class="md-nav__link" href="#run-and-inspect">
 <span class="md-ellipsis">
       
-        App Configuration
+        Run and Inspect
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#endpoints">
+<a class="md-nav__link" href="#endpoint-reference">
 <span class="md-ellipsis">
       
-        Endpoints
+        Endpoint Reference
       
     </span>
 </a>
-<nav aria-label="Endpoints" class="md-nav">
+<nav aria-label="Endpoint Reference" class="md-nav">
 <ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#get">
+<span class="md-ellipsis">
+      
+        GET /
+      
+    </span>
+</a>
+</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#post-productionadd_new_data">
 <span class="md-ellipsis">
@@ -810,10 +864,19 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#get-productionmodel_reconstruction_pipeline">
+<a class="md-nav__link" href="#post-productionmodel_reconstruction_pipeline">
 <span class="md-ellipsis">
       
-        GET /production/model_reconstruction_pipeline
+        POST /production/model_reconstruction_pipeline
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#get-productionmodel_reconstruction_pipelinejob_id">
+<span class="md-ellipsis">
+      
+        GET /production/model_reconstruction_pipeline/{job_id}
       
     </span>
 </a>
@@ -831,19 +894,28 @@
 </nav>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#production-pipeline-classes">
+<a class="md-nav__link" href="#pydantic-validation-model-reference">
 <span class="md-ellipsis">
       
-        Production Pipeline Classes
+        Pydantic Validation Model Reference
       
     </span>
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#error-handling">
+<a class="md-nav__link" href="#operational-notes">
 <span class="md-ellipsis">
       
-        Error Handling
+        Operational Notes
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#external-distribution">
+<span class="md-ellipsis">
+      
+        External Distribution
       
     </span>
 </a>
@@ -856,283 +928,173 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="rest-api-fastapi">REST API (FastAPI)<a class="headerlink" href="#rest-api-fastapi" title="Permanent link">¶</a></h1>
-<p>Predap exposes a production-ready REST API built with <strong>FastAPI</strong> for model inference, data management, and pipeline orchestration.</p>
-<hr/>
-<h2 id="starting-the-server">Starting the Server<a class="headerlink" href="#starting-the-server" title="Permanent link">¶</a></h2>
+<p>Predap exposes a production-facing REST API built with FastAPI and typed request models powered by Pydantic.</p>
+<h2 id="api-surface">API Surface<a class="headerlink" href="#api-surface" title="Permanent link">¶</a></h2>
+<ul>
+<li>Application entrypoint: <code>api/main.py</code></li>
+<li>Router namespace: <code>api/routers/production.py</code></li>
+<li>Pydantic schemas: <code>api/schemas/production_schemas.py</code></li>
+<li>Prefix for production endpoints: <code>/production</code></li>
+</ul>
+<h2 id="run-and-inspect">Run and Inspect<a class="headerlink" href="#run-and-inspect" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>uvicorn<span class="w"> </span>api.main:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--reload
 </span></code></pre></div>
-<p>The API is available at:</p>
+<p>Interactive contracts are available at runtime:</p>
 <ul>
-<li><strong>Swagger UI</strong>: <a href="http://localhost:8000/docs">http://localhost:8000/docs</a></li>
-<li><strong>ReDoc</strong>: <a href="http://localhost:8000/redoc">http://localhost:8000/redoc</a></li>
-<li><strong>OpenAPI JSON</strong>: <a href="http://localhost:8000/openapi.json">http://localhost:8000/openapi.json</a></li>
+<li>Swagger UI: <a href="http://localhost:8000/docs">http://localhost:8000/docs</a></li>
+<li>ReDoc: <a href="http://localhost:8000/redoc">http://localhost:8000/redoc</a></li>
+<li>OpenAPI spec: <a href="http://localhost:8000/openapi.json">http://localhost:8000/openapi.json</a></li>
 </ul>
-<hr/>
-<h2 id="app-configuration">App Configuration<a class="headerlink" href="#app-configuration" title="Permanent link">¶</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># api/main.py</span>
-</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-</span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">api.routers</span><span class="w"> </span><span class="kn">import</span> <span class="n">production</span>
-</span><span id="__span-1-4"><a href="#__codelineno-1-4" id="__codelineno-1-4" name="__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a href="#__codelineno-1-5" id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Predap API"</span><span class="p">)</span>
-</span><span id="__span-1-6"><a href="#__codelineno-1-6" id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">production</span><span class="o">.</span><span class="n">router</span><span class="p">)</span>
+<h2 id="endpoint-reference">Endpoint Reference<a class="headerlink" href="#endpoint-reference" title="Permanent link">¶</a></h2>
+<h3 id="get">GET /<a class="headerlink" href="#get" title="Permanent link">¶</a></h3>
+<p>Health-check style root endpoint.</p>
+<ul>
+<li>Handler: <code>api/main.py</code> -&gt; <code>root</code></li>
+<li>Success response:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="p">{</span>
+</span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Welcome, the Predap API is running!"</span>
+</span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<hr/>
-<h2 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">¶</a></h2>
-<p>All production endpoints are mounted under the <code>/production</code> prefix.</p>
-<h3 id="post-productionadd_new_data"><code>POST /production/add_new_data</code><a class="headerlink" href="#post-productionadd_new_data" title="Permanent link">¶</a></h3>
-<p>Appends a new row of data to the dataset. If manual data is not provided, values are imputed using a <strong>3-year seasonal mean</strong> (same day/month from the 3 most recent years).</p>
-<p><strong>Request Body</strong> (<code>AddNewDataRequest</code>):</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>new_data_path</code></td>
-<td><code>str?</code></td>
-<td>Config default</td>
-<td>Path to the source <code>.parquet</code> file</td>
-</tr>
-<tr>
-<td><code>cutoff_date</code></td>
-<td><code>str?</code></td>
-<td><code>"2008-01-01"</code></td>
-<td>Start boundary for data processing</td>
-</tr>
-<tr>
-<td><code>max_date</code></td>
-<td><code>str?</code></td>
-<td><code>"2025-09-30"</code></td>
-<td>Upper boundary for data timeline</td>
-</tr>
-<tr>
-<td><code>eliminate_covid_data</code></td>
-<td><code>bool?</code></td>
-<td><code>false</code></td>
-<td>Exclude COVID years from mean calculations</td>
-</tr>
-<tr>
-<td><code>covid_token</code></td>
-<td><code>bool?</code></td>
-<td><code>true</code></td>
-<td>Add/maintain COVID period flag</td>
-</tr>
-<tr>
-<td><code>provided_data</code></td>
-<td><code>list[float]?</code></td>
-<td><code>null</code></td>
-<td>Manual values for the new row (must match feature count)</td>
-</tr>
-<tr>
-<td><code>save_path</code></td>
-<td><code>str?</code></td>
-<td><code>"../data/FINAL_DB1"</code></td>
-<td>Output directory for updated file</td>
-</tr>
-<tr>
-<td><code>delete_old</code></td>
-<td><code>bool?</code></td>
-<td><code>true</code></td>
-<td>Delete existing file before saving</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Response:</strong></p>
+<h3 id="post-productionadd_new_data">POST /production/add_new_data<a class="headerlink" href="#post-productionadd_new_data" title="Permanent link">¶</a></h3>
+<p>Appends one new row to the production dataset.</p>
+<p>Behavior:</p>
+<ul>
+<li>If <code>provided_data</code> is omitted, the pipeline imputes values using a seasonal strategy.</li>
+<li>Optional request fields fall back to values from <code>BaseTransformerConfig</code>.</li>
+<li>Persisted output is written to <code>save_path</code>.</li>
+</ul>
+<p>Request model: <code>AddNewDataRequest</code>.</p>
+<p>Sample request:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="p">{</span>
-</span><span id="__span-2-2"><a href="#__codelineno-2-2" id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span>
-</span><span id="__span-2-3"><a href="#__codelineno-2-3" id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"New data added successfully!"</span><span class="p">,</span>
-</span><span id="__span-2-4"><a href="#__codelineno-2-4" id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="w">  </span><span class="nt">"saved_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/saved/file.parquet"</span><span class="p">,</span>
-</span><span id="__span-2-5"><a href="#__codelineno-2-5" id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="w">  </span><span class="nt">"total_rows"</span><span class="p">:</span><span class="w"> </span><span class="mi">6205</span><span class="p">,</span>
-</span><span id="__span-2-6"><a href="#__codelineno-2-6" id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="w">  </span><span class="nt">"new_row"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-10-01"</span><span class="p">,</span><span class="w"> </span><span class="nt">"J00"</span><span class="p">:</span><span class="w"> </span><span class="mf">45.0</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-2-7"><a href="#__codelineno-2-7" id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="p">}</span>
+</span><span id="__span-2-2"><a href="#__codelineno-2-2" id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="w">  </span><span class="nt">"new_data_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../data/FINAL_DB/full_CAT1.parquet"</span><span class="p">,</span>
+</span><span id="__span-2-3"><a href="#__codelineno-2-3" id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="w">  </span><span class="nt">"cutoff_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2008-01-01"</span><span class="p">,</span>
+</span><span id="__span-2-4"><a href="#__codelineno-2-4" id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="w">  </span><span class="nt">"max_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-09-30"</span><span class="p">,</span>
+</span><span id="__span-2-5"><a href="#__codelineno-2-5" id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="w">  </span><span class="nt">"eliminate_covid_data"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-2-6"><a href="#__codelineno-2-6" id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="w">  </span><span class="nt">"covid_token"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-2-7"><a href="#__codelineno-2-7" id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="w">  </span><span class="nt">"provided_data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">10.4</span><span class="p">,</span><span class="w"> </span><span class="mf">11.2</span><span class="p">,</span><span class="w"> </span><span class="mf">9.8</span><span class="p">],</span>
+</span><span id="__span-2-8"><a href="#__codelineno-2-8" id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="w">  </span><span class="nt">"save_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../data/FINAL_DB1"</span><span class="p">,</span>
+</span><span id="__span-2-9"><a href="#__codelineno-2-9" id="__codelineno-2-9" name="__codelineno-2-9"></a><span class="w">  </span><span class="nt">"delete_old"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-2-10"><a href="#__codelineno-2-10" id="__codelineno-2-10" name="__codelineno-2-10"></a><span class="p">}</span>
 </span></code></pre></div>
-<hr/>
-<h3 id="get-productionmodel_reconstruction_pipeline"><code>GET /production/model_reconstruction_pipeline</code><a class="headerlink" href="#get-productionmodel_reconstruction_pipeline" title="Permanent link">¶</a></h3>
-<p>Triggers the full model reconstruction pipeline: loads quantized model weights, reconstructs the architecture, generates predictions, and saves partitioned Parquet output.</p>
-<p><strong>Request Body</strong> (<code>ModelReconstructionRequest</code>):</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>code</code></td>
-<td><code>str</code></td>
-<td>Target diagnostic code (e.g., <code>"J00"</code>)</td>
-</tr>
-<tr>
-<td><code>forecast_horizon</code></td>
-<td><code>int</code></td>
-<td>Forecast horizon in days</td>
-</tr>
-<tr>
-<td><code>head_size</code></td>
-<td><code>int</code></td>
-<td>Attention head dimensionality</td>
-</tr>
-<tr>
-<td><code>num_heads</code></td>
-<td><code>int</code></td>
-<td>Number of attention heads</td>
-</tr>
-<tr>
-<td><code>ff_dim</code></td>
-<td><code>int</code></td>
-<td>Feed-forward hidden dimension</td>
-</tr>
-<tr>
-<td><code>num_transformer_blocks</code></td>
-<td><code>int</code></td>
-<td>Number of Transformer blocks</td>
-</tr>
-<tr>
-<td><code>mlp_units</code></td>
-<td><code>int</code></td>
-<td>Units per MLP layer</td>
-</tr>
-<tr>
-<td><code>activation_function</code></td>
-<td><code>str</code></td>
-<td>Activation function name</td>
-</tr>
-<tr>
-<td><code>dropout</code></td>
-<td><code>float</code></td>
-<td>Dropout rate (default: <code>0.0</code>)</td>
-</tr>
-<tr>
-<td><code>learning_rate</code></td>
-<td><code>float</code></td>
-<td>Learning rate (default: <code>0.001</code>)</td>
-</tr>
-<tr>
-<td><code>epochs</code></td>
-<td><code>int</code></td>
-<td>Number of training epochs (default: <code>50</code>)</td>
-</tr>
-<tr>
-<td><code>batch_size</code></td>
-<td><code>int</code></td>
-<td>Batch size (default: <code>32</code>)</td>
-</tr>
-<tr>
-<td><code>cutoff_date</code></td>
-<td><code>str</code></td>
-<td>Training data cutoff date</td>
-</tr>
-<tr>
-<td><code>covid_token</code></td>
-<td><code>bool</code></td>
-<td>COVID token flag (default: <code>true</code>)</td>
-</tr>
-<tr>
-<td><code>positional_encoding</code></td>
-<td><code>bool</code></td>
-<td>Positional encoding flag (default: <code>true</code>)</td>
-</tr>
-<tr>
-<td><code>evaluate_model</code></td>
-<td><code>bool</code></td>
-<td>Run evaluation after reconstruction (default: <code>true</code>)</td>
-</tr>
-<tr>
-<td><code>data_path</code></td>
-<td><code>str</code></td>
-<td>Path to input data directory</td>
-</tr>
-<tr>
-<td><code>save_path</code></td>
-<td><code>str</code></td>
-<td>Path to save results</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Response:</strong></p>
+<p>Sample success response:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="p">{</span>
 </span><span id="__span-3-2"><a href="#__codelineno-3-2" id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span>
-</span><span id="__span-3-3"><a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Model reconstruction pipeline triggered successfully!"</span><span class="p">,</span>
-</span><span id="__span-3-4"><a href="#__codelineno-3-4" id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="w">  </span><span class="nt">"final_output_df"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">]</span>
-</span><span id="__span-3-5"><a href="#__codelineno-3-5" id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="p">}</span>
+</span><span id="__span-3-3"><a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"New data added successfully!"</span><span class="p">,</span>
+</span><span id="__span-3-4"><a href="#__codelineno-3-4" id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="w">  </span><span class="nt">"saved_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../data/FINAL_DB1/full_CAT1.parquet"</span><span class="p">,</span>
+</span><span id="__span-3-5"><a href="#__codelineno-3-5" id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="w">  </span><span class="nt">"total_rows"</span><span class="p">:</span><span class="w"> </span><span class="mi">6205</span><span class="p">,</span>
+</span><span id="__span-3-6"><a href="#__codelineno-3-6" id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="w">  </span><span class="nt">"new_row"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-7"><a href="#__codelineno-3-7" id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="w">    </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-10-01 00:00:00"</span><span class="p">,</span>
+</span><span id="__span-3-8"><a href="#__codelineno-3-8" id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="w">    </span><span class="nt">"J00"</span><span class="p">:</span><span class="w"> </span><span class="mf">45.0</span>
+</span><span id="__span-3-9"><a href="#__codelineno-3-9" id="__codelineno-3-9" name="__codelineno-3-9"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-3-10"><a href="#__codelineno-3-10" id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="p">}</span>
 </span></code></pre></div>
-<hr/>
-<h3 id="delete-productiondelete_old_data"><code>DELETE /production/delete_old_data</code><a class="headerlink" href="#delete-productiondelete_old_data" title="Permanent link">¶</a></h3>
-<p>Removes expired forecast rows from the production predictions dataset. A row is deleted when the difference between <code>target_date</code> and <code>forecast_date</code> equals the <code>forecast</code> horizon value.</p>
-<p><strong>No request body required.</strong> Uses hardcoded paths:</p>
+<p>Error responses:</p>
 <ul>
-<li>Predictions: <code>../production_predictions/final_output_predictions.parquet</code></li>
-<li>Metrics: <code>../production_predictions/production_evaluation_metrics.parquet</code></li>
-<li>Real data: <code>../data/FINAL_DB/full_CAT1.parquet</code></li>
+<li><code>404</code>: source data file not found.</li>
+<li><code>500</code>: pipeline or persistence failure.</li>
 </ul>
-<p><strong>Response:</strong></p>
+<h3 id="post-productionmodel_reconstruction_pipeline">POST /production/model_reconstruction_pipeline<a class="headerlink" href="#post-productionmodel_reconstruction_pipeline" title="Permanent link">¶</a></h3>
+<p>Starts model reconstruction and prediction as an asynchronous background job.</p>
+<p>Key points:</p>
+<ul>
+<li>Returns <code>202 Accepted</code> immediately.</li>
+<li>Creates a Redis-backed job record with a generated <code>job_id</code>.</li>
+<li>Executes reconstruction in background via FastAPI <code>BackgroundTasks</code>.</li>
+<li>Poll job status using <code>GET /production/model_reconstruction_pipeline/{job_id}</code>.</li>
+</ul>
+<p>Request model: <code>ModelReconstructionRequest</code>.</p>
+<p>Sample request:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="p">{</span>
-</span><span id="__span-4-2"><a href="#__codelineno-4-2" id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span>
-</span><span id="__span-4-3"><a href="#__codelineno-4-3" id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Old data deleted successfully from: /path/to/updated.parquet"</span><span class="p">,</span>
-</span><span id="__span-4-4"><a href="#__codelineno-4-4" id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="w">  </span><span class="nt">"updated_dataset_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/path/to/updated.parquet"</span>
-</span><span id="__span-4-5"><a href="#__codelineno-4-5" id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="p">}</span>
+</span><span id="__span-4-2"><a href="#__codelineno-4-2" id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="w">  </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"J00"</span><span class="p">,</span>
+</span><span id="__span-4-3"><a href="#__codelineno-4-3" id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="w">  </span><span class="nt">"lookback_list"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">30</span><span class="p">],</span>
+</span><span id="__span-4-4"><a href="#__codelineno-4-4" id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="w">  </span><span class="nt">"forecast_horizon_list"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">],</span>
+</span><span id="__span-4-5"><a href="#__codelineno-4-5" id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="w">  </span><span class="nt">"head_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span>
+</span><span id="__span-4-6"><a href="#__codelineno-4-6" id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="w">  </span><span class="nt">"num_heads"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+</span><span id="__span-4-7"><a href="#__codelineno-4-7" id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="w">  </span><span class="nt">"ff_dim"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
+</span><span id="__span-4-8"><a href="#__codelineno-4-8" id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="w">  </span><span class="nt">"num_transformer_blocks"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+</span><span id="__span-4-9"><a href="#__codelineno-4-9" id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="w">  </span><span class="nt">"mlp_units"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span>
+</span><span id="__span-4-10"><a href="#__codelineno-4-10" id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="w">  </span><span class="nt">"activation_function"</span><span class="p">:</span><span class="w"> </span><span class="s2">"relu"</span><span class="p">,</span>
+</span><span id="__span-4-11"><a href="#__codelineno-4-11" id="__codelineno-4-11" name="__codelineno-4-11"></a><span class="w">  </span><span class="nt">"dropout"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
+</span><span id="__span-4-12"><a href="#__codelineno-4-12" id="__codelineno-4-12" name="__codelineno-4-12"></a><span class="w">  </span><span class="nt">"learning_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.001</span><span class="p">,</span>
+</span><span id="__span-4-13"><a href="#__codelineno-4-13" id="__codelineno-4-13" name="__codelineno-4-13"></a><span class="w">  </span><span class="nt">"epochs"</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+</span><span id="__span-4-14"><a href="#__codelineno-4-14" id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="w">  </span><span class="nt">"batch_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span>
+</span><span id="__span-4-15"><a href="#__codelineno-4-15" id="__codelineno-4-15" name="__codelineno-4-15"></a><span class="w">  </span><span class="nt">"cutoff_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-09-30"</span><span class="p">,</span>
+</span><span id="__span-4-16"><a href="#__codelineno-4-16" id="__codelineno-4-16" name="__codelineno-4-16"></a><span class="w">  </span><span class="nt">"covid_token"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-4-17"><a href="#__codelineno-4-17" id="__codelineno-4-17" name="__codelineno-4-17"></a><span class="w">  </span><span class="nt">"positional_encoding"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-4-18"><a href="#__codelineno-4-18" id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="w">  </span><span class="nt">"evaluate_model"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-4-19"><a href="#__codelineno-4-19" id="__codelineno-4-19" name="__codelineno-4-19"></a><span class="w">  </span><span class="nt">"data_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../data/FINAL_DB/full_CAT1.parquet"</span><span class="p">,</span>
+</span><span id="__span-4-20"><a href="#__codelineno-4-20" id="__codelineno-4-20" name="__codelineno-4-20"></a><span class="w">  </span><span class="nt">"save_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../production_predictions/final_output_predictions"</span>
+</span><span id="__span-4-21"><a href="#__codelineno-4-21" id="__codelineno-4-21" name="__codelineno-4-21"></a><span class="p">}</span>
 </span></code></pre></div>
-<hr/>
-<h2 id="production-pipeline-classes">Production Pipeline Classes<a class="headerlink" href="#production-pipeline-classes" title="Permanent link">¶</a></h2>
-<p>The API endpoints delegate to these pipeline classes:</p>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>Module</th>
-<th>Responsibility</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>AddNewDataPipeline</code></td>
-<td><code>production/add_new_data_pipeline.py</code></td>
-<td>Append data using seasonal mean imputation</td>
-</tr>
-<tr>
-<td><code>ModelPredictionPipeline</code></td>
-<td><code>production/model_reconstruction_pipeline.py</code></td>
-<td>Reconstruct model → predict → save Parquet</td>
-</tr>
-<tr>
-<td><code>DataPreparationInProduction</code></td>
-<td><code>production/data_preparation_in_poduction.py</code></td>
-<td>Base class for production data prep</td>
-</tr>
-</tbody>
-</table>
-<hr/>
-<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">¶</a></h2>
-<p>All endpoints return standard HTTP error codes:</p>
-<table>
-<thead>
-<tr>
-<th>Code</th>
-<th>Condition</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>200</code></td>
-<td>Success</td>
-</tr>
-<tr>
-<td><code>404</code></td>
-<td>Data file not found</td>
-</tr>
-<tr>
-<td><code>500</code></td>
-<td>Internal processing error (details in response body)</td>
-</tr>
-</tbody>
-</table>
+<p>Sample <code>202</code> response:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="p">{</span>
+</span><span id="__span-5-2"><a href="#__codelineno-5-2" id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"queued"</span><span class="p">,</span>
+</span><span id="__span-5-3"><a href="#__codelineno-5-3" id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="w">  </span><span class="nt">"job_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4f1ec6f5-3f6f-4fd4-9f9d-7da9dcdbed13"</span><span class="p">,</span>
+</span><span id="__span-5-4"><a href="#__codelineno-5-4" id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="w">  </span><span class="nt">"status_endpoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/production/model_reconstruction_pipeline/4f1ec6f5-3f6f-4fd4-9f9d-7da9dcdbed13"</span><span class="p">,</span>
+</span><span id="__span-5-5"><a href="#__codelineno-5-5" id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Model reconstruction started in the background."</span>
+</span><span id="__span-5-6"><a href="#__codelineno-5-6" id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Potential errors:</p>
+<ul>
+<li><code>422</code>: invalid request body (Pydantic validation failure).</li>
+<li><code>503</code>: Redis unavailable while creating job.</li>
+</ul>
+<h3 id="get-productionmodel_reconstruction_pipelinejob_id">GET /production/model_reconstruction_pipeline/{job_id}<a class="headerlink" href="#get-productionmodel_reconstruction_pipelinejob_id" title="Permanent link">¶</a></h3>
+<p>Returns job status and (if available) result payload.</p>
+<p>Job statuses:</p>
+<ul>
+<li><code>queued</code></li>
+<li><code>running</code></li>
+<li><code>succeeded</code></li>
+<li><code>failed</code></li>
+</ul>
+<p>Sample succeeded response:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a href="#__codelineno-6-1" id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="p">{</span>
+</span><span id="__span-6-2"><a href="#__codelineno-6-2" id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="w">  </span><span class="nt">"job_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4f1ec6f5-3f6f-4fd4-9f9d-7da9dcdbed13"</span><span class="p">,</span>
+</span><span id="__span-6-3"><a href="#__codelineno-6-3" id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"succeeded"</span><span class="p">,</span>
+</span><span id="__span-6-4"><a href="#__codelineno-6-4" id="__codelineno-6-4" name="__codelineno-6-4"></a><span class="w">  </span><span class="nt">"created_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-04-21T09:34:55.402631+00:00"</span><span class="p">,</span>
+</span><span id="__span-6-5"><a href="#__codelineno-6-5" id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="w">  </span><span class="nt">"updated_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-04-21T09:36:22.778281+00:00"</span><span class="p">,</span>
+</span><span id="__span-6-6"><a href="#__codelineno-6-6" id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="w">  </span><span class="nt">"finished_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-04-21T09:36:22.777902+00:00"</span><span class="p">,</span>
+</span><span id="__span-6-7"><a href="#__codelineno-6-7" id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-6-8"><a href="#__codelineno-6-8" id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="w">  </span><span class="nt">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-9"><a href="#__codelineno-6-9" id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="w">    </span><span class="nt">"rows"</span><span class="p">:</span><span class="w"> </span><span class="mi">1240</span><span class="p">,</span>
+</span><span id="__span-6-10"><a href="#__codelineno-6-10" id="__codelineno-6-10" name="__codelineno-6-10"></a><span class="w">    </span><span class="nt">"output_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../production_predictions/final_output_predictions"</span>
+</span><span id="__span-6-11"><a href="#__codelineno-6-11" id="__codelineno-6-11" name="__codelineno-6-11"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-6-12"><a href="#__codelineno-6-12" id="__codelineno-6-12" name="__codelineno-6-12"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Potential errors:</p>
+<ul>
+<li><code>404</code>: unknown or expired job id.</li>
+<li><code>503</code>: Redis unavailable while reading status.</li>
+</ul>
+<h3 id="delete-productiondelete_old_data">DELETE /production/delete_old_data<a class="headerlink" href="#delete-productiondelete_old_data" title="Permanent link">¶</a></h3>
+<p>Runs cleanup of outdated forecast rows in the production predictions dataset.</p>
+<p>Sample success response:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a href="#__codelineno-7-1" id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="p">{</span>
+</span><span id="__span-7-2"><a href="#__codelineno-7-2" id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"success"</span><span class="p">,</span>
+</span><span id="__span-7-3"><a href="#__codelineno-7-3" id="__codelineno-7-3" name="__codelineno-7-3"></a><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Old data deleted successfully from: ../production_predictions/final_output_predictions.parquet"</span><span class="p">,</span>
+</span><span id="__span-7-4"><a href="#__codelineno-7-4" id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="w">  </span><span class="nt">"updated_dataset_path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../production_predictions/final_output_predictions.parquet"</span>
+</span><span id="__span-7-5"><a href="#__codelineno-7-5" id="__codelineno-7-5" name="__codelineno-7-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Potential errors:</p>
+<ul>
+<li><code>500</code>: cleanup pipeline failure.</li>
+</ul>
+<h2 id="pydantic-validation-model-reference">Pydantic Validation Model Reference<a class="headerlink" href="#pydantic-validation-model-reference" title="Permanent link">¶</a></h2>
+<p>Detailed field-by-field schema documentation is in <a href="../pydantic-models/">Pydantic Models</a>.</p>
+<h2 id="operational-notes">Operational Notes<a class="headerlink" href="#operational-notes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Redis URL comes from <code>REDIS_URL</code> (default: <code>redis://redis:6379/0</code>).</li>
+<li>Job metadata TTL comes from <code>JOB_TTL_SECONDS</code> (default: <code>86400</code>).</li>
+<li>The model reconstruction endpoint is asynchronous by design; clients should poll the status endpoint.</li>
+</ul>
+<h2 id="external-distribution">External Distribution<a class="headerlink" href="#external-distribution" title="Permanent link">¶</a></h2>
+<p>A client-facing report is available in markdown and PDF:</p>
+<ul>
+<li>Markdown: <a href="../external-api-report/">External API Report</a></li>
+<li>PDF: <a href="../Predap_API_External_Report.pdf">Predap API External Report (PDF)</a></li>
+</ul>
 </article>
 </div>
 <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>

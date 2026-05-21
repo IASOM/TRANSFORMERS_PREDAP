@@ -67,8 +67,16 @@ def train_given_model_and_data(model, X, Y, batch_size=1024, model_name=None, ep
     if save_history:  # save training history
         raw_model_name = model_name.replace('.keras', '')
         os.makedirs('../history', exist_ok=True)
+        clean_history = {
+            metric: [float(val) for val in values]
+            for metric, values in history.history.items()
+        }
+        
         with open(f'../history/{raw_model_name}_history.pkl', 'wb') as file_pi:
-            pickle.dump(history.history, file_pi)
+            pickle.dump(clean_history, file_pi)
+            
+        # Optional: Delete the cloned dictionary to free up CPU memory immediately
+        del clean_history
     
     if save_model and epochs > 1:  # save model
         os.makedirs(default_config.model_folder, exist_ok=True)

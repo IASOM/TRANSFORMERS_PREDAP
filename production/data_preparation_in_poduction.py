@@ -60,7 +60,7 @@ class DataPreparationInProduction:
         """
         code = code.replace("#", ":")
         # Load CSV
-        df = pd.read_parquet(data_path)
+        df = pd.read_csv(data_path)
         if eliminate_covid_data:
             assert covid_dates is not None
             df = data_preparation.eliminate_covid_dates(df, covid_dates)
@@ -133,7 +133,7 @@ class DataPreparationInProduction:
         relevant_feature_cols = self.load_diagnostic_covariates(default_config.diagnostic_covariates_path, code, forecast)
         code = code.replace("#", ":")
         # Load CSV
-        df = pd.read_parquet(data_path)
+        df = pd.read_csv(data_path)
         if eliminate_covid_data:
             assert covid_dates is not None
             df = data_preparation.eliminate_covid_dates(df, covid_dates)
@@ -196,7 +196,7 @@ class DataPreparationInProduction:
         Returns:
             X_seasonal_covs: A numpy array containing the input features for the seasonal covariates, prepared for the specified code and forecast horizon.
         """
-        df = pd.read_parquet(data_path)
+        df = pd.read_csv(data_path)
         # Prepare seasonal features for training data
 
         print("Preparing seasonal features for training data...")
@@ -211,6 +211,8 @@ class DataPreparationInProduction:
 
         X_seasonal_covs = df_processed.drop(columns=['timestamp']).values[-forecast:].reshape(1, -1, df_processed.shape[1]-1)
         X_seasonal_covs = X_seasonal_covs.astype(float)
+
+
         return X_seasonal_covs
 
 

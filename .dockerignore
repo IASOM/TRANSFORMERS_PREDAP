@@ -3,7 +3,7 @@ __pycache__/
 
 .git
 .gitignore
-docs/
+/docs
 *.md
 /post_processing
 /plots

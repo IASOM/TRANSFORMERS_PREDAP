@@ -468,11 +468,12 @@ def prepare_input_data(
     forecast: int,
     scaler=None,
     cutoff_date: str = "2008-01-01",
-    max_date: str = "2025-09-30",
+    max_date: str = "2027-09-30",
     covid_token: bool = True,
     eliminate_covid_data: bool = False,
     covid_dates: list = None,
-    diagnostic_covariates_path: str = None
+    diagnostic_covariates_path: str = None,
+    split_ratio: float = 0.8
 ) -> np.ndarray:
     """
     Prepare input data for prediction using the same pipeline as training.
@@ -540,7 +541,8 @@ def prepare_input_data(
         scaler=scaler,
         eliminate_covid_data=eliminate_covid_data,
         covid_dates=covid_dates,
-        relevant_feature_cols=relevant_feature_cols
+        relevant_feature_cols=relevant_feature_cols,
+        split_ratio=split_ratio
     )
     
     # Return only the last sequence (most recent data for prediction)
@@ -585,11 +587,12 @@ def generate_predictions_for_code(
     models_by_forecast: Dict[int, str],
     scaler=None,
     cutoff_date: str = "2008-01-01",
-    max_date: str = "2025-09-30",
+    max_date: str = "2027-09-30",
     covid_token: bool = False,
     eliminate_covid_data: bool = False,
     covid_dates: list = None,
-    diagnostic_covariates_path: str = None
+    diagnostic_covariates_path: str = None,
+    split_ratio: float = 0.8
 ) -> Dict[int, np.ndarray]:
     """
     Generate predictions for all forecast horizons for a single code.
@@ -651,7 +654,8 @@ def generate_predictions_for_code(
                 covid_token=covid_token,
                 eliminate_covid_data=eliminate_covid_data,
                 covid_dates=covid_dates,
-                diagnostic_covariates_path=diagnostic_covariates_path
+                diagnostic_covariates_path=diagnostic_covariates_path,
+                split_ratio=split_ratio
             )
         except Exception as e:
             print(f"    Warning: Could not prepare input data: {e}")
@@ -820,7 +824,8 @@ def run_full_prediction_pipeline(
     covid_token: bool = True,
     eliminate_covid_data: bool = False,
     covid_dates: list = None,
-    diagnostic_covariates_path: str = None
+    diagnostic_covariates_path: str = None,
+    split_ratio: float = 0.8
 ) -> Tuple[Dict[int, np.ndarray], np.ndarray]:
     """
     Run the complete prediction pipeline for a specific code across all forecast horizons.
@@ -894,7 +899,8 @@ def run_full_prediction_pipeline(
         covid_token=covid_token,
         eliminate_covid_data=eliminate_covid_data,
         covid_dates=covid_dates,
-        diagnostic_covariates_path=diagnostic_covariates_path
+        diagnostic_covariates_path=diagnostic_covariates_path,
+        split_ratio=split_ratio
     )
     
     combined = np.array([])

@@ -38,7 +38,7 @@ class BaseTransformerConfig(ABC):
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 400
+    epochs: int = 200
     batch_size: int = 256
     early_stop_patience: int = 50
     shuffle_data: bool = True
@@ -52,7 +52,7 @@ class BaseTransformerConfig(ABC):
     production_metrics_file: str = "../production_predictions/production_evaluation_metrics.parquet"
     
     cutoff_date: str = "2008-01-01"
-    final_cutoff_date: str = "2025-09-30"#"2021-06-30"#
+    final_cutoff_date: str = "2027-09-30"#"2021-06-30"#
     positional_encoding: bool = True
     default_split_ratio: float = 0.8
     eliminate_covid_data: bool = False

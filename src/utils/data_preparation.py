@@ -12,8 +12,11 @@ from dateutil.easter import easter
 from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler 
 from sklearn.base import clone
+from src.utils.experiments_utils import smart_read
 
-MAX_DATE = '2025-09-30'
+pd.read_csv = smart_read  # Override pandas read_parquet with smart_read for better error handling
+
+MAX_DATE = '2027-09-30'
 # Define function for train-test split
 def split_train_test(df, split_ratio=0.8):
     """
@@ -127,7 +130,7 @@ def eliminate_covid_dates(df:pd.DataFrame, covid_periods:list) -> pd.DataFrame:
         df = df[~((df['timestamp'] >= start) & (df['timestamp'] <= end))].reset_index(drop=True)
     return df
 
-def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2025-09-30', scaler = None, eliminate_covid_data=False, covid_dates=None):
+def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2025-09-30', scaler = None, eliminate_covid_data=False, covid_dates=None, split_ratio = 0.8):
 
     """
     Inverses the min-max scaling of predictions to the original scale.
@@ -152,7 +155,7 @@ def inverse_transform_predictions(predictions, original_scale_df, code, lookback
     max_date = pd.Timestamp(max_date)
     original_scale_df = original_scale_df[(original_scale_df['timestamp'] >= cutoff)&(original_scale_df['timestamp'] <= max_date)].reset_index(drop=True)  # Subset the DataFrame
     
-    train_df, test_df = split_train_test(original_scale_df)
+    train_df, test_df = split_train_test(original_scale_df, split_ratio=split_ratio)
     
     train_df_seq = []
     
@@ -202,7 +205,7 @@ def add_covid_token(df):
 
     
 
-def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2025-09-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None, eliminate_covid_data = False, covid_dates = None):
+def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2025-09-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, scaler = None, eliminate_covid_data = False, covid_dates = None, split_ratio = 0.8):
     '''
     Prepares the data for training/testing by loading, cutting, normalizing, and creating sequences.
     Parameters:
@@ -229,12 +232,12 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
     start_time =time.time()
     # Load CSV
     #df = pd.read_csv(csv_file)
-    df = pd.read_parquet(csv_file)
+    df = pd.read_csv(csv_file)
     if eliminate_covid_data:
         assert covid_dates is not None
         df = eliminate_covid_dates(df, covid_dates)
     df = cut_dataframe(df, cutoff_date,max_date, csv_file)
-    train_df, test_df = split_train_test(df)
+    train_df, test_df = split_train_test(df, split_ratio=split_ratio)
     train_df, test_df = normalize_dataframe(train_df,test_df, csv_file, target_code=code, scaler = scaler)
 
     if train:
@@ -296,7 +299,7 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
         Y.append(Y_raw[i + lookback : i + lookback + forecast])  # Future `forecast` values
 
     # Convert to numpy arrays
-    X, Y = np.array(X), np.array(Y)
+    X, Y = np.array(X).astype(np.float32), np.array(Y).astype(np.float32)
 
     if debug:
         print(f"Processed Data Shapes: X={X.shape}, Y={Y.shape}")  
@@ -305,7 +308,7 @@ def prepare_data(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', 
     return X, Y
 
 
-def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2025-09-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, eliminate_covid_data=False, covid_dates=None):
+def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date = '2010-01-01', max_date = '2025-09-30', covid_token = False, relevant_feature_cols = None,train = True, debug=False, univariate=True, eliminate_covid_data=False, covid_dates=None, split_ratio = 0.8):
     '''
     Prepares the data for training/testing by loading, cutting, and creating sequences without normalization.
     Parameters:
@@ -334,7 +337,7 @@ def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date =
         assert covid_dates is not None
         df = eliminate_covid_dates(df, covid_dates)
     df = cut_dataframe(df, cutoff_date, max_date, csv_file)
-    train_df, test_df = split_train_test(df)
+    train_df, test_df = split_train_test(df, split_ratio=split_ratio)
     
     if train:
         df = train_df
@@ -375,7 +378,7 @@ def prepare_data_not_normalized(csv_file,code, lookback, forecast, cutoff_date =
         Y.append(Y_raw[i + lookback : i + lookback + forecast])  # Future `forecast` values
 
     # Convert to numpy arrays
-    X, Y = np.array(X), np.array(Y)
+    X, Y = np.array(X).astype(np.float32), np.array(Y).astype(np.float32)
 
     if debug:
         print(f"Processed Data Shapes: X={X.shape}, Y={Y.shape}")  
@@ -496,6 +499,7 @@ def prepare_time_series_features(df, categorical_vars, cutoff_date = '2010-01-01
         'Season': date_range.month.map(lambda m: "Winter" if m in [12, 1, 2] else 
                                                     "Spring" if m in [3, 4, 5] else
                                                     "Summer" if m in [6, 7, 8] else "Autumn")
+        
     })
 
     # numeric calendar fields

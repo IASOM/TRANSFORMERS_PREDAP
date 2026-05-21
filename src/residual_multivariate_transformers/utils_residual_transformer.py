@@ -336,7 +336,7 @@ def extract_model_params_from_filename(model_filename):
         return None
 
 
-def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', max_date='2021-06-30', univariate=True, scaler = None, eliminate_covid_data=False, covid_dates=None):
+def prepare_base_model_data(input_directory, code, lookback, forecast, covid_token=False, cutoff_date='2010-01-01', max_date='2021-06-30', univariate=True, scaler = None, eliminate_covid_data=False, covid_dates=None, split_ratio=None):
     """
     Prepare training and testing data for the base transformer model.
     
@@ -387,13 +387,15 @@ def prepare_base_model_data(input_directory, code, lookback, forecast, covid_tok
     start_time = time.perf_counter()
     X_test, Y_test = data_preparation.prepare_data(
         input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,max_date = max_date,
-        train=False, debug=True, univariate=univariate, scaler = scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+        train=False, debug=True, univariate=univariate, scaler = scaler, eliminate_covid_data=eliminate_covid_data, 
+        covid_dates=covid_dates, split_ratio=split_ratio
     )
     date_list_test = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date,max_date = max_date, train=False, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
     
     X_train, Y_train = data_preparation.prepare_data(
         input_directory, code, lookback, forecast, covid_token=covid_token, cutoff_date=cutoff_date,max_date = max_date,
-        train=True, debug=True, univariate=univariate, scaler = scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates
+        train=True, debug=True, univariate=univariate, scaler = scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates,
+        split_ratio=split_ratio
     )
     date_list_train = data_preparation.extract_dates(input_directory, code, lookback, forecast, cutoff_date=cutoff_date,max_date = max_date, train=True, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
 
