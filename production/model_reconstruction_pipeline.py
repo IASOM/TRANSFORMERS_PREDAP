@@ -165,6 +165,41 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         )
 
 
+        #Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models. 
+        def process_col_name(col):
+            # 1. Keep 'timestamp' as is
+            if col == 'timestamp':
+                return col
+            
+            # 2. Remove 'DEMAND_' prefix if present
+            code = col[7:] if col.startswith("DEMAND_") else col
+            
+            # 3. Identify all positions of '_'
+            indices = [i for i, char in enumerate(code) if char == '_']
+            
+            # If no underscores, return code as is
+            if not indices:
+                return code
+            
+            # If there is only one underscore, replace it with '__'
+            if len(indices) == 1:
+                idx = indices[0]
+                return code[:idx] + "__" + code[idx+1:]
+            
+            # If there are multiple, replace the first and last with '__'
+            first_idx = indices[0]
+            last_idx = indices[-1]
+            
+            # Reconstruct the string: 
+            # Prefix + "__" + Middle + "__" + Suffix
+            return code[:first_idx] + "__" + code[first_idx+1:last_idx] + "__" + code[last_idx+1:]
+
+        #Temporary solution for the name mismatch 
+        code = code[7:] if code.startswith("DEMAND_") else code
+        #add a __ if you find a _ in the code, to match the format of the saved models, which have _ instead of : in the code names
+        code = process_col_name(code)
+
+
         univ_model = self.load_model_weights(univ_model, code, lookback, forecast, models_directory, model_type="univariate_model")
         diagnostics_model = self.load_model_weights(diagnostics_model, code, lookback, forecast, models_directory, model_type="diagnostics_model")
         seasonal_model = self.load_model_weights(seasonal_model, code, lookback, forecast, models_directory, model_type="seasonal_model")
@@ -214,11 +249,14 @@ class ModelPredictionPipeline(DataPreparationInProduction):
     
     def run_reconstruct_save_results_pipeline(
             self, 
+            input_directory: str,
+            old_input_directory: str, #Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models.
             code: str, 
             LOOKBACK_LIST: List[int], 
             FORECAST_LIST: List[int], 
             final_output_predictions: Optional[np.ndarray], 
-            final_output_df: pd.DataFrame
+            final_output_df: pd.DataFrame,
+            
             ) -> pd.DataFrame:
         """Runs the full pipeline to reconstruct the model, make predictions, and save results for a given code and list of lookback and forecast combinations. 
         Args:
@@ -230,33 +268,33 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         Returns:
             A DataFrame containing the final output predictions for each forecast horizon along with corresponding dates.
         """
-
+        
         dates = ["2025-12-23","2025-12-24", "2025-12-25", "2025-12-26", "2025-12-27", "2025-12-28", "2025-12-29", "2025-12-30", "2025-12-31"]
         for max_date in dates:
             for lookback, forecast in zip(LOOKBACK_LIST, FORECAST_LIST):
                 auxiliary_output_df = pd.DataFrame()  # Temporary DataFrame for current iteration
-
+                
                 X_univ_data_production, Y_univ_data_production, df_timestamp_production = self.prepare_prediction_univ_data(
                     data_path=input_directory,
                     code=code,
                     lookback=lookback,
                     forecast=forecast,
-                    cutoff_date=cutoff_date,
+                    cutoff_date=self.config.cutoff_date,
                     max_date=max_date,
-                    scaler=scaler,
-                    eliminate_covid_data=eliminate_covid_data,
+                    scaler=self.config.scaler,
+                    eliminate_covid_data=self.config.eliminate_covid_data,
                     covid_token=self.config.covid_token,
                     production_mode=True
                 )
 
                 X_diagnostics_data_production, Y_diagnostics_data_production = self.prepare_prediction_diagnostics_data(
-                    data_path=input_directory,
+                    data_path=old_input_directory, #Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Use the old input directory which has the original code names with "DEMAND_" prefix and "_" instead of "__".
                     code=code,
                     lookback=lookback,
                     forecast=forecast,
-                    cutoff_date =cutoff_date,
+                    cutoff_date = self.config.cutoff_date,
                     max_date=max_date,
-                    scaler=scaler,
+                    scaler=self.config.scaler,
                     covid_token=self.config.covid_token,
                     production_mode=True
                 )
@@ -266,12 +304,12 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                     code=code,
                     forecast=forecast,
                     lookback=lookback,
-                    cutoff_date=cutoff_date,
+                    cutoff_date=self.config.cutoff_date,
                     max_date=max_date,
                     categorical_vars=self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS,
                     predictions_train=None,
                     predictions_test=None,
-                    scaler=scaler,
+                    scaler=self.config.scaler,
                 )
 
                 X_univ_data, Y_univ_data, df_timestamp = self.prepare_prediction_univ_data(
@@ -279,22 +317,22 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                     code=code,
                     lookback=lookback,
                     forecast=forecast,
-                    cutoff_date=cutoff_date,
+                    cutoff_date=self.config.cutoff_date,
                     max_date=max_date,
-                    scaler=scaler,
-                    eliminate_covid_data=eliminate_covid_data,
+                    scaler=self.config.scaler,
+                    eliminate_covid_data=self.config.eliminate_covid_data,
                     covid_token=self.config.covid_token,
                     production_mode=False
                 )
 
                 X_diagnostics_data, Y_diagnostics_data = self.prepare_prediction_diagnostics_data(
-                    data_path=input_directory,
+                    data_path=old_input_directory, #Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Use the old input directory which has the original code names with "DEMAND_" prefix and "_" instead of "__".
                     code=code,
                     lookback=lookback,
                     forecast=forecast,
-                    cutoff_date =cutoff_date,
+                    cutoff_date=self.config.cutoff_date,
                     max_date=max_date,
-                    scaler=scaler,
+                    scaler=self.config.scaler,
                     covid_token=self.config.covid_token,
                     production_mode=False
                 )
@@ -304,12 +342,12 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                     code=code,
                     forecast=forecast,
                     lookback=lookback,
-                    cutoff_date=cutoff_date,
+                    cutoff_date=self.config.cutoff_date,
                     max_date=max_date,
                     categorical_vars=self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS,
                     predictions_train=None,
                     predictions_test=None,
-                    scaler=scaler,
+                    scaler=self.config.scaler,
                 )
                 
                 univ_input_shape = X_univ_data.shape[1:]
@@ -677,6 +715,34 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         print(f"Remaining rows: {len(df_clean)}")
 
         return predictions_dataset_path
+    
+def get_codes_list(input_directory: str) -> List[str]:
+    """
+    Reads the input data file and extracts the list of unique codes.
+
+    Args:
+        input_directory (str): The file path to the input data (e.g., CSV or Parquet file).
+
+    Returns:
+        List[str]: A list of unique codes extracted from the input data.
+    """
+
+    if input_directory.endswith('.csv'):
+        df = pd.read_csv(input_directory, nrows=1000)  # Read a sample to get column names
+    elif input_directory.endswith('.parquet'):
+        df = pd.read_parquet(input_directory, engine='pyarrow')  # Read only the 'code' column
+    else:
+        raise ValueError("Unsupported file format. Please provide a CSV or Parquet file.")
+
+    
+    #Get all the column names of the dataframe as codes list
+    codes_list = df.columns.tolist()
+    codes_list.remove('timestamp')  # Remove the timestamp column if it exists
+    
+    return codes_list
+
+
+
 
 
 if __name__ == "__main__":
@@ -742,7 +808,7 @@ if __name__ == "__main__":
                 data_path=input_directory, 
                 model_folder=model_folder,
             ))
-        final_output_df = base_pipeline.run_reconstruct_save_results_pipeline(code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
+        final_output_df = base_pipeline.run_reconstruct_save_results_pipeline(input_directory,code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
         base_pipeline.save_final_output_predictions(final_output_df)
     base_pipeline.delete_old_data(predictions_dataset_path=output_path, real_data_dataset_path=input_directory, metrics_df_path=metrics_df_path)
     print(f"\nFinal output predictions for code {code}:\n")
