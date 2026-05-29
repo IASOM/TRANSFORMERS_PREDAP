@@ -1,4 +1,0 @@
-[2025-12-05 12:58:16,471][absl][WARNING] - Found untraced functions such as _jit_compiled_convolution_op, _jit_compiled_convolution_op, _jit_compiled_convolution_op, _jit_compiled_convolution_op, query_layer_call_fn while saving (showing 5 of 28). These functions will not be directly callable after loading.
-[2025-12-05 12:58:18,103][tensorflow][INFO] - Assets written to: C:\Users\Sira\AppData\Local\Temp\tmpr8i8y19q\model\data\model\assets
-[2025-12-05 13:01:43,749][absl][WARNING] - Found untraced functions such as _jit_compiled_convolution_op, _jit_compiled_convolution_op, lstm_cell_layer_call_fn, lstm_cell_layer_call_and_return_conditional_losses, lstm_cell_1_layer_call_fn while saving (showing 5 of 18). These functions will not be directly callable after loading.
-[2025-12-05 13:01:46,366][tensorflow][INFO] - Assets written to: C:\Users\Sira\AppData\Local\Temp\tmp6gk8tejm\model\data\model\assets

@@ -1,9 +1,0 @@
-[2025-12-04 15:20:35,478][tensorflow][WARNING] - AutoGraph could not transform <function Model.make_train_function.<locals>.train_function at 0x000001DBF6D9AE60> and will run it as-is.
-Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
-Cause: [Errno 28] No space left on device
-To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
-[2025-12-04 15:20:39,951][tensorflow][WARNING] - AutoGraph could not transform <function Model.make_test_function.<locals>.test_function at 0x000001DB8A3C48B0> and will run it as-is.
-Please report this to the TensorFlow team. When filing the bug, set the verbosity to 10 (on Linux, `export AUTOGRAPH_VERBOSITY=10`) and attach the full output.
-Cause: [Errno 28] No space left on device
-To silence this warning, decorate the function with @tf.autograph.experimental.do_not_convert
-[2025-12-04 15:22:00,297][absl][WARNING] - Found untraced functions such as _jit_compiled_convolution_op, _jit_compiled_convolution_op, _jit_compiled_convolution_op, _jit_compiled_convolution_op, query_layer_call_fn while saving (showing 5 of 28). These functions will not be directly callable after loading.

@@ -1,2 +1,0 @@
-[2025-11-13 11:13:06,173][tensorflow][WARNING] - From c:\Users\Sira\AppData\Local\Programs\Python\Python312\Lib\site-packages\keras\src\backend\common\global_state.py:82: The name tf.reset_default_graph is deprecated. Please use tf.compat.v1.reset_default_graph instead.
-
