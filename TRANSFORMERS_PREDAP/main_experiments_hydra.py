@@ -1,26 +1,9 @@
 import pandas as pd
 import os
-
-def smart_read(file_path, **kwargs):
-    """
-    Función que sustituye a pd.read_csv.
-    Detecta automáticamente si la extensión es .parquet o .csv
-    y llama a la función de lectura apropiada.
-    """
-    if str(file_path).lower().endswith('.parquet'):
-        print(f"-> INFO: Leyendo {file_path} como PARQUET.")
-        # Aquí puedes añadir parámetros específicos para Parquet si los necesitas
-        return pd.read_parquet(file_path, **kwargs)
-    else:
-        # Llama a la función original pd.read_csv para CSVs y otros
-        print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
-        return _original_read_csv(file_path, **kwargs)
-
-# --- REEMPLAZO (MONKEY PATCHING) ---
-
-# 1. Guardar la función original de lectura de CSV
-#    (Usaremos esta referencia dentro de nuestro wrapper)
-_original_read_csv = pd.read_csv
+from src.utils.experiments_utils import (
+    smart_read, safe_float, initialize_results_tracking, 
+    load_json_codes_list, cleanup_ram, memory_cleanup
+    )
 
 # 2. Reemplazar la función original con nuestra función "inteligente"
 pd.read_csv = smart_read
@@ -44,12 +27,11 @@ from omegaconf import DictConfig, OmegaConf
 from hydra.core.global_hydra import GlobalHydra
 from tensorflow.keras import backend as K
 import gc
+from src.utils import experiments_utils
 
-
-#load and visualize data 
 
 #from src.univariate_transformer import default_config
-from src import data_preparation
+from src.utils import data_preparation
 
 
 
@@ -73,10 +55,6 @@ from src.univariate_transformer.utils_univ_transformer import load_mlflow_model_
 from src.config.base_transformer_config import BaseTransformerConfig
 
 default_config = BaseTransformerConfig()
-
-
-
-
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
     try:
@@ -86,39 +64,11 @@ if gpus:
         print(e)
 
 
-# Utility function for safe float conversion
-def safe_float(value):
-    """Convert value to float, handling numpy types and NaN values"""
-    try:
-        if pd.isna(value):
-            return None
-        return float(value)
-    except (TypeError, ValueError):
-        return None
+# Register custom resolver for loading JSON codes list
+OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
+config_name = "config_production.yaml"  
 
-# Global variables for tracking results across runs
-best_results_per_code = {}
-results_dir = "best_hyperparameters_results"
-
-def initialize_results_tracking():
-    """Initialize result tracking directories and structures."""
-    global best_results_per_code, results_dir
-    
-    os.makedirs(results_dir, exist_ok=True)
-    print(f"📁 Results will be saved in: {results_dir}/")
-    
-    # Get all possible target codes from default config for initialization
-    codes_list = default_config.CODES_LIST
-    best_results_per_code = {}
-    for code in codes_list:
-        best_results_per_code[code] = {
-            "best_mse": float('inf'),
-            "best_config": None,
-            "best_metrics": None,
-            "best_run_info": None
-        }
-
-@hydra.main(version_base=None, config_path="conf", config_name="grid_search.yaml")
+@hydra.main(version_base=None, config_path="conf", config_name=config_name)
 def main_experiment(cfg: DictConfig) -> None:
     """Main experiment function decorated with Hydra for parameter sweeping."""
     
@@ -133,7 +83,7 @@ def main_experiment(cfg: DictConfig) -> None:
     print(f"   • View results at: http://localhost:5000")
     
     # Initialize results tracking (only once per sweep)
-    initialize_results_tracking()
+    codes_list = load_json_codes_list(cfg.data.codes_path)
     
     # Extract parameters from Hydra config
     CODE = cfg.model.target_code
@@ -155,11 +105,8 @@ def main_experiment(cfg: DictConfig) -> None:
     scaler = default_config.scaler
 
     
-    # Load data
-    df = pd.read_csv(data_path)
-    
     # Start MLflow run for this specific configuration
-    run_name = f"HYDRA_transformer_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}"
+    run_name = f"1.0_Production_TRANSFORMER_{CODE}_lb{lookback}_fh{forecast}_{datetime.now().strftime('%H%M%S')}" #TRANSFORMER3
     with mlflow.start_run(run_name=run_name) as run:
         print(f"\n🚀 Starting MLflow run: {run_name}")
         print(f"   • Run ID: {run.info.run_id}")
@@ -197,8 +144,9 @@ def main_experiment(cfg: DictConfig) -> None:
 
         # ==================== PHASE 1: UNIVARIATE TRANSFORMER ====================
         univ_start_time = datetime.now()
-        mlflow.log_param("phase_1_start_time", univ_start_time.isoformat())
-        batch_size = data_preparation.compute_dynamic_batch_size(lookback, forecast)
+        mlflow.log_param("phase_1_univariate_transformer_start_time", univ_start_time.isoformat())
+        batch_size = experiments_utils.compute_dynamic_batch_size(lookback, forecast)
+        
         # Train univariate transformer with parameters from config
         univariate_parameters = TransformerUnivConfig(  
             lookback=lookback,
@@ -217,43 +165,58 @@ def main_experiment(cfg: DictConfig) -> None:
             dropout=dropout,
             learning_rate=learning_rate,
             data_path=data_path,
-            batch_size = batch_size,
-            
+            batch_size = batch_size,     
         )
 
         pipeline = UnivariateTransformerPipeline(univariate_parameters)
-        #model, model_name, loss, mae, mse = main_training_univ_transformer.main_univ_transformer(**univariate_parameters)
-        model, model_name, loss, mae, mse = pipeline.run_complete_pipeline()
-        
-        #Clear the GPU memory and possible memory garbage
-        K.clear_session()
-        gc.collect()
+        univ_outputs = pipeline.run_complete_pipeline()
+        model = univ_outputs.model
+        model_name = univ_outputs.model_name
+        loss = float(univ_outputs.loss)
+        mae = float(univ_outputs.mae)
+        mse = float(univ_outputs.mse)
+        rmse = float(univ_outputs.rmse)
+        wape = float(univ_outputs.wape)
 
         mlflow.keras.log_model(model, artifact_path="univariate_model")
+        del model  # Clear model from memory before loading history to free up GPU memory
         
         load_mlflow_model_history(model_name, model_type="univariate_transformer")
 
         univ_end_time = datetime.now()
         univ_duration = (univ_end_time - univ_start_time).total_seconds()
+        univ_duration = float(univ_duration)  # Ensure it's a standard float for MLflow logging
+
+
         
+
         mlflow.log_metrics({
-            "duration/phase_1_duration_seconds": univ_duration,
-            "duration/phase_1_duration_minutes": univ_duration / 60,
+            "duration/phase_1_univariate_transformer_duration_seconds": univ_duration,
+            "duration/phase_1_univariate_transformer_duration_minutes": univ_duration / 60,
         })
 
         if loss is not None and mae is not None and mse is not None:
             mlflow.log_metrics({
                 "eval/univ_transformer_loss": loss,
                 "eval/univ_transformer_mae": mae,
-                "eval/univ_transformer_mse": mse
+                "eval/univ_transformer_mse": mse,
+                "eval/univ_transformer_rmse": rmse,
+                "eval/univ_transformer_wape": wape
             })
         
         print(f"\n\nRunning for Lookback: {lookback}, Forecast: {forecast}, Code: {CODE}\n")
+
+        #Clear the GPU memory and possible memory garbage
+        del univ_outputs
+        del pipeline
+        memory_cleanup()
+        plt.close('all')
         
         # ==================== PHASE 2: RESIDUAL DIAGNOSTICS TRANSFORMER ====================
         diag_start_time = datetime.now()
-        mlflow.log_param("phase_2_start_time", diag_start_time.isoformat())
+        mlflow.log_param("phase_2_residual_diagnostics_transformer_start_time", diag_start_time.isoformat())
         
+        # Train residual diagnostics transformer with parameters from config
         diagnostic_parameters = DiagnosticResidualTransformerConfig(
             lookback=lookback,
             forecast=forecast,
@@ -272,35 +235,48 @@ def main_experiment(cfg: DictConfig) -> None:
             data_path=data_path,
             batch_size = batch_size,
             num_transformer_blocks=num_transformer_blocks,
-            
         )
 
-        #predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = main_train_diagnostic_residual_transformer.main_train_diagnostic_residual_transformer(**diagnostic_parameters)
         pipeline = DiagnosticResidualTransformerPipeline(diagnostic_parameters)
-        predictions_train_corrected, predictions_test_corrected, residual_diagnostics_model, residual_diagnostics_model_name, corrected_diagnostics_mae, corrected_diagnostics_mse, corrected_diagnostics_rmse = pipeline.run_complete_pipeline()                                                                                                                                                                                                                                                                                                                   
-        
-        #Clear the GPU memory and possible memory garbage
-        K.clear_session()
-        gc.collect()
+        diagnostic_outputs = pipeline.run_complete_pipeline()
+        predictions_train_corrected = np.array(diagnostic_outputs.predictions_train_corrected, copy = True)
+        predictions_test_corrected = np.array(diagnostic_outputs.predictions_test_corrected, copy = True)
+        residual_diagnostics_model = diagnostic_outputs.residual_diagnostics_model
+        residual_diagnostics_model_name = diagnostic_outputs.residual_diagnostics_model_name
+        corrected_diagnostics_mae = float(diagnostic_outputs.corrected_diagnostics_mae)
+        corrected_diagnostics_mse = float(diagnostic_outputs.corrected_diagnostics_mse)
+        corrected_diagnostics_rmse = float(diagnostic_outputs.corrected_diagnostics_rmse)
+        corrected_diagnostics_wape = float(diagnostic_outputs.corrected_diagnostics_wape)
+
+
 
         mlflow.keras.log_model(residual_diagnostics_model, artifact_path="residual_diagnostics_model")
+        del residual_diagnostics_model  # Clear model from memory before loading history to free up GPU memory
         load_mlflow_model_history(residual_diagnostics_model_name, model_type="residual_diagnostics_transformer")
         
         diag_end_time = datetime.now()
         diag_duration = (diag_end_time - diag_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_2_duration_seconds": diag_duration,
-            "duration/phase_2_duration_minutes": diag_duration / 60,
-            "eval/residual_diagnostics_model_mae": corrected_diagnostics_mae,
-            "eval/residual_diagnostics_model_mse": corrected_diagnostics_mse,    
-            "eval/residual_diagnostics_model_rmse": corrected_diagnostics_rmse,
+            "duration/phase_2_residual_diagnostics_transformer_duration_seconds": float(diag_duration),
+            "duration/phase_2_residual_diagnostics_transformer_duration_minutes": float(diag_duration / 60),
+            "eval/residual_diagnostics_model_mae": float(corrected_diagnostics_mae),
+            "eval/residual_diagnostics_model_mse": float(corrected_diagnostics_mse),
+            "eval/residual_diagnostics_model_rmse": float(corrected_diagnostics_rmse),
+            "eval/residual_diagnostics_model_wape": float(corrected_diagnostics_wape),
         })
+        
+        #Clear the GPU memory and possible memory garbage
+        del diagnostic_outputs
+        del pipeline
+        memory_cleanup()
+        plt.close('all')
         
         # ==================== PHASE 3: RESIDUAL SEASONAL TRANSFORMER ====================
         seasonal_start_time = datetime.now()
-        mlflow.log_param("phase_3_start_time", seasonal_start_time.isoformat())
+        mlflow.log_param("phase_3_residual_seasonal_transformer_start_time", seasonal_start_time.isoformat())
 
+        # Train residual seasonal transformer with parameters from config
         seasonal_params = SeasonalResidualTransformerConfig(
             lookback=lookback,
             forecast=forecast,
@@ -308,8 +284,8 @@ def main_experiment(cfg: DictConfig) -> None:
             activation_function=activation_function,
             covid_token=covid_token,
             cutoff_date=cutoff_date,
-            predictions_train_corrected=predictions_train_corrected,
-            predictions_test_corrected=predictions_test_corrected,
+            predictions_train_corrected= predictions_train_corrected,
+            predictions_test_corrected= predictions_test_corrected,
             head_size=head_size,
             num_heads=num_heads,
             ff_dim=ff_dim,
@@ -319,18 +295,18 @@ def main_experiment(cfg: DictConfig) -> None:
             learning_rate=learning_rate,#Not applyied yet
             data_path=data_path,
             batch_size = batch_size,
-            
-        )
+            )
 
-        '''predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = (
-            main_train_seasonal_residual_transformer.main_train_seasonal_residual_transformer(**seasonal_params)
-        )'''
         pipeline = SeasonalResidualTransformerPipeline(seasonal_params)
-        predictions_train_corrected, predictions_test_corrected, residual_seasonal_model, residual_seasonal_model_name, corrected_seasonal_mae, corrected_seasonal_mse, corrected_seasonal_rmse = pipeline.run_complete_pipeline()
-        
-        #Clear the GPU memory and possible memory garbage
-        K.clear_session()
-        gc.collect()
+        seasonal_outputs = pipeline.run_complete_pipeline()
+        predictions_train_corrected = np.array(seasonal_outputs.predictions_train_corrected, copy = True)
+        predictions_test_corrected = np.array(seasonal_outputs.predictions_test_corrected, copy = True)
+        residual_seasonal_model = seasonal_outputs.residual_diagnostics_model
+        residual_seasonal_model_name = seasonal_outputs.residual_diagnostics_model_name
+        corrected_seasonal_mae = float(seasonal_outputs.corrected_diagnostics_mae)
+        corrected_seasonal_mse = float(seasonal_outputs.corrected_diagnostics_mse)
+        corrected_seasonal_rmse = float(seasonal_outputs.corrected_diagnostics_rmse)
+        corrected_seasonal_wape = float(seasonal_outputs.corrected_diagnostics_wape)
 
         mlflow.keras.log_model(residual_seasonal_model, artifact_path="residual_seasonal_model")
         load_mlflow_model_history(residual_seasonal_model_name, model_type="residual_seasonal_transformer")
@@ -340,129 +316,37 @@ def main_experiment(cfg: DictConfig) -> None:
         total_duration = (seasonal_end_time - univ_start_time).total_seconds()
         
         mlflow.log_metrics({
-            "duration/phase_3_duration_seconds": seasonal_duration,
-            "duration/phase_3_duration_minutes": seasonal_duration / 60,
-            "total_training_duration_seconds": total_duration,
-            "total_training_duration_minutes": total_duration / 60,
-            "eval/residual_seasonal_model_mae": corrected_seasonal_mae,
-            "eval/residual_seasonal_model_mse": corrected_seasonal_mse,
-            "eval/residual_seasonal_model_rmse": corrected_seasonal_rmse
+            "duration/phase_3_residual_seasonal_transformer_duration_seconds": float(seasonal_duration),
+            "duration/phase_3_residual_seasonal_transformer_duration_minutes": float(seasonal_duration / 60),
+            "total_training_duration_seconds": float(total_duration),
+            "total_training_duration_minutes": float(total_duration / 60),
+            "eval/residual_seasonal_model_mae": float(corrected_seasonal_mae),
+            "eval/residual_seasonal_model_mse": float(corrected_seasonal_mse),
+            "eval/residual_seasonal_model_rmse": float(corrected_seasonal_rmse),
+            "eval/residual_seasonal_model_wape": float(corrected_seasonal_wape),
         })
-        
-        # ==================== COLLECT AND SAVE BEST RESULTS ====================
-        current_run_data = {
-            "run_info": {
-                "run_id": run.info.run_id,
-                "run_name": run_name,
-                "timestamp": datetime.now().isoformat(),
-                "hydra_job_num": hydra.core.hydra_config.HydraConfig.get().job.num if hydra.core.hydra_config.HydraConfig.initialized() else None
-            },
-            "hyperparameters": {
-                "target_code": CODE,
-                "lookback": lookback,
-                "forecast_horizon": forecast,
-                "activation_function": activation_function,
-                "covid_token": covid_token,
-                "cutoff_date": cutoff_date,
-                "model_type": "transformer",
-                "head_size": head_size,
-                "num_heads": num_heads,
-                "ff_dim": ff_dim,
-                "mlp_units": mlp_units,
-                "num_transformer_blocks": num_transformer_blocks,
-                "dropout": dropout,
-                "learning_rate": learning_rate,
-                
-            },
-            "system_info": {
-                "tensorflow_version": tf.__version__,
-                "python_version": os.sys.version.split()[0],
-                "gpu_available": len(tf.config.list_physical_devices('GPU')) > 0,
-                "backend": cfg.system.backend
-            },
-            "training_duration": {
-                "phase_1_univariate_seconds": univ_duration,
-                "phase_2_diagnostic_seconds": diag_duration,
-                "phase_3_seasonal_seconds": seasonal_duration,
-                "total_training_seconds": total_duration,
-                "total_training_minutes": total_duration / 60
-            },
-            "evaluation_metrics": {
-                "univariate_transformer": {
-                    "loss": loss,
-                    "mae": mae,
-                    "mse": mse
-                },
-                "diagnostic_residual": {
-                    "mae": corrected_diagnostics_mae,
-                    "mse": corrected_diagnostics_mse,
-                    "rmse": corrected_diagnostics_rmse
-                },
-                "seasonal_residual": {
-                    "mae": corrected_seasonal_mae,
-                    "mse": corrected_seasonal_mse,
-                    "rmse": corrected_seasonal_rmse
-                }
-            },
-            "model_paths": {
-                "univariate_model": model_name,
-                "diagnostic_model": residual_diagnostics_model_name,
-                "seasonal_model": residual_seasonal_model_name
-            }
-        }
         
         # Use the final seasonal MSE as the comparison metric
         current_mse = corrected_seasonal_mse
         
-        # Initialize or update best results for this code
-        if CODE not in best_results_per_code:
-            best_results_per_code[CODE] = {
-                "best_mse": float('inf'),
-                "best_config": None,
-                "best_metrics": None,
-                "best_run_info": None
-            }
-        
-        # Check if this is the best result for this code
-        if current_mse < best_results_per_code[CODE]["best_mse"]:
-            print(f"🏆 NEW BEST RESULT for {CODE}!")
-            print(f"   • Previous best MSE: {best_results_per_code[CODE]['best_mse']:.6f}")
-            print(f"   • New best MSE: {current_mse:.6f}")
-            
-            # Update best results
-            best_results_per_code[CODE] = {
-                "best_mse": current_mse,
-                "best_config": current_run_data["hyperparameters"],
-                "best_metrics": current_run_data["evaluation_metrics"],
-                "best_run_info": current_run_data
-            }
-            
-            # Save to JSON file for this code
-            json_filename = os.path.join(results_dir, f"best_hyperparameters_{CODE.replace('/', '_')}.json")
-            with open(json_filename, 'w') as f:
-                json.dump(current_run_data, f, indent=4, default=str)
-            
-            print(f"💾 Best results saved to: {json_filename}")
-            
-            # Log as MLflow tag for easy identification
-            mlflow.set_tag("is_best_for_code", True)
-            mlflow.set_tag("best_mse_for_code", current_mse)
-        else:
-            print(f"📊 Current MSE: {current_mse:.6f} (Best: {best_results_per_code[CODE]['best_mse']:.6f})")
-            mlflow.set_tag("is_best_for_code", False)
-        
         # Log final metrics for this run
         mlflow.log_metrics({
-            "final/seasonal_mse": current_mse,
-            "final/seasonal_mae": corrected_seasonal_mae,
-            "final/seasonal_rmse": corrected_seasonal_rmse,
+            "final/seasonal_mse": float(current_mse),
+            "final/seasonal_mae": float(corrected_seasonal_mae),
+            "final/seasonal_rmse": float(corrected_seasonal_rmse),
+            "final/seasonal_wape": float(corrected_seasonal_wape),
         })
         
         print(f"✅ Completed run for {CODE} - lb:{lookback} fh:{forecast}")
         print(f"   • Seasonal MSE: {current_mse:.6f}")
         print(f"   • Configuration: head_size={head_size}, num_heads={num_heads}, ff_dim={ff_dim}, mlp_units={mlp_units}")
-
+        #Clear the GPU memory and possible memory garbage
+        del seasonal_outputs
+        del pipeline
+        del residual_seasonal_model, univariate_parameters, seasonal_params, predictions_train_corrected, predictions_test_corrected
+        memory_cleanup()
+        plt.close('all')
+        
 if __name__ == "__main__":
     main_experiment()
-    K.clear_session()
-    gc.collect()
+    cleanup_ram()

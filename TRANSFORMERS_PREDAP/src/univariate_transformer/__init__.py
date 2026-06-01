@@ -34,7 +34,7 @@ Example usage:
 """
 
 # Import key components for easy access
-from .model_architecture_univ_transformer import build_model, transformer_encoder, CustomCosineDecay
+from .model_architecture_univ_transformer import build_model, CustomCosineDecay
 from .training_evaluation_univ_transformer import train_given_model_and_data, evaluate_model_sliding_window
 from .visualization_univ_transformer import plt_model, plot_predictions_with_waves, plot_example
 from .utils_univ_transformer import extract_model_params, load_and_evaluate_models, setup_gpu_memory, create_model_directories, create_pandemic_waves_df, load_and_preprocess_data
@@ -46,7 +46,6 @@ __all__ = [
 
     # Model Architecture
     'build_model',
-    'transformer_encoder',
     'CustomCosineDecay',
     
     # Training & Evaluation

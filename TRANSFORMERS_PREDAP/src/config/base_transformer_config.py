@@ -9,7 +9,7 @@ from typing import Optional, Dict, List, Tuple, Any
 from abc import ABC, abstractmethod
 import os
 from datetime import datetime
-from sklearn.preprocessing import RobustScaler, MinMaxScaler
+from sklearn.preprocessing import RobustScaler, MinMaxScaler, StandardScaler, PowerTransformer, QuantileTransformer, FunctionTransformer
 
 
 @dataclass
@@ -22,32 +22,37 @@ class BaseTransformerConfig(ABC):
     # ==================== CORE MODEL PARAMETERS ====================
     lookback: int = 14
     forecast: int = 7
-    code: str = "T14"
+    code: str = "J00"
     
     # ==================== MODEL ARCHITECTURE ====================
     head_size: int = 64
-    num_heads: int = 2
-    ff_dim: int = 16
-    num_transformer_blocks: int = 2
-    mlp_units: int = 128
-    dropout: float = 0.5
-    activation_function: str = 'tanh'
+    num_heads: int = 8
+    ff_dim: int = 512
+    num_transformer_blocks: int = 4
+    mlp_units: List[int] = field(default_factory=lambda: [512,256])
+    dropout: float = 0.25
+    activation_function: str = 'gelu'
     
     # ==================== TRAINING PARAMETERS ====================
     learning_rate: float = 1e-4
     lr_max_multiplier: float = 100
     lr_min_multiplier: float = 10
     lr_warmup_ratio: float = 0.2
-    epochs: int = 500
-    batch_size: int = 32
-    early_stop_patience: int = 10
+    epochs: int = 200
+    batch_size: int = 256
+    early_stop_patience: int = 50
     shuffle_data: bool = True
     save_train_history: bool = True
     
     # ==================== DATA PARAMETERS ====================
-    data_path: str = '../data/diagnostics_CAT_aggregated.parquet'
+    data_path: str = '../data/FINAL_DB/full_CAT1.parquet'
+    diagnostic_covariates_path: str = f'../data/best_features/BEST_features_NOSMOOTH_'
+    production_predictions_dir: str = "../production_predictions/final_output_predictions"
+    production_predictions_file: str = "../production_predictions/final_output_predictions.parquet"
+    production_metrics_file: str = "../production_predictions/production_evaluation_metrics.parquet"
+    
     cutoff_date: str = "2008-01-01"
-    final_cutoff_date: str = "2025-09-30"#"2021-06-30"#
+    final_cutoff_date: str = "2027-09-30"#"2021-06-30"#
     positional_encoding: bool = True
     default_split_ratio: float = 0.8
     eliminate_covid_data: bool = False
@@ -59,9 +64,13 @@ class BaseTransformerConfig(ABC):
     ])
 
     # ==================== OPTIONAL PARAMETERS ====================
-    covid_token: bool = False
+    covid_token: bool = True
     evaluate_model: bool = False
-    scaler = MinMaxScaler()
+    #scaler = RobustScaler(quantile_range=(15.0, 85.0))
+    scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
+    #scaler = MinMaxScaler( feature_range=(0, 1))
+    #scaler = PowerTransformer()
+    #scaler = QuantileTransformer()
     
     # ==================== PATHS AND DIRECTORIES ====================
     plots_dir: str = 'plots'
@@ -81,15 +90,17 @@ class BaseTransformerConfig(ABC):
     #Hyperparameters residual transformer
     # Model Architecture Parameters
     DEFAULT_RESIDUAL_TRANSFORMER_PARAMS: dict = field(default_factory=lambda:  {
-        'head_size': 2,
-        'num_heads': 2,
-        'ff_dim': 8,
-        'dropout': 0.2
+        'head_size': 16,
+        'num_heads': 16,
+        'ff_dim': 512,
+        'mlp_units': [256, 128],
+        'num_transformer_blocks': 2,
+        'dropout': 0.5
     })
 
     DEFAULT_RESIDUAL_LSTM_PARAMS: dict = field(default_factory=lambda: {
-        'units_1': 64,
-        'units_2': 32,
+        'units_1': 128,
+        'units_2': 64,
         'dropout': 0.2,
         'return_sequences': True
     })
@@ -113,7 +124,8 @@ class BaseTransformerConfig(ABC):
         "Month", 
         "Season", 
         "Holiday", 
-        "School_Vacation"
+        "School_Vacation",
+        "Is_Weekend",
     ])
 
     PANDEMIC_WAVES: dict = field(default_factory=lambda: {
