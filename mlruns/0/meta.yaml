@@ -1,6 +1,8 @@
-artifact_location: file:///workspace/predapProject/TRANSFORMERS_PREDAP/mlruns/0
-creation_time: 1766502010828
+artifact_location: file:///workspace/predapProject/TRANSFORMERS_PREDAP_COPY/mlruns/0
+creation_time: 1779799544667
 experiment_id: '0'
-last_update_time: 1766502010828
+last_update_time: 1779799544667
 lifecycle_stage: active
 name: Default
+trace_location: null
+workspace: default

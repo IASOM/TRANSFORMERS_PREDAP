@@ -6,14 +6,14 @@ defaults:
 # Complete self-contained configuration for grid search
 # Data configuration
 data:
-  data_path: '../data/FINAL_DB/finals_combined.csv'
+  data_path: '../data/FINAL_DB/demand_diagnosis_joined.parquet'
   codes_path: '../data/FINAL_DB/target_codes.json'
 
-experiment_setup: "365_182"  # Default experiment setup
+experiment_setup: "7_7"  # Default experiment setup
 
 
 experiment_pairs:
-  3_3:   { lb: 3,   fc: 3 }
+  "3_3":   { lb: 3,   fc: 3 }
   "7_7":   { lb: 7,   fc: 7 }
   "14_14": { lb: 14,  fc: 14 }
   "60_30": { lb: 60,  fc: 30 }
@@ -23,9 +23,10 @@ experiment_pairs:
 
 # Model configuration (base defaults that will be overridden by sweep parameters)
 model:
-  target_code: "demanda__SERVEI_CODI__INF" #"B34" #"J00" #"demanda__TIPUS_CLASS__9T"
+  target_code: "DEMAND_demanda_SERVEI_CODI_INF" #"demanda__SERVEI_CODI__INF" #"B34" #"J00" #"demanda__TIPUS_CLASS__9T"
   lookback: ${experiment_pairs.${experiment_setup}.lb}
   forecast: ${experiment_pairs.${experiment_setup}.fc}
+
   num_transformer_blocks: 2
   head_size: 32
   num_heads: 8
@@ -49,7 +50,7 @@ system:
 
 # MLflow configuration
 mlflow:
-  tracking_uri: "file:./mlruns"
+  tracking_uri: "sqlite:///mlflow.db"
   experiment_name: "1.0_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH" #TRANSFORMER3 
 
 # Hydra multirun configuration
@@ -60,11 +61,13 @@ hydra:
   sweeper:
     params:
       # Target codes to evaluate
-      model.target_code: ${load_json_codes_list:../data/FINAL_DB/target_codes.json} #demanda__TOTAL, "demanda__SERVEI_CODI__URG", "B34","J00", "I10", "M54","Ch01#subch01#A00-A09" #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
+      model.target_code: ${get_codes_list:${data.data_path}} #${load_json_codes_list:../data/FINAL_DB/target_codes.json} #demanda__TOTAL, "demanda__SERVEI_CODI__URG", "B34","J00", "I10", "M54","Ch01#subch01#A00-A09" #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
       
       # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
       #model.lookback,model.forecast: 7,7 
-      experiment_setup: 3_3, "7_7", "14_14", "60_30", "60_60", "182_182", "365_182"
+      #experiment_setup: 3_3,"7_7","14_14","60_30","60_60","182_182","365_182"
+      # Inside hydra.sweeper.params:
+      experiment_setup: '"3_3","7_7","14_14","60_30","60_60","182_182","365_182"'
       #model.lookback: 30,60
       #model.forecast: 30,60
       

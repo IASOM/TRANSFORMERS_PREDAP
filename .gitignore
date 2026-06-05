@@ -11,3 +11,4 @@ my_project_image1.tar
 *.tar.gz
 /**/__pycache__
 /distilled_models
+mlflow.db

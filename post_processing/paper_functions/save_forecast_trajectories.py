@@ -1,11 +1,11 @@
 from tensorflow import keras
 import os 
-from src.univariate_transformer.model_architecture_univ_transformer import (
+from model_architechture.model_architecture_univ_transformer import (
     PositionalEncoding, RevIN
 )
 
 from src.config.base_transformer_config import BaseTransformerConfig
-from src.utils import data_preparation
+from data_utils import data_preparation
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -16,11 +16,15 @@ from src.utils.experiments_utils import smart_read
 import matplotlib.dates as mdates
 import mlflow
 
-from src.residual_multivariate_transformers import (
-        split_train_test, filter_diagnostics_covariates,
-        )
+from data_utils.data_preparation import (
+    split_train_test
+    )
 
-def load_diagnostic_covariates( code, forecast, lookback, final_cutoff_date):
+from src.training.training_residual_transformer import (
+        filter_diagnostics_covariates,
+    )
+
+def load_diagnostic_covariates(code, forecast):
         diagnostic_covariates_path = f'../data/best_features/BEST_features_NOSMOOTH_{code}.xlsx'
         diagnostic_covariates_df = pd.read_excel(diagnostic_covariates_path, engine='openpyxl')
         diagnostic_covariates_list = list(diagnostic_covariates_df[diagnostic_covariates_df['LAG'] == forecast]['predictors'])[0].split(',')

@@ -6,19 +6,17 @@ from sklearn.pipeline import FunctionTransformer
 import tensorflow as tf
 import numpy as np
 import os
-import argparse
-
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.univariate_transformer.model_architecture_univ_transformer import (
+from model_architechture.model_architecture_univ_transformer import (
     build_base_model,
     PositionalEncoding as UnivPositionalEncoding,
     RevIN as UnivRevIN,
 )
 
-from src.residual_multivariate_transformers.model_architecture_residual_transformer import (
+from model_architechture.model_architecture_residual_transformer import (
     hybrid_lstm_transformer_model,
     PositionalEncoding as ResidualPositionalEncoding,
     RevIN as ResidualRevIN,
@@ -29,7 +27,6 @@ from src.residual_multivariate_transformers.model_architecture_residual_transfor
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
 

@@ -14,3 +14,5 @@ __pycache__/
 /logs
 /docs
 /best_hyperparameters_results
+mlflow.db
+mlflow.db*

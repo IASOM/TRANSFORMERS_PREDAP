@@ -42,7 +42,6 @@ The residual multivariate transformer module (`src/residual_multivariate_transfo
         - prepare_base_model_data
         - load_base_model_transformer
         - validate_data_shapes
-        - extract_model_params_from_filename
 
 ---
 

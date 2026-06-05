@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.pipeline import FunctionTransformer
 
 from config.base_transformer_config import BaseTransformerConfig
-from utils import data_preparation
+from data_utils import data_preparation
 
 
 default_config = BaseTransformerConfig()

@@ -20,14 +20,9 @@ src_dir = os.path.join(current_dir, 'src')
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-
-from src.residual_multivariate_transformers import (
-    load_trained_model
-    )
-
-from src.utils import data_preparation
+from data_utils import data_preparation
 from src.univariate_transformer.utils_univ_transformer import extract_model_params
-from src.univariate_transformer.model_architecture_univ_transformer import (
+from model_architechture.model_architecture_univ_transformer import (
     RevIN, PositionalEncoding
 )
 from src.config.base_transformer_config import BaseTransformerConfig
@@ -349,7 +344,7 @@ def load_model_weights_only(
     import h5py
     import json
     from itertools import product
-    from src.univariate_transformer.model_architecture_univ_transformer import build_model
+    from model_architechture.model_architecture_univ_transformer import build_model
     
     # Get lookback and forecast from filename
     model_name = os.path.basename(model_path)

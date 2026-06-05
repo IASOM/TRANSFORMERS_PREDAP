@@ -4,6 +4,7 @@ import importlib
 import importlib.util
 from pathlib import Path
 
+
 # Ensure repository root and src are on sys.path so local packages resolve
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"
@@ -13,7 +14,8 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from src.config.base_transformer_config import BaseTransformerConfig
-from production.model_reconstruction_pipeline import ModelPredictionPipeline, get_codes_list
+from production.model_reconstruction_pipeline import ModelPredictionPipeline
+from src.utils.experiments_utils import get_codes_list
 
 # We do not import the wrapper or optimized runner here because those modules
 # perform package-level imports (e.g. `from config.config import ...`) that

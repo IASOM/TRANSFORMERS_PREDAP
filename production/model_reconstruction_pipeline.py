@@ -3,7 +3,6 @@ import shutil
 from sklearn.pipeline import FunctionTransformer
 import numpy as np
 import pandas as pd
-from sqlalchemy import between
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -15,14 +14,11 @@ from typing import Optional, Dict, List, Tuple, Any
 import pyarrow as pa
 import pyarrow.dataset as ds
 
-
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils.experiments_utils import smart_read
-from src.univariate_transformer import model_architecture_univ_transformer
-from src.residual_multivariate_transformers import model_architecture_residual_transformer
-from utils import data_preparation
+from model_architechture import model_architecture_univ_transformer
+from model_architechture import model_architecture_residual_transformer
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
 
@@ -716,34 +712,6 @@ class ModelPredictionPipeline(DataPreparationInProduction):
 
         return predictions_dataset_path
     
-def get_codes_list(input_directory: str) -> List[str]:
-    """
-    Reads the input data file and extracts the list of unique codes.
-
-    Args:
-        input_directory (str): The file path to the input data (e.g., CSV or Parquet file).
-
-    Returns:
-        List[str]: A list of unique codes extracted from the input data.
-    """
-
-    if input_directory.endswith('.csv'):
-        df = pd.read_csv(input_directory, nrows=1000)  # Read a sample to get column names
-    elif input_directory.endswith('.parquet'):
-        df = pd.read_parquet(input_directory, engine='pyarrow')  # Read only the 'code' column
-    else:
-        raise ValueError("Unsupported file format. Please provide a CSV or Parquet file.")
-
-    
-    #Get all the column names of the dataframe as codes list
-    codes_list = df.columns.tolist()
-    codes_list.remove('timestamp')  # Remove the timestamp column if it exists
-    
-    return codes_list
-
-
-
-
 
 if __name__ == "__main__":
     CODES_LIST = ["demanda__SERVEI_CODI__INF",
@@ -780,8 +748,6 @@ if __name__ == "__main__":
     mlp_units = [512,256]
     activation_function = "gelu"
 
-
-    
 
     final_output_df = pd.DataFrame()
     for code in CODES_LIST:
