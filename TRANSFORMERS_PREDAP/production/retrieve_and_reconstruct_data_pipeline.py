@@ -4,6 +4,7 @@ import importlib
 import importlib.util
 from pathlib import Path
 
+
 # Ensure repository root and src are on sys.path so local packages resolve
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"
@@ -14,7 +15,7 @@ if str(SRC_ROOT) not in sys.path:
 
 from src.config.base_transformer_config import BaseTransformerConfig
 from production.model_reconstruction_pipeline import ModelPredictionPipeline
-from src.utils.experiments_utils import get_codes_list, load_json_codes_list
+from src.utils.experiments_utils import get_codes_list
 
 # We do not import the wrapper or optimized runner here because those modules
 # perform package-level imports (e.g. `from config.config import ...`) that
@@ -39,7 +40,7 @@ from src.utils.experiments_utils import load_json_codes_list
 from sklearn.preprocessing import FunctionTransformer
 import pandas as pd
 
-OmegaConf.register_new_resolver("get_codes_list", get_codes_list)
+OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
 config_name = "config_production.yaml" 
 
 def load_hydra_config():
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     # be created by `create_multiyear_sample` below). Use a path string so
     # downstream code can decide when to read it.
     input_directory = 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/finals/demanda_diagnostics_joined.parquet'
-    old_input_directory = '../data/FINAL_DB/demand_diagnosis_joined.parquet'
+    old_input_directory = '../data/FINAL_DB/finals_combined.csv'
 
     #model_folder = '../transformer_outputs/models_covid_token'
     output_path = f"../production_predictions/final_output_predictions"
@@ -109,7 +110,6 @@ if __name__ == "__main__":
         CODES_LIST = get_codes_list(input_directory)
         # rEMOVE THE first "DEMAND_" charachers in front of every code to match the format expected by the reconstruction pipeline
         #CODES_LIST = [code[7:] for code in CODES_LIST ]
-        json_codes_list = load_json_codes_list('../data/FINAL_DB/target_codes.json')
         CODES_LIST = [code for code in CODES_LIST if code in DEFAULT_CODES_LIST]
         final_output_df = pd.DataFrame()
         for code in DEFAULT_CODES_LIST:

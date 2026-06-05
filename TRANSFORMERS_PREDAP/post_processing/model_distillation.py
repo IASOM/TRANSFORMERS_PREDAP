@@ -40,12 +40,12 @@ if str(SRC_ROOT) not in sys.path:
 	sys.path.insert(0, str(SRC_ROOT))
 
 from src.config.base_transformer_config import BaseTransformerConfig
-from src.univariate_transformer.model_architecture_univ_transformer import (
+from model_architechture.model_architecture_univ_transformer import (
 	PositionalEncoding,
 	RevIN,
 	build_model,
 )
-from src.utils import data_preparation
+from data_utils import data_preparation
 from src.utils.experiments_utils import (
     smart_read
 	)

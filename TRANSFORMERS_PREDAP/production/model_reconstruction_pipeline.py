@@ -3,7 +3,6 @@ import shutil
 from sklearn.pipeline import FunctionTransformer
 import numpy as np
 import pandas as pd
-from sqlalchemy import between
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -15,14 +14,11 @@ from typing import Optional, Dict, List, Tuple, Any
 import pyarrow as pa
 import pyarrow.dataset as ds
 
-
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils.experiments_utils import smart_read
-from src.univariate_transformer import model_architecture_univ_transformer
-from src.residual_multivariate_transformers import model_architecture_residual_transformer
-from utils import data_preparation
+from model_architechture import model_architecture_univ_transformer
+from model_architechture import model_architecture_residual_transformer
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
 
@@ -163,6 +159,41 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             transformer_params=DEFAULT_RESIDUAL_TRANSFORMER_PARAMS,
             activation_function=activation_function
         )
+
+
+        #Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models. 
+        def process_col_name(col):
+            # 1. Keep 'timestamp' as is
+            if col == 'timestamp':
+                return col
+            
+            # 2. Remove 'DEMAND_' prefix if present
+            code = col[7:] if col.startswith("DEMAND_") else col
+            
+            # 3. Identify all positions of '_'
+            indices = [i for i, char in enumerate(code) if char == '_']
+            
+            # If no underscores, return code as is
+            if not indices:
+                return code
+            
+            # If there is only one underscore, replace it with '__'
+            if len(indices) == 1:
+                idx = indices[0]
+                return code[:idx] + "__" + code[idx+1:]
+            
+            # If there are multiple, replace the first and last with '__'
+            first_idx = indices[0]
+            last_idx = indices[-1]
+            
+            # Reconstruct the string: 
+            # Prefix + "__" + Middle + "__" + Suffix
+            return code[:first_idx] + "__" + code[first_idx+1:last_idx] + "__" + code[last_idx+1:]
+
+        #Temporary solution for the name mismatch 
+        code = code[7:] if code.startswith("DEMAND_") else code
+        #add a __ if you find a _ in the code, to match the format of the saved models, which have _ instead of : in the code names
+        code = process_col_name(code)
 
 
         univ_model = self.load_model_weights(univ_model, code, lookback, forecast, models_directory, model_type="univariate_model")
@@ -608,7 +639,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             metrics_df = pd.DataFrame(columns=['code', 'date', 'MAE', 'MSE', 'RMSE', 'WAPE'])
             
         
-        real_data_dataset = smart_read(real_data_dataset_path) if real_data_dataset_path else None
+        real_data_dataset = pd.read_csv(real_data_dataset_path) if real_data_dataset_path else None
 
         my_schema = pa.schema([("code", pa.string())])
 
@@ -682,11 +713,6 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         return predictions_dataset_path
     
 
-
-
-
-
-
 if __name__ == "__main__":
     CODES_LIST = ["demanda__SERVEI_CODI__INF",
                     "demanda__SERVEI_CODI__INFP",
@@ -722,8 +748,6 @@ if __name__ == "__main__":
     mlp_units = [512,256]
     activation_function = "gelu"
 
-
-    
 
     final_output_df = pd.DataFrame()
     for code in CODES_LIST:

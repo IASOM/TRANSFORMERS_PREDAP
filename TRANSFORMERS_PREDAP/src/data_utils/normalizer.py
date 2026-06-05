@@ -1,13 +1,14 @@
-from pathlib import Path
+from typing import Any
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.base import clone
 import numpy as np
+import pandas as pd
 
-def normalize_dataframe(train_df, test_df, csv_file=None, save_data=False, target_code=None, scaler=None):
-    if 'timestamp' not in train_df.columns:
+
+def normalize_dataframe(df: pd.DataFrame, target_code: str = None, scaler: Any =None):
+    if 'timestamp' not in df.columns:
         raise KeyError("Expected a 'timestamp' column in the CSV.")
-    train_df['timestamp'] = train_df['timestamp'].astype('datetime64[ns]')
-    test_df['timestamp'] = test_df['timestamp'].astype('datetime64[ns]')
+    df['timestamp'] = df['timestamp'].astype('datetime64[ns]')
 
     if scaler is None:
         scaler = MinMaxScaler()
@@ -15,22 +16,14 @@ def normalize_dataframe(train_df, test_df, csv_file=None, save_data=False, targe
     else:
         scaler_target = clone(scaler)
 
-    codes = [code for code in train_df.columns if (code != 'timestamp' and code != target_code)]
-    scaler.fit(train_df[codes].values)
-    train_df[codes] = scaler.transform(train_df[codes].values)
-    test_df[codes] = scaler.transform(test_df[codes].values)
+    codes = [code for code in df.columns if (code != 'timestamp' and code != target_code)]
+    scaler.fit(df[codes].values)
+    df[codes] = scaler.transform(df[codes].values)
     if target_code is not None:
-        scaler_target = scaler_target.fit(train_df[[target_code]].values)
-        test_df[[target_code]] = scaler_target.transform(test_df[[target_code]].values)
-        train_df[[target_code]] = scaler_target.transform(train_df[[target_code]].values)
+        scaler_target = scaler_target.fit(df[[target_code]].values)
+        df[[target_code]] = scaler_target.transform(df[[target_code]].values)
 
-    if save_data and csv_file is not None:
-        input_path = Path(csv_file)
-        parent_dir = input_path.parent if input_path.parent != Path('.') else AssertionError("Input path must have a parent directory.")
-        output_file = parent_dir / f"train_df_normalized_{input_path.name}"
-        train_df.to_csv(output_file, index=False)
-
-    return train_df, test_df
+    return df
 
 
 def inverse_transform_predictions(predictions, original_scale_df, code, lookback, forecast, cutoff_date='2010-01-01', max_date='2025-09-30', scaler = None, eliminate_covid_data=False, covid_dates=None, split_ratio = 0.8):

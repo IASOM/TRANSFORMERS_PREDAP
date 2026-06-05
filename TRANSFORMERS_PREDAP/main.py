@@ -15,7 +15,7 @@ import tempfile
 import json
 import pickle
 
-from src.utils import data_preparation
+from data_utils import data_preparation
 from src.utils import experiments_utils
 
 """

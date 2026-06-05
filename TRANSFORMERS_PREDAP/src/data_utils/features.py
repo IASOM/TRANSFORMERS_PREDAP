@@ -29,6 +29,30 @@ def add_covid_token(df: pd.DataFrame) -> pd.DataFrame:
         df.loc[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date), 'covid_token'] = 1
     return df
 
+def cut_dataframe(df: pd.DataFrame, date_cutoff: str = "2010-01-01", max_date: str = '2026-12-31') -> pd.DataFrame:
+    """Cuts the DataFrame to include only rows between the specified cutoff and max dates.
+    Parameters: 
+        -----------
+        df : pd.DataFrame
+            The input DataFrame containing a 'timestamp' column.
+        date_cutoff : str
+            The start date (inclusive) for filtering the DataFrame, in 'YYYY-MM-DD' format.
+        max_date : str
+            The end date (inclusive) for filtering the DataFrame, in 'YYYY-MM-DD' format.
+    Returns:
+        --------    
+        df: pd.DataFrame
+            A filtered DataFrame containing only rows with timestamps between the cutoff and max
+    """
+    if "timestamp" not in df.columns:
+        raise KeyError("Expected a 'timestamp' column in the CSV.")
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+    cutoff, max_dt = pd.Timestamp(date_cutoff), pd.Timestamp(max_date)
+    df = df[(df["timestamp"] >= cutoff) & (df["timestamp"] <= max_dt)].reset_index(drop=True)
+
+    return df
+
 
 def prepare_time_series_features(df: pd.DataFrame, categorical_vars, cutoff_date = '2010-01-01', max_date = '2027-09-30', scaler = None, eliminate_covid_data=False, covid_dates=None):
     df = df.copy()
@@ -128,28 +152,12 @@ def prepare_time_series_features(df: pd.DataFrame, categorical_vars, cutoff_date
     return df_final
 
 
-def prepare_time_series_covariates(df, df_covs):
-    df = df.copy()
-    df['timestamp'] = pd.to_datetime(df.get('timestamp'), errors='coerce')
-    if df['timestamp'].isna().all():
-        raise KeyError("Valid 'timestamp' column not found in df.")
-
-    if 'timestamp' not in df_covs.columns:
-        df_covs = df_covs.reset_index() if df_covs.index.name == 'timestamp' else df_covs
-        df_covs.rename(columns={col: 'timestamp' for col in df_covs.columns if 'date' in col.lower() or 'time' in col.lower()}, inplace=True)
-
-    df_covs['timestamp'] = pd.to_datetime(df_covs.get('timestamp'), errors='coerce')
-    df_covs.dropna(subset=['timestamp'], inplace=True)
-    return df_covs[df_covs['timestamp'].between(df['timestamp'].min(), df['timestamp'].max())]
 
 
-def subset_df_covs_by_index(df, df_covs):
-    df = df.copy()
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    if df['timestamp'].isna().all():
-        raise KeyError("Valid 'timestamp' column not found in df.")
-    df_covs = df_covs.copy()
-    if not isinstance(df_covs.index, pd.DatetimeIndex):
-        raise ValueError("df_covs index must be a DatetimeIndex.")
-    df_covs_subset = df_covs.loc[df['timestamp'].min():df['timestamp'].max()]
-    return df_covs_subset
+
+
+
+
+
+
+

@@ -6,19 +6,17 @@ from sklearn.pipeline import FunctionTransformer
 import tensorflow as tf
 import numpy as np
 import os
-import argparse
-
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.univariate_transformer.model_architecture_univ_transformer import (
+from model_architechture.model_architecture_univ_transformer import (
     build_base_model,
     PositionalEncoding as UnivPositionalEncoding,
     RevIN as UnivRevIN,
 )
 
-from src.residual_multivariate_transformers.model_architecture_residual_transformer import (
+from model_architechture.model_architecture_residual_transformer import (
     hybrid_lstm_transformer_model,
     PositionalEncoding as ResidualPositionalEncoding,
     RevIN as ResidualRevIN,
@@ -29,7 +27,6 @@ from src.residual_multivariate_transformers.model_architecture_residual_transfor
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
 
@@ -349,18 +346,24 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
 
 
 if __name__ == "__main__":
-    CODES_LIST = [
-                    "DEMAND_DEMANDA_TOTAL",
-                    "DEMAND_demanda_SERVEI_CODI_INF",
-                    "DEMAND_demanda_SERVEI_CODI_INFP",
-                    "DEMAND_demanda_SERVEI_CODI_MF",
+    CODES_LIST = ["demanda__SERVEI_CODI__INF",
+                    "demanda__SERVEI_CODI__INFP",
+                    "demanda__SERVEI_CODI__MF",
+                    "demanda__SERVEI_CODI__PED",
+                    "demanda__SERVEI_CODI__URG",
+                    "demanda__TIPUS_CLASS__9T",
+                    "demanda__TIPUS_CLASS__C9C",
+                    "demanda__TIPUS_CLASS__C9R",
+                    "demanda__TIPUS_CLASS__CALTRE",
+                    "demanda__TIPUS_CLASS__D9D",
+                    "demanda__TIPUS_CLASS__DALTRE"
                     ]#['demanda__TOTAL', 'demanda__SERVEI_CODI__URG', 'B34','J00', 'I10', 'M54','Ch01#subch01#A00-A09']
     
     LOOKBACK_LIST = [7, 14, 60, 60, 182,182]
     FORECAST_LIST = [7, 14, 30, 60, 182,365]
 
 
-    input_directory = '../data/FINAL_DB/demand_diagnosis_joined.parquet'
+    input_directory = '../data/FINAL_DB/finals_combined.csv'
     models_directory = '../transformer_outputs/models_covid_token'
     scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
     max_date = '2027-09-30'
@@ -375,7 +378,7 @@ if __name__ == "__main__":
 
             run_quantization_pipeline = ModelQuantizationPipeline(config=default_config)
             #exp_names = ["full_TRANSFORMER3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210", "full_TRANSFORMER3_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212"]
-            exp_names = ['1.0_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260528']
+            exp_names = ['1.0_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260514']
             univ_model, diagnostics_model, seasonal_model, quant_univ_model, quant_diagnostics_model, quant_seasonal_model = run_quantization_pipeline.run_quantization_pipeline(
                 exp_names=exp_names,
                 input_directory=input_directory,

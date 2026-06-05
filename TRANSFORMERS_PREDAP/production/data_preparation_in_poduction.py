@@ -3,13 +3,10 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import FunctionTransformer
 from typing import List, Optional, Tuple
-from Inference.utils.experiments_utils import smart_read
-from utils import data_preparation
+from data_utils import data_preparation
 from config.base_transformer_config import BaseTransformerConfig
 
 default_config = BaseTransformerConfig()
-
-pd.read_parquet = smart_read
 
 
 
@@ -64,7 +61,7 @@ class DataPreparationInProduction:
         """
         code = code.replace("#", ":")
         # Load CSV
-        df = smart_read(data_path)
+        df = pd.read_csv(data_path)
         if eliminate_covid_data:
             assert covid_dates is not None
             df = data_preparation.eliminate_covid_dates(df, covid_dates)
@@ -76,7 +73,11 @@ class DataPreparationInProduction:
         df_timestamp = df['timestamp']
         df_dates = df_dates.drop(columns=['timestamp']) 
          
-        # univariate scenario ..................................................
+        # univariate scenario ...................................................
+        # Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models.
+        #add DEMAND_ in front of the code if it's not already there, to match the format of the input data
+        code = "DEMAND_" + code if not code.startswith("DEMAND_") else code
+        code = code.replace("__", "_") if "__" in code else code
         idx_code = df.columns.get_loc(code)
         feature_cols = df.columns[idx_code]  
         target_col = df.columns[idx_code]  # Get the target column 
@@ -137,7 +138,7 @@ class DataPreparationInProduction:
         relevant_feature_cols = self.load_diagnostic_covariates(default_config.diagnostic_covariates_path, code, forecast)
         code = code.replace("#", ":")
         # Load CSV
-        df = pd.read_parquet(data_path)
+        df = pd.read_csv(data_path)
         if eliminate_covid_data:
             assert covid_dates is not None
             df = data_preparation.eliminate_covid_dates(df, covid_dates)
@@ -156,6 +157,20 @@ class DataPreparationInProduction:
         
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
+        # Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models.
+        #add DEMAND_ in front of the code if it's not already there, to match the format of the input data
+        old_code = code
+        code = "DEMAND_" + code if not code.startswith("DEMAND_") else code
+        code = code.replace("__", "_") if "__" in code else code
+
+        df.columns = [
+            col if col == 'timestamp' else ("DEMAND_" + col if not col.startswith("DEMAND_") else col).replace("__", "_")
+            for col in df.columns
+        ]
+        if code not in df.columns:#Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. If the code with "DEMAND_" prefix is not found, try without the prefix.
+            code = old_code
+
+        
         idx_code = df.columns.get_loc(code)
         df_features = df.drop(columns = ['timestamp'])
         target_col = df.columns[idx_code]  # Target code column
@@ -200,7 +215,7 @@ class DataPreparationInProduction:
         Returns:
             X_seasonal_covs: A numpy array containing the input features for the seasonal covariates, prepared for the specified code and forecast horizon.
         """
-        df = smart_read(data_path)
+        df = pd.read_csv(data_path)
         # Prepare seasonal features for training data
 
         print("Preparing seasonal features for training data...")

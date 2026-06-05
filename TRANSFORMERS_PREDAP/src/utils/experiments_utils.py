@@ -10,8 +10,12 @@ from tensorflow.keras import backend as K
 import tensorflow as tf
 from typing import List
 
+import re
+
+from src.training.training_residual_transformer import load_trained_model
+
+
 _original_read_csv = pd.read_csv
-_original_read_parquet = pd.read_parquet
 _in_smart_read = False
 
 def cleanup_ram():
@@ -32,11 +36,11 @@ def smart_read(file_path, **kwargs):
     if str(file_path).lower().endswith('.parquet'):
         print(f"-> INFO: Leyendo {file_path} como PARQUET.")
         # Aquí puedes añadir parámetros específicos para Parquet si los necesitas
-        return _original_read_parquet(file_path, **kwargs)
+        return pd.read_parquet(file_path, **kwargs)
     else:
         # Llama a la función original pd.read_csv para CSVs y otros
         print(f"-> INFO: Leyendo {file_path} como CSV (o formato predeterminado).")
-        return _original_read_csv(file_path, **kwargs)  
+        return _original_read_csv(file_path, **kwargs)
 
 # Utility function for safe float conversion
 def safe_float(value):
@@ -73,7 +77,6 @@ def load_json_codes_list(json_path: str) -> str:
     #codes_list = data[key]
     # Return comma-separated string for Hydra sweep parameters
     return ','.join(data)
-
 
 def get_codes_list(input_directory: str) -> str:
     """
@@ -169,3 +172,33 @@ def memory_cleanup():
             tf.config.experimental.reset_memory_stats(gpu)
         except Exception:
             pass
+
+
+def extract_model_params(model_name):
+    """
+    Extract lookback and forecast parameters from model filename.
+    
+    Expected format: {code}_example_transformer_{forecast}fh_{ff_dim}ff_{lookback}lb_{lr}initlr.keras
+    
+    Args:
+        model_name (str): Model filename
+        
+    Returns:
+        tuple: (lookback, forecast) or (None, None) if not found
+    """
+    # Pattern to match the model name format
+    pattern = r'(\d+)fh_\d+ff_(\d+)lb_'
+    
+    match = re.search(pattern, model_name)
+    if match:
+        forecast = int(match.group(1))  # First group is forecast
+        lookback = int(match.group(2))  # Second group is lookback
+        return lookback, forecast
+    else:
+        print(f"Could not extract parameters from: {model_name}")
+        return None, None
+
+
+
+
+
