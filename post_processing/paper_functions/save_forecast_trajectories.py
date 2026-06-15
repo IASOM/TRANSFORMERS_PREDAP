@@ -564,3 +564,43 @@ if __name__ == '__main__':
     # Check the architecture
     univ_model.summary()
 
+def plot_poster_forecast_trajectories(predictions, date_list, model_name):
+    import matplotlib.pyplot as plt
+
+    # Exact data from the paper's univariate baseline phase
+    horizons = [7, 60, 182, 365]
+    lstnet = [10.23, 21.20, 21.8, 21.5]
+    log_transformer = [10.78, 19.62, 23.51, 24.39]
+    informer = [10.46, 17.48, 19.01, 21.08]
+    our_transformer = [10.72, 17.32, 18.95, 19.53]
+
+    # Set up large, readable poster dimensions
+    plt.figure(figsize=(8, 6), dpi=300)
+    plt.rcParams['font.family'] = 'sans-serif'
+
+    # Plot high-contrast lines with distinct markers
+    plt.plot(horizons, lstnet, marker='o', linewidth=2.5, markersize=8, color='#1f77b4', label='LSTNet')
+    plt.plot(horizons, log_transformer, marker='s', linewidth=2.5, markersize=8, color='#2ca02c', label='LogFormer')
+    plt.plot(horizons, informer, marker='^', linewidth=2.5, markersize=8, color='#d62728', label='Informer')
+    plt.plot(horizons, our_transformer, marker='D', linewidth=3.5, markersize=9, color='#ff7f0e', label='Our Transformer')
+
+    # Academic poster styling (Clean & Minimalist)
+    plt.title('Univariate Phase: Long-Horizon Error Comparison', fontsize=16, fontweight='bold', pad=15)
+    plt.xlabel('Forecast Step (Days)', fontsize=14, labelpad=10)
+    plt.ylabel('WAPE (%)', fontsize=14, labelpad=10)
+    plt.xticks([7, 60, 120, 180, 240, 300, 365], fontsize=12)
+    plt.yticks(range(5, 30, 5), fontsize=12)
+    plt.xlim(-10, 380)
+    plt.ylim(5, 28)
+
+    # Light, non-intrusive grid lines
+    plt.grid(True, linestyle='--', alpha=0.5, color='#cccccc')
+
+    # Clean legend placement
+    plt.legend(fontsize=12, loc='lower right', frameon=True, facecolor='white', edgecolor='#e5e5e5')
+
+    plt.tight_layout()
+
+    # Save as SVG format so you can scale it infinitely on your Canva poster canvas
+    plt.savefig('clean_univariate_wape.svg', format='svg', bbox_inches='tight')
+    plt.show()

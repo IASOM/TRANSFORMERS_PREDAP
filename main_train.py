@@ -25,7 +25,7 @@ from training.training_utils import compile_model, load_base_model_transformer, 
 
 from model_architechture.model_architecture_residual_transformer import build_residual_transformer_model
 from utils.environment_utils import setup_gpu_memory
-from utils.experiments_utils import compute_dynamic_batch_size, get_codes_list, load_json_codes_list, memory_cleanup, smart_read
+from utils.experiments_utils import compute_dynamic_batch_size, get_codes_list, check_for_help_flag , memory_cleanup, save_model_parameters, smart_read
 from training.training_residual_transformer import train_residual_model
 from data_utils.features import prepare_time_series_features
 from evaluation.evaluate_transformer import save_performance_results, save_univ_performance_results
@@ -225,6 +225,7 @@ config_name = "config_production.yaml"
 
 @hydra.main(version_base=None, config_path="conf", config_name=config_name)
 def main(cfg: DictConfig) -> None:
+    check_for_help_flag(cfg)
     setup_gpu_memory()
 
 
@@ -384,6 +385,7 @@ def main(cfg: DictConfig) -> None:
         mlflow.log_metrics({"duration/phase_1_univariate_transformer_duration_seconds": univ_duration,})
         mlflow.keras.log_model(univ_model, artifact_path="univariate_model")
         load_mlflow_model_history(base_model_name, model_type="univariate_transformer")
+        save_model_parameters(config, univ_model, base_model_name, config.model_parameters_path)
         memory_cleanup()
         del univ_model
 
@@ -406,6 +408,7 @@ def main(cfg: DictConfig) -> None:
         mlflow.log_metrics({"duration/phase_2_diagnostics_duration_seconds": diagnostics_duration,})
         mlflow.keras.log_model(diagnostics_model, artifact_path="diagnostic_model")
         load_mlflow_model_history(diagnostics_model_name, model_type="diagnostic_transformer")
+        save_model_parameters(config, diagnostics_model, diagnostics_model_name, config.model_parameters_path)
         memory_cleanup()
         del diagnostics_model
 
@@ -451,6 +454,7 @@ def main(cfg: DictConfig) -> None:
         mlflow.log_metrics({"duration/phase_3_seasonal_duration_seconds": seasonal_duration,})
         mlflow.keras.log_model(seasonal_model, artifact_path="seasonal_model")
         load_mlflow_model_history(seasonal_model_name, model_type="seasonal_transformer")
+        save_model_parameters(config, seasonal_model, seasonal_model_name, config.model_parameters_path)
         memory_cleanup()
         del seasonal_model
 

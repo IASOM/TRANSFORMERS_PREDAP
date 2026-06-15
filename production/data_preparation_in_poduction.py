@@ -3,8 +3,10 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import FunctionTransformer
 from typing import List, Optional, Tuple
-from data_utils import data_preparation
+from data_utils import data_preparation, features
 from config.base_transformer_config import BaseTransformerConfig
+
+from utils.experiments_utils import smart_read
 
 default_config = BaseTransformerConfig()
 
@@ -61,30 +63,27 @@ class DataPreparationInProduction:
         """
         code = code.replace("#", ":")
         # Load CSV
-        df = pd.read_csv(data_path)
+        df = smart_read(data_path)
         if eliminate_covid_data:
             assert covid_dates is not None
             df = data_preparation.eliminate_covid_dates(df, covid_dates)
         
-        df = data_preparation.cut_dataframe(df, cutoff_date,max_date, data_path)
+        df = data_preparation.cut_dataframe(df, cutoff_date,max_date)
 
         categorical_vars = ["Day_of_Week", "Month", "Season", "Holiday", "School_Vacation","Is_Weekend"]
-        df_dates = data_preparation.prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+        df_dates = features.prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
         df_timestamp = df['timestamp']
         df_dates = df_dates.drop(columns=['timestamp']) 
          
         # univariate scenario ...................................................
-        # Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models.
-        #add DEMAND_ in front of the code if it's not already there, to match the format of the input data
-        code = "DEMAND_" + code if not code.startswith("DEMAND_") else code
-        code = code.replace("__", "_") if "__" in code else code
+
         idx_code = df.columns.get_loc(code)
         feature_cols = df.columns[idx_code]  
         target_col = df.columns[idx_code]  # Get the target column 
         
         # Convert to numpy arrays
         X_raw = df[feature_cols].values.reshape(-1, 1)  
-        X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
+        #X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
         Y_raw = df[target_col].values # Target values
         
         if covid_token:
@@ -138,11 +137,11 @@ class DataPreparationInProduction:
         relevant_feature_cols = self.load_diagnostic_covariates(default_config.diagnostic_covariates_path, code, forecast)
         code = code.replace("#", ":")
         # Load CSV
-        df = pd.read_csv(data_path)
+        df = smart_read(data_path)
         if eliminate_covid_data:
             assert covid_dates is not None
             df = data_preparation.eliminate_covid_dates(df, covid_dates)
-        df = data_preparation.cut_dataframe(df, cutoff_date,max_date, data_path)
+        df = data_preparation.cut_dataframe(df, cutoff_date,max_date)
 
         categorical_vars = ["Day_of_Week", 
                                 "Month", 
@@ -151,24 +150,12 @@ class DataPreparationInProduction:
                                 "School_Vacation",
                                 "Is_Weekend",
                                 ]
-        df_dates = data_preparation.prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
+        df_dates = features.prepare_time_series_features(df, categorical_vars=categorical_vars, cutoff_date=cutoff_date, max_date=max_date, scaler=scaler, eliminate_covid_data=eliminate_covid_data, covid_dates=covid_dates)
         df_dates = df_dates.drop(columns=['timestamp']) 
         
         
         # multivariate scenario ..................................................
         # Select feature columns (exclude timestamp & target)
-        # Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. Remove the first "DEMAND_" characters if they are present, and replace any "_" with "__" to match the format of the saved models.
-        #add DEMAND_ in front of the code if it's not already there, to match the format of the input data
-        old_code = code
-        code = "DEMAND_" + code if not code.startswith("DEMAND_") else code
-        code = code.replace("__", "_") if "__" in code else code
-
-        df.columns = [
-            col if col == 'timestamp' else ("DEMAND_" + col if not col.startswith("DEMAND_") else col).replace("__", "_")
-            for col in df.columns
-        ]
-        if code not in df.columns:#Temporary solution for the name mismatch between the codes in the input data and the codes expected by the reconstruction pipeline and the saved models. If the code with "DEMAND_" prefix is not found, try without the prefix.
-            code = old_code
 
         
         idx_code = df.columns.get_loc(code)
@@ -177,7 +164,7 @@ class DataPreparationInProduction:
         # Convert DataFrame to numpy arrays
         if relevant_feature_cols is not None:
             X_raw = df_features[relevant_feature_cols].values  
-            X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
+            #X_raw = np.hstack((X_raw, df_dates.values.astype(np.float32)))
         else:
             X_raw = df_features.values
 
@@ -215,15 +202,15 @@ class DataPreparationInProduction:
         Returns:
             X_seasonal_covs: A numpy array containing the input features for the seasonal covariates, prepared for the specified code and forecast horizon.
         """
-        df = pd.read_csv(data_path)
+        df = smart_read(data_path)
         # Prepare seasonal features for training data
 
         print("Preparing seasonal features for training data...")
-        df_processed = data_preparation.prepare_time_series_features(
+        df_processed = features.prepare_time_series_features(
             df, 
             self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS, 
             cutoff_date=self.config.cutoff_date,
-            max_date = self.config.final_cutoff_date,
+            max_date = self.config.max_date,
             scaler = self.config.scaler,
             eliminate_covid_data=self.config.eliminate_covid_data, 
             covid_dates=self.config.covid_dates,)

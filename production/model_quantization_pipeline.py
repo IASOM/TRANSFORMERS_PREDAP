@@ -9,6 +9,20 @@ import os
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# 1. Get the directory where this script lives (e.g., /workspace/.../production)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 2. Get the root directory of your project (one level up)
+project_root = os.path.dirname(current_dir)
+
+# 3. Get the path to your src folder
+src_dir = os.path.join(project_root, "src")
+
+# 4. Add BOTH the root and the src directories to the Python path
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 from model_architechture.model_architecture_univ_transformer import (
     build_base_model,
@@ -323,8 +337,8 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
             tuple: A tuple containing the original univariate model, diagnostics model, seasonal model, and their quantized counterparts.
         """
         univ_model_name_in_run = "univariate_model"
-        diag_model_name_in_run = "residual_diagnostics_model"
-        seasonal_model_name_in_run = "residual_seasonal_model"
+        diag_model_name_in_run = "diagnostic_model"
+        seasonal_model_name_in_run = "seasonal_model"
 
         run_id = self.load_mlflow_run_id_by_name(exp_names=exp_names, code=code, forecast=forecast, lookback=lookback, model_type=None, lr=1e-5)
 
@@ -346,24 +360,24 @@ class ModelQuantizationPipeline(DataPreparationInProduction):
 
 
 if __name__ == "__main__":
-    CODES_LIST = ["demanda__SERVEI_CODI__INF",
-                    "demanda__SERVEI_CODI__INFP",
-                    "demanda__SERVEI_CODI__MF",
-                    "demanda__SERVEI_CODI__PED",
-                    "demanda__SERVEI_CODI__URG",
-                    "demanda__TIPUS_CLASS__9T",
-                    "demanda__TIPUS_CLASS__C9C",
-                    "demanda__TIPUS_CLASS__C9R",
-                    "demanda__TIPUS_CLASS__CALTRE",
-                    "demanda__TIPUS_CLASS__D9D",
-                    "demanda__TIPUS_CLASS__DALTRE"
-                    ]#['demanda__TOTAL', 'demanda__SERVEI_CODI__URG', 'B34','J00', 'I10', 'M54','Ch01#subch01#A00-A09']
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    CODES_LIST = ["DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL"]#"DEMAND_demanda__TOTAL_UP_00185" #["demanda__SERVEI_CODI__INF",
+                    #"demanda__SERVEI_CODI__INFP",
+                    #"demanda__SERVEI_CODI__MF",
+                    #"demanda__SERVEI_CODI__PED",
+                    #"demanda__SERVEI_CODI__URG",
+                    #"demanda__TIPUS_CLASS__9T",
+                    #"demanda__TIPUS_CLASS__C9C",
+                    #"demanda__TIPUS_CLASS__C9R",
+                    #"demanda__TIPUS_CLASS__CALTRE",
+                    #"demanda__TIPUS_CLASS__D9D",
+                    #"demanda__TIPUS_CLASS__DALTRE"]#['demanda__TOTAL', 'demanda__SERVEI_CODI__URG', 'B34','J00', 'I10', 'M54','Ch01#subch01#A00-A09']
     
     LOOKBACK_LIST = [7, 14, 60, 60, 182,182]
     FORECAST_LIST = [7, 14, 30, 60, 182,365]
 
 
-    input_directory = '../data/FINAL_DB/finals_combined.csv'
+    input_directory = '../data/FINAL_DB/demand_diagnosis_joined.parquet'
     models_directory = '../transformer_outputs/models_covid_token'
     scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
     max_date = '2027-09-30'
@@ -378,7 +392,8 @@ if __name__ == "__main__":
 
             run_quantization_pipeline = ModelQuantizationPipeline(config=default_config)
             #exp_names = ["full_TRANSFORMER3_EXPERIMENTS_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260210", "full_TRANSFORMER3_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260212"]
-            exp_names = ['1.0_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260514']
+            exp_names = ['1.0_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260611', 
+                         '1.1_Production_TRANSFORMER_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH_20260611']
             univ_model, diagnostics_model, seasonal_model, quant_univ_model, quant_diagnostics_model, quant_seasonal_model = run_quantization_pipeline.run_quantization_pipeline(
                 exp_names=exp_names,
                 input_directory=input_directory,
@@ -391,7 +406,7 @@ if __name__ == "__main__":
                 eliminate_covid_data=eliminate_covid_data,
                 covid_dates=covid_dates
             )
-            run_quantization_pipeline.eval_quantization_impact(
+            '''run_quantization_pipeline.eval_quantization_impact(
                 input_directory=input_directory,
                 code=code,
                 lookback=lookback,
@@ -405,6 +420,6 @@ if __name__ == "__main__":
                 quant_univ_model=quant_univ_model,
                 quant_diagnostics_model=quant_diagnostics_model,
                 quant_seasonal_model=quant_seasonal_model,
-            )
+            ) '''
 
             

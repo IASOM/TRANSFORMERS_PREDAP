@@ -75,6 +75,7 @@ class BaseTransformerConfig(ABC):
     # ==================== PATHS AND DIRECTORIES ====================
     plots_dir: str = 'plots'
     model_folder: str = '../transformer_outputs/models_covid_token'
+    model_parameters_path: str = '../models_parameters'
 
     # Hyperparameter Search Lists
     CODES_LIST: List[str] = field(default_factory=lambda: ["J00", "T14","M54"])
@@ -212,7 +213,7 @@ class BaseTransformerConfig(ABC):
     
     def get_model_name(self) -> str:
         """Generate model name based on configuration"""
-        return (f'{self.code}_base_transformer_'
+        return (f'{self.code}_UNIVARIATE_LEARNING_'
                f'{self.forecast}fh_{self.ff_dim}ff_{self.lookback}lb_'
                f'{self.learning_rate}lr.keras')
 

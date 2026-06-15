@@ -2,6 +2,8 @@
 import os
 import json
 import sys
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error
 import tensorflow as tf
 import pandas as pd
 from datetime import datetime
@@ -9,6 +11,7 @@ import numpy as np
 
 from training.training_residual_transformer import load_trained_model
 from utils.mlflow_logger import MLflowLogger
+from visualization_func.visualization_transformer import plot_residuals_analysis, plt_model
 
 def save_performance_results(model_name, loss, 
                              original_mae, original_mse, 
@@ -193,3 +196,105 @@ def save_univ_performance_results(model_name, loss,
     print(f"\n📊 Performance results saved to: {filepath}")
     
     return filepath
+
+
+def evaluate_transformer_models(config, 
+                                base_model_name, diagnostics_model_name, seasonal_model_name,
+                                Y_test_univ, test_univ_predictions, loss_univ,
+                                test_corrected_diagnostics_predictions, loss_diagnostics,
+                                test_final_predictions, loss_seasonal, date_list
+                                ):
+    #Phase 4: Evaluate base model
+    print("\n" + "="*50)
+    print("EVALUATION PHASE")
+    print("="*50)
+
+    non_negative_univ_predictions = np.maximum(test_univ_predictions, 0)  # Ensure no negative predictions
+
+    original_mae_univ = mean_absolute_error(Y_test_univ, non_negative_univ_predictions)
+    original_mse_univ = mean_squared_error(Y_test_univ, non_negative_univ_predictions)
+    original_rmse_univ = np.sqrt(original_mse_univ)
+    original_wape_univ = np.sum(np.abs(Y_test_univ - non_negative_univ_predictions)) / np.sum(np.abs(Y_test_univ)) * 100
+    print(f"Test Results - Loss: {loss_univ:.4f}, MAE: {original_mae_univ:.4f}, MSE: {original_mse_univ:.4f}, RMSE: {original_rmse_univ:.4f}, WAPE: {original_wape_univ:.4f}%")
+    
+    plt_model(Y_test_univ, non_negative_univ_predictions, date_list, model_name=base_model_name, show_plt=False)
+
+    
+
+    
+    non_negative_diagnostics_predictions = np.maximum(test_corrected_diagnostics_predictions, 0)  # Ensure no negative predictions
+    
+    original_mae_diagnostics = mean_absolute_error(Y_test_univ, non_negative_diagnostics_predictions)
+    original_mse_diagnostics = mean_squared_error(Y_test_univ , non_negative_diagnostics_predictions)
+    original_rmse_diagnostics = np.sqrt(original_mse_diagnostics)
+    original_wape_diagnostics = np.sum(np.abs(Y_test_univ - non_negative_diagnostics_predictions)) / np.sum(np.abs(Y_test_univ)) * 100
+    print(f"Diagnostics Test Results - Loss: {loss_diagnostics:.4f}, MAE: {original_mae_diagnostics:.4f}, MSE: {original_mse_diagnostics:.4f}, RMSE: {original_rmse_diagnostics:.4f}, WAPE: {original_wape_diagnostics:.4f}%")
+    plt_model(Y_test_univ, non_negative_diagnostics_predictions, date_list, model_name=diagnostics_model_name, show_plt=False)
+    plot_residuals_analysis(non_negative_univ_predictions, 
+                            non_negative_diagnostics_predictions,
+                            Y_test_univ,
+                            f"{config.code} Diagnostics Residual Correction", 
+                            model_name=diagnostics_model_name,
+                            timestamp=date_list,
+                            show_plt=False)
+    
+    non_negative_seasonal_predictions = np.maximum(test_final_predictions, 0)  # Ensure no negative predictions
+
+    original_mae_seasonal = mean_absolute_error(Y_test_univ, non_negative_seasonal_predictions)
+    original_mse_seasonal = mean_squared_error(Y_test_univ, non_negative_seasonal_predictions)
+    original_rmse_seasonal = np.sqrt(original_mse_seasonal)
+    original_wape_seasonal = np.sum(np.abs(Y_test_univ - non_negative_seasonal_predictions)) / np.sum(np.abs(Y_test_univ)) * 100
+    print(f"Seasonal Test Results - Loss: {loss_seasonal:.4f}, MAE: {original_mae_seasonal:.4f}, MSE: {original_mse_seasonal:.4f}, RMSE: {original_rmse_seasonal:.4f}, WAPE: {original_wape_seasonal:.4f}%")
+    plt_model(Y_test_univ, non_negative_seasonal_predictions, date_list, model_name=seasonal_model_name, show_plt=False)
+    plot_residuals_analysis(non_negative_diagnostics_predictions, 
+                            non_negative_seasonal_predictions, 
+                            Y_test_univ, 
+                            f"{config.code} Seasonal Residual Correction",
+                            model_name=diagnostics_model_name,
+                            timestamp=date_list,
+                            show_plt=False)
+    
+    save_univ_performance_results(
+        model_name=base_model_name,
+        original_mae=original_mae_univ,
+        original_mse=original_mse_univ,
+        original_rmse=original_rmse_univ,
+        original_wape=original_wape_univ,
+        forecast=config.forecast,
+        lookback=config.lookback,
+        loss =loss_seasonal,
+        code=config.code    
+    )
+
+
+    save_performance_results(
+        model_name=diagnostics_model_name,
+        original_mae=original_mae_univ,
+        original_mse=original_mse_univ,
+        original_rmse=original_rmse_univ,   
+        original_wape=original_wape_univ,
+        corrected_mae=original_mae_diagnostics,
+        corrected_mse=original_mse_diagnostics,
+        corrected_rmse=original_rmse_diagnostics,
+        corrected_wape=original_wape_diagnostics,
+        forecast=config.forecast,
+        lookback=config.lookback,
+        loss=loss_diagnostics,
+        code=config.code
+    )
+
+    save_performance_results(
+        model_name=seasonal_model_name,
+        original_mae=original_mae_univ,
+        original_mse=original_mse_univ,
+        original_rmse=original_rmse_univ,
+        original_wape=original_wape_univ,
+        corrected_mae=original_mae_seasonal,
+        corrected_mse=original_mse_seasonal,
+        corrected_rmse=original_rmse_seasonal,
+        corrected_wape=original_wape_seasonal,
+        forecast=config.forecast,
+        lookback=config.lookback,
+        loss=loss_seasonal,
+        code=config.code
+    )

@@ -53,7 +53,7 @@ def load_hydra_config():
     return main()
 
 if __name__ == "__main__":
-    DEFAULT_CODES_LIST = ["DEMAND_demanda_SERVEI_CODI_INF"]
+    DEFAULT_CODES_LIST = ["DEMAND_demanda__TOTAL_UP_00185", "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL"]#["DEMAND_demanda_SERVEI_CODI_INF"]
     
     LOOKBACK_LIST = [7,14, 60, 60, 182,182]
     FORECAST_LIST = [7,14, 30, 60, 182,365]
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # be created by `create_multiyear_sample` below). Use a path string so
     # downstream code can decide when to read it.
     input_directory = 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/finals/demanda_diagnostics_joined.parquet'
-    old_input_directory = '../data/FINAL_DB/finals_combined.csv'
+    old_input_directory = '../data/FINAL_DB/demand_diagnosis_joined.parquet'
 
     #model_folder = '../transformer_outputs/models_covid_token'
     output_path = f"../production_predictions/final_output_predictions"
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     mlp_units = [512,256]
     activation_function = "gelu"
 
-    simulation_dates = pd.date_range(start='2023-10-01', end='2023-10-31', freq='D')
+    simulation_dates = pd.date_range(start='2025-12-31', end='2026-01-31', freq='D')
     for date in simulation_dates:
         input_dir = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_input/"
         out_dir = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/"

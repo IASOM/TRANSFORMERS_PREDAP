@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from omegaconf import OmegaConf
 import pandas as pd
 from src.config.base_transformer_config import BaseTransformerConfig as default_config
 import json
@@ -9,6 +10,9 @@ import ctypes
 from tensorflow.keras import backend as K
 import tensorflow as tf
 from typing import List
+import sys
+from pathlib import Path
+from omegaconf import DictConfig, OmegaConf
 
 import re
 
@@ -69,6 +73,52 @@ def initialize_results_tracking(results_dir: str, codes_list) -> dict:
         }
 
     return best_results_per_code
+
+
+def save_model_parameters(config, model, model_name: str, model_parameters_path: str):
+    """Save model parameters to a JSON file for later reference."""
+    params = {
+        "target_code": config.code,
+        "lookback": config.lookback,
+        "forecast_horizon": config.forecast,
+        "model_type": "transformer",
+        "dataset": config.data_path,
+        "activation_function": config.activation_function,
+        "covid_token": config.covid_token,
+        "cutoff_date": config.cutoff_date,
+        "head_size": config.head_size,
+        "num_heads": config.num_heads, 
+        "ff_dim": config.ff_dim,
+        "mlp_units": list(config.mlp_units) if config.mlp_units else [],
+        "num_transformer_blocks": config.num_transformer_blocks,
+        "dropout": config.dropout,
+        "learning_rate": config.learning_rate,
+        "positional_encoding": config.positional_encoding,
+        "scaler": str(config.scaler),
+        "num_layers": len(model.layers),
+        "layer_types": [type(layer).__name__ for layer in model.layers],
+        # Force TensorFlow integers into standard Python integers
+        "total_params": int(model.count_params()),
+        "trainable_params": int(sum(tf.keras.backend.count_params(p) for p in model.trainable_weights)),
+        "non_trainable_params": int(sum(tf.keras.backend.count_params(p) for p in model.non_trainable_weights))
+    }
+
+    # 1. Clean and truncate the model name
+    base_name = model_name.removesuffix('.keras').split('_LEARNING')[0]
+    base_name = base_name + f"_lb{config.lookback}_fh{config.forecast}"  # Add lookback and forecast to filename for clarity
+    
+    # 2. Form the full parameters filename
+    params_filename = f"{base_name}_parameters.json"
+    params_path = os.path.join(model_parameters_path, config.code, params_filename)
+    
+    # 3. Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(params_path), exist_ok=True)
+    
+    # 4. Save your file safely using the 'params' dictionary directly
+    with open(params_path, 'w') as f:
+        json.dump(params, f, indent=4)
+        
+    print(f"✅ Model parameters saved to: {params_path}")
 
 def load_json_codes_list(json_path: str) -> str:
     """Load a list from JSON and return as comma-separated string for Hydra sweep."""
@@ -200,5 +250,20 @@ def extract_model_params(model_name):
 
 
 
-
+def check_for_help_flag(cfg: DictConfig):
+    # Check if user passed help=True or help=true via CLI
+    if "help" in cfg and cfg.help:
+        print("\n💡 PREDAP Pipeline CLI Parameter Help Guide:")
+        print("-" * 50)
+        
+        # Flatten and isolate groups
+        for group_name, group_content in cfg.items():
+            if isinstance(group_content, DictConfig):
+                print(f"\n[{group_name.upper()} GROUP]")
+                for param, value in group_content.items():
+                    print(f"  {group_name}.{param:<25} -> current default: {value}")
+        
+        print("\nUsage example:")
+        print("  python script.py model.target_code='M54' model.lookback=90\n")
+        sys.exit(0)
 
