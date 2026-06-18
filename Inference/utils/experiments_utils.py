@@ -35,10 +35,20 @@ def smart_read(file_path, **kwargs):
     return _original_read_csv(file_path, **kwargs)
 
 
-def load_json_codes_list(json_path: str) -> str:
+'''def load_json_codes_list(json_path: str) -> str:
     with open(json_path, "r", encoding="utf-8") as file_handle:
         data = json.load(file_handle)
     return ",".join(data)
+'''
+def load_json_codes_list(json_path: str) -> str:
+    with open(json_path, "r", encoding="utf-8") as file_handle:
+        data = json.load(file_handle)
+    
+    # Wrap each individual string element in double quotes
+    quoted_data = [f'"{item}"' for item in data]
+    
+    # Join them with commas: "code1","code 2","code 3"
+    return ",".join(quoted_data)
 
 
 def memory_cleanup():

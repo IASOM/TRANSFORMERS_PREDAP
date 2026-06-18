@@ -124,9 +124,85 @@ def load_json_codes_list(json_path: str) -> str:
     """Load a list from JSON and return as comma-separated string for Hydra sweep."""
     with open(json_path, 'r') as f:
         data = json.load(f)
-    #codes_list = data[key]
-    # Return comma-separated string for Hydra sweep parameters
-    return ','.join(data)
+    
+    cleaned_codes = []
+    for code in data:
+        clean_str = str(code).strip()
+        
+        # Filter out invalid columns
+
+        cleaned_codes.append(f'"{clean_str}"')
+            
+    # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
+    return ",".join(cleaned_codes)
+
+def load_codes(codes_path: str) -> str:
+    """Load a list from either JSON or Excel and return as comma-separated string for Hydra sweep."""
+    if codes_path.endswith('.json'):
+        with open(codes_path, 'r') as f:
+            data = json.load(f)
+        
+        cleaned_codes = []
+        for code in data:
+            clean_str = str(code).strip()
+            
+            # Filter out invalid columns
+
+            cleaned_codes.append(f'"{clean_str}"')
+        return cleaned_codes
+    elif codes_path.endswith('.xlsx') or codes_path.endswith('.xls'):
+        return load_excel_codes_list(codes_path)
+    else:
+        raise ValueError("Unsupported file format. Please provide a JSON or Excel file.")
+
+def load_codes_list_from_excel(excel_path: str) -> str:
+    """Load a list from Excel and return as comma-separated string for Hydra sweep."""
+    df = pd.read_excel(excel_path, engine='openpyxl')
+
+    codes_list = df['nom_variable'].tolist()
+    
+    return codes_list
+
+
+def excel_to_json_codes_list(excel_path: str, json_output_path: str):
+    """
+    Reads an Excel file and converts a specific column to a JSON list.
+    
+    Args:
+        excel_path (str): Path to the input Excel file.
+        json_output_path (str): Path to save the output JSON file.
+    """
+    df = pd.read_excel(excel_path, engine='openpyxl')
+    
+    # Assuming the column of interest is named 'nom_variable'
+    if 'nom_variable' not in df.columns:
+        raise ValueError("The Excel file must contain a 'nom_variable' column.")
+    
+    codes_list = df['nom_variable'].dropna().unique().tolist()
+    
+    # Save to JSON
+    with open(json_output_path, 'w') as f:
+        json.dump(codes_list, f, indent=4)
+    
+    print(f"✅ Converted Excel codes list saved to: {json_output_path}")
+
+def load_excel_codes_list(excel_path: str) -> str:
+    df = pd.read_excel(excel_path, engine='openpyxl')
+
+    codes_list = df['nom_variable'].tolist()
+    
+    cleaned_codes = []
+    for code in codes_list:
+        clean_str = str(code).strip()
+        
+        # Filter out invalid columns
+        if clean_str and clean_str != 'timestamp' and not clean_str.startswith('__index'):
+            # CRUCIAL FIX: Wrap the code in escaped quotes so Hydra treats 
+            # "BARCELONA CIUTAT" as a single literal string item.
+            cleaned_codes.append(f'"{clean_str}"')
+            
+    # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
+    return ",".join(cleaned_codes)
 
 def get_codes_list(input_directory: str) -> str:
     """
@@ -202,6 +278,7 @@ def memory_cleanup():
     
     # Reset the default graph (TF1 compat, still useful for freeing resources)
     tf.compat.v1.reset_default_graph()
+    tf.keras.backend.clear_session()
     
     # Force Python garbage collection
     gc.collect()

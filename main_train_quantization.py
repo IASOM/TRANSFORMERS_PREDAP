@@ -1,4 +1,6 @@
 
+import sys
+
 import hydra
 import numpy as np
 import pandas as pd
@@ -16,6 +18,7 @@ from tf_keras import backend as K
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from CCLR_PREDAP.main import CCLR_pipeline
+
 from production.model_quantization_pipeline import ModelQuantizationPipeline
 from src.config.config_manager import get_config
 from src.model_architechture.model_architecture_univ_transformer import build_model
@@ -26,7 +29,7 @@ from training.training_utils import compile_model, load_base_model_transformer, 
 
 from model_architechture.model_architecture_residual_transformer import build_residual_transformer_model
 from utils.environment_utils import setup_gpu_memory
-from utils.experiments_utils import compute_dynamic_batch_size, get_codes_list, check_for_help_flag , memory_cleanup, save_model_parameters, smart_read
+from utils.experiments_utils import compute_dynamic_batch_size,load_codes, excel_to_json_codes_list,load_excel_codes_list, get_codes_list, check_for_help_flag, load_json_codes_list , memory_cleanup, save_model_parameters, smart_read
 from training.training_residual_transformer import train_residual_model
 from data_utils.features import prepare_time_series_features
 from evaluation.evaluate_transformer import evaluate_transformer_models, save_performance_results, save_univ_performance_results
@@ -221,7 +224,8 @@ def seasonal_model_training_pipeline(config,
 
 config = get_config()
 # Register custom resolver for loading JSON codes list
-OmegaConf.register_new_resolver("get_codes_list", get_codes_list)
+#OmegaConf.register_new_resolver("get_codes_list", get_codes_list)
+OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
 config_name = "config_production_quantization.yaml"  
 
 @hydra.main(version_base=None, config_path="conf", config_name=config_name)
@@ -254,7 +258,7 @@ def main(cfg: DictConfig) -> None:
     base_model_name = config.get_model_name()
     diagnostics_model_name = config.get_diagnostic_residual_model_name()
     seasonal_model_name = config.get_seasonal_residual_model_name()
-    diagnostic_covariates_list = load_diagnostic_covariates(config,config.code, config.forecast)
+
 
     # =================== PHASE 0.1: DEFINE PARAMETERS ===================
     data_parameters = {
@@ -310,7 +314,7 @@ def main(cfg: DictConfig) -> None:
             CODES_LIST=[config.code],
             BEST_FEATURES_PATH = config.diagnostic_covariates_path,
         )
-
+    diagnostic_covariates_list = load_diagnostic_covariates(config,config.code, config.forecast)
     run_name = setup_mlflow_tracking(cfg,config)
 
     with mlflow.start_run(run_name=run_name) as run:
@@ -521,5 +525,7 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    #excel_to_json_codes_list("../data/FINAL_DB/variables_ordenades_per_tipus_i_regio_upode.xlsx", "../data/FINAL_DB/target_codes_qualud.json")
+    load_codes("../data/FINAL_DB/target_codes_qualud.json")
     main()
     
