@@ -155,6 +155,27 @@ def load_codes(codes_path: str) -> str:
     else:
         raise ValueError("Unsupported file format. Please provide a JSON or Excel file.")
 
+def load_inference_codes_list(models_dir: str) -> List[str]:
+    """Load a list of codes from the quantized models directory for inference."""
+    folder_names = [
+            entry.name for entry in os.scandir(models_dir) if entry.is_dir()
+        ]
+    
+    cleaned_codes = []
+    for code in folder_names:
+        clean_str = str(code).strip()
+        
+        # Filter out invalid columns
+
+        cleaned_codes.append(f'"{clean_str}"')
+            
+    # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
+    return ",".join(cleaned_codes)
+    
+def get_dates_list(start_date: str, end_date: str) -> List[str]:
+    dates_list = pd.date_range(start=start_date, end=end_date, freq='D').strftime('%Y-%m-%d').tolist()
+    return dates_list#','.join([f'"{date}"' for date in dates_list])
+
 def load_codes_list_from_excel(excel_path: str) -> str:
     """Load a list from Excel and return as comma-separated string for Hydra sweep."""
     df = pd.read_excel(excel_path, engine='openpyxl')

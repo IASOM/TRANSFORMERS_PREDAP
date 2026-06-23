@@ -1,6 +1,4 @@
 
-
-
 import sys
 
 from omegaconf import DictConfig, OmegaConf
@@ -100,7 +98,7 @@ def inference(cfg: DictConfig) -> None:
                                                                             final_output_df,
                                                                             dates=dates_list
                                                                             )
-        base_pipeline.save_final_output_predictions(final_output_df)
+        base_pipeline.save_final_output_predictions(final_output_df, output_path  = f"../production_predictions/final_output_predictions/{max_date}")
 
     base_pipeline.delete_old_data(predictions_dataset_path=output_path, real_data_dataset_path=data_path, metrics_df_path=metrics_df_path, max_date=max_date)
     print(f"\nFinal output predictions for code {code}:\n")

@@ -1,12 +1,13 @@
 defaults:
   - _self_
-  - override hydra/launcher: basic
-  #- override hydra/launcher: joblib
+  - override hydra/launcher: joblib  # Switched from basic to joblib for parallel execution
 
 # Complete self-contained configuration for grid search
 # Data configuration
 data:
-  data_path: '../data/FINAL_DB/demand_diagnosis_joined.parquet' #'../AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/finals/demanda_diagnostics_joined.parquet'
+  input_data_retrieval_directory: 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_input/'
+  output_data_retrieval_directory: 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/'
+  data_path: '../data/FINAL_DB/demand_diagnosis_joined.parquet'
   codes_path: '../data/FINAL_DB/target_codes.json'
   models_folder: '../quantized_models'
 output:
@@ -15,7 +16,6 @@ output:
 
 experiment_setup: "7_7"  # Default experiment setup
 help: False  # Flag to display help information
-
 
 experiment_pairs:
   "3_3":   { lb: 3,   fc: 3 }
@@ -26,12 +26,11 @@ experiment_pairs:
   "182_182": { lb: 182,  fc: 182 }
   "365_182": { lb: 182,  fc: 365 }
 
-# Model configuration (base defaults that will be overridden by sweep parameters)
+# Model configuration
 model:
-  target_code: "DEMAND_demanda__TOTAL_UP_00185"  #"DEMAND_demanda_SERVEI_CODI_INF" #"demanda__SERVEI_CODI__INF" #"B34" #"J00" #"demanda__TIPUS_CLASS__9T"
+  target_code: "DEMAND_demanda__TOTAL_UP_00185"
   lookback: ${experiment_pairs.${experiment_setup}.lb}
   forecast: ${experiment_pairs.${experiment_setup}.fc}
-
   num_transformer_blocks: 2
   head_size: 32
   num_heads: 8
@@ -41,15 +40,15 @@ model:
   mlp_units: [512,256]
   dropout: 0.5
   learning_rate: 1e-5
-  
 
 # Training configuration
 training:
-  cutoff_date: "2008-01-01"  # Fixed: Use a date that ensures sufficient training data
+  cutoff_date: "2008-01-01"
   positional_encoding: true
   evaluate_model: true
+
 inference:
-  max_date: "2023-12-31"  # Fixed: Use a date that ensures sufficient inference data
+  max_date: "2025-12-31"
 
 # System configuration  
 system:
@@ -57,26 +56,31 @@ system:
 
 # MLflow configuration
 mlflow:
-  tracking_uri: "sqlite:///mlflow.db"
-  experiment_name: "Inference_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH" #TRANSFORMER3 
+  tracking_uri: "file:./mlruns" #"sqlite:///mlflow.db"
+  experiment_name: "Inference_TRANSFORMERS_PREDAP_HYDRA_GRID_SEARCH"
 
 # Hydra multirun configuration
 hydra:
+  # =========================================================================
+  # LAUNCHER CONFIGURATION FOR PARALLELIZATION
+  # =========================================================================
+  launcher:
+    n_jobs: 6      # -1 uses all available CPU cores. Set to a specific int (e.g., 4) if VRAM limited.
+    backend: loky    # Robust multiprocessing backend suited for numerical stacks like NumPy/TensorFlow
+  
   sweep:
     dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
     subdir: ${hydra.job.num}
+    
   sweeper:
     params:
-      # Target codes to evaluate
-      model.target_code: DEMAND_demanda__TOTAL_UP_00185, "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL" #${get_codes_list:${data.data_path}} #${load_json_codes_list:../data/FINAL_DB/target_codes.json} #demanda__TOTAL, "demanda__SERVEI_CODI__URG", "B34","J00", "I10", "M54","Ch01#subch01#A00-A09" #demanda__SERVEI_CODI__INF, 'demanda__SERVEI_CODI__INFP', 'demanda__SERVEI_CODI__MF','demanda__SERVEI_CODI__PED','demanda__SERVEI_CODI__URG','demanda__TIPUS_CLASS__9T','demanda__TIPUS_CLASS__C9C','demanda__TIPUS_CLASS__C9R','demanda__TIPUS_CLASS__CALTRE','demanda__TIPUS_CLASS__D9D','demanda__TIPUS_CLASS__DALTRE','demanda__VISI_LLOC_VISITA__C','demanda__VISI_LLOC_VISITA__D','demanda__VISI_LLOC_VISITA__T','demanda__VISI_SITUACIO_VISITA__N','demanda__VISI_SITUACIO_VISITA__R','demanda__TOTAL'
+      # Target codes to evaluate parallelly
+      model.target_code: ${load_inference_codes_list:${data.models_folder}} #DEMAND_demanda__TOTAL_UP_00185, "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL" #${get_codes_list:${data.data_path}}
       
-      # Temporal parameters - lookback and forecast horizons#, 14,7, 30,7, 60,30, 182,60, 365,182
-      #model.lookback,model.forecast: 7,7 
-      #experiment_setup: 3_3,"7_7","14_14","60_30","60_60","182_182","365_182"
-      # Inside hydra.sweeper.params:
-      experiment_setup: '"3_3","7_7","14_14","60_30","60_60","182_182","365_182"'
-      #model.lookback: 30,60
-      #model.forecast: 30,60
+      # Fixed syntax for parameter sweeps (removed nested single quotes)
+      experiment_setup:  '"7_7","14_14","60_30","60_60","182_182","365_182"'
+      
+      #inference.max_date: ${get_dates_list:${inference.max_date}}
       
       # Model architecture parameters
       model.num_transformer_blocks: 2

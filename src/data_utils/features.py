@@ -29,7 +29,7 @@ def add_covid_token(df: pd.DataFrame) -> pd.DataFrame:
         df.loc[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date), 'covid_token'] = 1
     return df
 
-def cut_dataframe(df: pd.DataFrame, date_cutoff: str = "2010-01-01", max_date: str = '2026-12-31') -> pd.DataFrame:
+def cut_dataframe(df: pd.DataFrame, date_cutoff: str = "2010-01-01", max_date: str = '2025-12-31') -> pd.DataFrame:
     """Cuts the DataFrame to include only rows between the specified cutoff and max dates.
     Parameters: 
         -----------

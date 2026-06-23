@@ -21,6 +21,7 @@ from model_architechture import model_architecture_univ_transformer
 from model_architechture import model_architecture_residual_transformer
 from config.base_transformer_config import BaseTransformerConfig
 from production.data_preparation_in_poduction import DataPreparationInProduction
+from src.training.training_utils import load_diagnostic_covariates
 
 np.read_csv = smart_read
 
@@ -100,7 +101,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
 
         weights_path =  f"{models_directory}/{code}/{model_type}/{code}_{model_type}_{forecast}fh_{lookback}lb_f16_weights.h5"
         
-        print(model.summary())
+        #print(model.summary())
         # Try to identify mismatch before loading
         
         try:
@@ -205,10 +206,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
         return ci_lower.values, ci_upper.values, velocity.values, acceleration.values
 
     
-    
-    
-    
-    def run_reconstruct_save_results_pipeline(
+    def individual_run_reconstruct_save_results_pipeline(
             self, 
             input_directory: str,
             code: str, 
@@ -216,6 +214,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             FORECAST_LIST: List[int], 
             final_output_predictions: Optional[np.ndarray], 
             final_output_df: pd.DataFrame,
+            dates: List[str],
             
             ) -> pd.DataFrame:
         """Runs the full pipeline to reconstruct the model, make predictions, and save results for a given code and list of lookback and forecast combinations. 
@@ -229,11 +228,15 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             A DataFrame containing the final output predictions for each forecast horizon along with corresponding dates.
         """
         
-        dates = ["2025-12-23","2025-12-24", "2025-12-25", "2025-12-26", "2025-12-27", "2025-12-28", "2025-12-29", "2025-12-30", "2025-12-31"]
-        for max_date in dates:
-            for lookback, forecast in zip(LOOKBACK_LIST, FORECAST_LIST):
+        #dates = ["2025-12-23","2025-12-24", "2025-12-25", "2025-12-26", "2025-12-27", "2025-12-28", "2025-12-29", "2025-12-30", "2025-12-31"]
+        output_chunks = []
+
+        for lookback, forecast in zip(LOOKBACK_LIST, FORECAST_LIST): 
+        
+            for max_date in dates:
+            
                 auxiliary_output_df = pd.DataFrame()  # Temporary DataFrame for current iteration
-                
+    
                 X_univ_data_production, Y_univ_data_production, df_timestamp_production = self.prepare_prediction_univ_data(
                     data_path=input_directory,
                     code=code,
@@ -314,7 +317,6 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                 diagnostics_input_shape = X_diagnostics_data.shape[1:]
                 seasonal_input_shape = X_seasonal_data.shape
                 seasonal_input_shape = tuple((seasonal_input_shape[1], seasonal_input_shape[2] + 1))  # Add 1 to the last dimension to account for the diagnostics predictions that will be concatenated as an additional feature
-
                 
                 univ_model, diagnostics_model, seasonal_model = self.reconstruct_full_model(
                     code,
@@ -335,15 +337,14 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                     n_pred=1,
                     pos_encoding=True
                 )
-
                 #Make predictions for the known historical data
-                quant_predictions_univ = univ_model.predict(X_univ_data, verbose=0)
-                quant_predictions_diagnostics_residuals = diagnostics_model.predict(X_diagnostics_data, verbose=0)
+                quant_predictions_univ = univ_model(X_univ_data, training=False).numpy()
+                quant_predictions_diagnostics_residuals = diagnostics_model(X_diagnostics_data, training=False).numpy()
                 
                 preds_reshaped = quant_predictions_diagnostics_residuals[:, -forecast:, np.newaxis]
                 X_seasonal_with_preds = np.concatenate((X_seasonal_data, preds_reshaped), axis=2)
                 #X_seasonal_with_preds = X_seasonal_data.copy() #temporary put only the original seasonal data, without the diagnostics predictions, to avoid potential issues with input shape or model expectations.
-                quant_predictions_seasonal_residuals = seasonal_model.predict(X_seasonal_with_preds, verbose=0)
+                quant_predictions_seasonal_residuals = seasonal_model(X_seasonal_with_preds, training=False).numpy()
 
 
                 quant_pred_corrected_diagnostics = quant_predictions_univ + quant_predictions_diagnostics_residuals
@@ -359,20 +360,19 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                 print(f"WAPE for code {code} with lookback {lookback} and forecast {forecast}: {wape*100:.2f}%")
 
                 #Make predictions for the unknown historical data
-                quant_predictions_univ_production = univ_model.predict(X_univ_data_production, verbose=0)
-                quant_predictions_diagnostics_residuals_production = diagnostics_model.predict(X_diagnostics_data_production, verbose=0)
-                
+                quant_predictions_univ_production = univ_model(X_univ_data_production, training=False).numpy()
+                quant_predictions_diagnostics_residuals_production = diagnostics_model(X_diagnostics_data_production, training=False).numpy()
+
                 preds_reshaped_production = quant_predictions_diagnostics_residuals_production[:, -forecast:, np.newaxis]
                 X_seasonal_with_preds = np.concatenate((X_seasonal_data_production, preds_reshaped_production), axis=2)
                 #X_seasonal_with_preds = X_seasonal_data.copy() #temporary put only the original seasonal data, without the diagnostics predictions, to avoid potential issues with input shape or model expectations.
-                quant_predictions_seasonal_residuals_production = seasonal_model.predict(X_seasonal_with_preds, verbose=0)
+                quant_predictions_seasonal_residuals_production = seasonal_model(X_seasonal_with_preds, training=False).numpy()
 
 
                 quant_pred_corrected_diagnostics_production = quant_predictions_univ_production + quant_predictions_diagnostics_residuals_production
                 quant_pred_corrected_seasonal_production = quant_pred_corrected_diagnostics_production + quant_predictions_seasonal_residuals_production
                 #Clip predictions to be non-negative, as we are predicting production values that cannot be negative
                 quant_pred_corrected_seasonal_production = np.clip(quant_pred_corrected_seasonal_production, 0, +np.inf)
-                
 
                 ci_lower, ci_upper, velocity, acceleration = self.compute_predap_auxiliary_metrics(quant_pred_corrected_seasonal_production.flatten(), Y_univ_data.flatten(), mae, lookback=lookback, confidence_level=0.95)
 
@@ -391,10 +391,216 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                 auxiliary_output_df["velocity"] = velocity
                 auxiliary_output_df["acceleration"] = acceleration
 
-                final_output_df = pd.concat([final_output_df, auxiliary_output_df], ignore_index=True)
-            
-        #final_output_df.to_csv(f"../quantized_models/{code}/final_output_predictions_{code.replace(':', '#')}.csv", index=False)
+                init_time_concatenation = pd.Timestamp.now()
+                output_chunks.append(auxiliary_output_df)
+                #final_output_df = pd.concat([final_output_df, auxiliary_output_df], ignore_index=True)
+                end_time_concatenation = pd.Timestamp.now()
+                print(f"Time taken to concatenate data: {end_time_concatenation - init_time_concatenation}")
 
+        #final_output_df.to_csv(f"../quantized_models/{code}/final_output_predictions_{code.replace(':', '#')}.csv", index=False)
+        if output_chunks:
+            output_chunks_df = pd.concat(output_chunks, ignore_index=True)
+
+        final_output_df = pd.concat([final_output_df, output_chunks_df], ignore_index=True)
+        return final_output_df
+    
+    
+    def run_reconstruct_save_results_pipeline(
+            self, 
+            input_directory: str,
+            code: str, 
+            LOOKBACK_LIST: List[int], 
+            FORECAST_LIST: List[int], 
+            final_output_predictions: Optional[np.ndarray], 
+            final_output_df: pd.DataFrame,
+            dates: List[str],
+            
+            ) -> pd.DataFrame:
+        """Runs the full pipeline to reconstruct the model, make predictions, and save results for a given code and list of lookback and forecast combinations. 
+        Args:
+            code (str): The code for which to run the pipeline (e.g., 'demanda__TOTAL').
+            LOOKBACK_LIST (List[int]): A list of lookback periods to iterate
+            FORECAST_LIST (List[int]): A list of forecast horizons to iterate.
+            final_output_predictions (Optional[np.ndarray]): An optional array to store final output predictions across iterations
+            final_output_df (pd.DataFrame): A DataFrame to store the final output predictions along with corresponding dates.
+        Returns:
+            A DataFrame containing the final output predictions for each forecast horizon along with corresponding dates.
+        """
+        
+        #dates = ["2025-12-23","2025-12-24", "2025-12-25", "2025-12-26", "2025-12-27", "2025-12-28", "2025-12-29", "2025-12-30", "2025-12-31"]
+        output_chunks = []
+
+        for lookback, forecast in zip(LOOKBACK_LIST, FORECAST_LIST): 
+
+            for max_date in dates:
+                print(f"Processing code: {code}, lookback: {lookback}, forecast: {forecast}, max_date: {max_date}")
+                auxiliary_output_df = pd.DataFrame()  # Temporary DataFrame for current iteration
+    
+                X_univ_data_production, Y_univ_data_production, df_timestamp_production = self.prepare_prediction_univ_data(
+                    data_path=input_directory,
+                    code=code,
+                    lookback=lookback,
+                    forecast=forecast,
+                    cutoff_date=self.config.cutoff_date,
+                    max_date=max_date,
+                    scaler=self.config.scaler,
+                    eliminate_covid_data=self.config.eliminate_covid_data,
+                    covid_token=self.config.covid_token,
+                    production_mode=True
+                )
+
+                X_diagnostics_data_production, Y_diagnostics_data_production = self.prepare_prediction_diagnostics_data(
+                    data_path=input_directory,
+                    code=code,
+                    lookback=lookback,
+                    forecast=forecast,
+                    cutoff_date = self.config.cutoff_date,
+                    max_date=max_date,
+                    scaler=self.config.scaler,
+                    covid_token=self.config.covid_token,
+                    production_mode=True
+                )
+
+                X_seasonal_data_production = self.prepare_prediction_seasonal_data(
+                    data_path=input_directory,
+                    code=code,
+                    forecast=forecast,
+                    lookback=lookback,
+                    cutoff_date=self.config.cutoff_date,
+                    max_date=max_date,
+                    categorical_vars=self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS,
+                    predictions_train=None,
+                    predictions_test=None,
+                    scaler=self.config.scaler,
+                )
+
+                X_univ_data, Y_univ_data, df_timestamp = self.prepare_prediction_univ_data(
+                    data_path=input_directory,
+                    code=code,
+                    lookback=lookback,
+                    forecast=forecast,
+                    cutoff_date=self.config.cutoff_date,
+                    max_date=max_date,
+                    scaler=self.config.scaler,
+                    eliminate_covid_data=self.config.eliminate_covid_data,
+                    covid_token=self.config.covid_token,
+                    production_mode=False
+                )
+
+                X_diagnostics_data, Y_diagnostics_data = self.prepare_prediction_diagnostics_data(
+                    data_path=input_directory, 
+                    code=code,
+                    lookback=lookback,
+                    forecast=forecast,
+                    cutoff_date=self.config.cutoff_date,
+                    max_date=max_date,
+                    scaler=self.config.scaler,
+                    covid_token=self.config.covid_token,
+                    production_mode=False
+                )
+
+                X_seasonal_data = self.prepare_prediction_seasonal_data(
+                    data_path=input_directory,
+                    code=code,
+                    forecast=forecast,
+                    lookback=lookback,
+                    cutoff_date=self.config.cutoff_date,
+                    max_date=max_date,
+                    categorical_vars=self.config.DEFAULT_SEASONAL_CATEGORICAL_VARS,
+                    predictions_train=None,
+                    predictions_test=None,
+                    scaler=self.config.scaler,
+                )
+                
+                univ_input_shape = X_univ_data.shape[1:]
+                diagnostics_input_shape = X_diagnostics_data.shape[1:]
+                seasonal_input_shape = X_seasonal_data.shape
+                seasonal_input_shape = tuple((seasonal_input_shape[1], seasonal_input_shape[2] + 1))  # Add 1 to the last dimension to account for the diagnostics predictions that will be concatenated as an additional feature
+                
+                univ_model, diagnostics_model, seasonal_model = self.reconstruct_full_model(
+                    code,
+                    lookback,
+                    forecast,
+                    models_directory=self.config.model_folder,
+                    univ_input_shape=univ_input_shape,
+                    diagnostics_input_shape=diagnostics_input_shape,
+                    seasonal_input_shape=seasonal_input_shape,
+                    head_size=self.config.head_size,
+                    num_heads=self.config.num_heads,
+                    ff_dim=self.config.ff_dim,
+                    num_transformer_blocks=self.config.num_transformer_blocks,
+                    mlp_units=self.config.mlp_units,
+                    activation_function=self.config.activation_function,
+                    dropout=self.config.dropout,
+                    mlp_dropout=0,
+                    n_pred=1,
+                    pos_encoding=True
+                )
+                #Make predictions for the known historical data
+                quant_predictions_univ = univ_model(X_univ_data, training=False).numpy()
+                quant_predictions_diagnostics_residuals = diagnostics_model(X_diagnostics_data, training=False).numpy()
+                
+                preds_reshaped = quant_predictions_diagnostics_residuals[:, -forecast:, np.newaxis]
+                X_seasonal_with_preds = np.concatenate((X_seasonal_data, preds_reshaped), axis=2)
+                #X_seasonal_with_preds = X_seasonal_data.copy() #temporary put only the original seasonal data, without the diagnostics predictions, to avoid potential issues with input shape or model expectations.
+                quant_predictions_seasonal_residuals = seasonal_model(X_seasonal_with_preds, training=False).numpy()
+
+
+                quant_pred_corrected_diagnostics = quant_predictions_univ + quant_predictions_diagnostics_residuals
+                quant_pred_corrected_seasonal = quant_pred_corrected_diagnostics + quant_predictions_seasonal_residuals
+                #Clip predictions to be non-negative, as we are predicting production values that cannot be negative
+                quant_pred_corrected_seasonal = np.clip(quant_pred_corrected_seasonal, 0, +np.inf)
+
+                mae = np.mean(np.abs(quant_pred_corrected_seasonal - Y_univ_data))
+                mse = np.mean((quant_pred_corrected_seasonal - Y_univ_data)**2)
+                wape = np.sum(np.abs(quant_pred_corrected_seasonal - Y_univ_data)) / np.sum(np.abs(Y_univ_data) + 1e-8)
+                print(f"MAE for code {code} with lookback {lookback} and forecast {forecast}: {mae}")
+                print(f"MSE for code {code} with lookback {lookback} and forecast {forecast}: {mse}")
+                print(f"WAPE for code {code} with lookback {lookback} and forecast {forecast}: {wape*100:.2f}%")
+
+                #Make predictions for the unknown historical data
+                quant_predictions_univ_production = univ_model(X_univ_data_production, training=False).numpy()
+                quant_predictions_diagnostics_residuals_production = diagnostics_model(X_diagnostics_data_production, training=False).numpy()
+
+                preds_reshaped_production = quant_predictions_diagnostics_residuals_production[:, -forecast:, np.newaxis]
+                X_seasonal_with_preds = np.concatenate((X_seasonal_data_production, preds_reshaped_production), axis=2)
+                #X_seasonal_with_preds = X_seasonal_data.copy() #temporary put only the original seasonal data, without the diagnostics predictions, to avoid potential issues with input shape or model expectations.
+                quant_predictions_seasonal_residuals_production = seasonal_model(X_seasonal_with_preds, training=False).numpy()
+
+
+                quant_pred_corrected_diagnostics_production = quant_predictions_univ_production + quant_predictions_diagnostics_residuals_production
+                quant_pred_corrected_seasonal_production = quant_pred_corrected_diagnostics_production + quant_predictions_seasonal_residuals_production
+                #Clip predictions to be non-negative, as we are predicting production values that cannot be negative
+                quant_pred_corrected_seasonal_production = np.clip(quant_pred_corrected_seasonal_production, 0, +np.inf)
+
+                ci_lower, ci_upper, velocity, acceleration = self.compute_predap_auxiliary_metrics(quant_pred_corrected_seasonal_production.flatten(), Y_univ_data.flatten(), mae, lookback=lookback, confidence_level=0.95)
+
+                target_date = df_timestamp_production[-forecast:].values
+                init_forecast_date = df_timestamp.iloc[-forecast-1]
+                final_forecast_date = df_timestamp.iloc[-1]
+
+                auxiliary_output_df["target_date"] = target_date
+                auxiliary_output_df["init_forecast_date"] = init_forecast_date
+                auxiliary_output_df["final_forecast_date"] = final_forecast_date
+                auxiliary_output_df["code"] = code
+                auxiliary_output_df["forecast"] = forecast
+                auxiliary_output_df["predictions"] = quant_pred_corrected_seasonal_production.flatten()[:forecast]
+                auxiliary_output_df["ci_lower"] = ci_lower
+                auxiliary_output_df["ci_upper"] = ci_upper
+                auxiliary_output_df["velocity"] = velocity
+                auxiliary_output_df["acceleration"] = acceleration
+
+                init_time_concatenation = pd.Timestamp.now()
+                output_chunks.append(auxiliary_output_df)
+                #final_output_df = pd.concat([final_output_df, auxiliary_output_df], ignore_index=True)
+                end_time_concatenation = pd.Timestamp.now()
+                print(f"Time taken to concatenate data: {end_time_concatenation - init_time_concatenation}")
+
+        #final_output_df.to_csv(f"../quantized_models/{code}/final_output_predictions_{code.replace(':', '#')}.csv", index=False)
+        if output_chunks:
+            output_chunks_df = pd.concat(output_chunks, ignore_index=True)
+
+        final_output_df = pd.concat([final_output_df, output_chunks_df], ignore_index=True)
         return final_output_df
 
     def save_final_output_predictions(self, final_output_df: pd.DataFrame, output_path: str = "../production_predictions/final_output_predictions"):
@@ -576,7 +782,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
 
         
 
-    def delete_old_data(self, predictions_dataset_path: str, real_data_dataset_path: Optional[str] = None, metrics_df_path: str = "../production_predictions/production_evaluation_metrics.parquet"):
+    def delete_old_data(self, predictions_dataset_path: str, real_data_dataset_path: Optional[str] = None, metrics_df_path: str = "../production_predictions/production_evaluation_metrics.parquet", max_date: Optional[str] = None) -> Optional[str]:
         """
         Deletes rows from a parquet file where the day difference between
         target_date and forecast_date equals the value in forecast.
@@ -585,7 +791,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             predictions_dataset_path (str): Full parquet dataset path created by save_final_output_predictions.
             real_data_dataset_path (Optional[str]): Optional path to the real data parquet file for additional processing.
             metrics_df_path (str): Path to the existing metrics dataframe. If it doesn't exist, a new one will be created.
-        
+            max_date (Optional[str]): The maximum date to consider for deletion.
         """
         if not os.path.exists(predictions_dataset_path):
             print(f"No data file found at: {predictions_dataset_path}")
@@ -604,7 +810,8 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             
         
         real_data_dataset = smart_read(real_data_dataset_path) if real_data_dataset_path else None
-
+        if max_date is not None:
+            real_data_dataset = real_data_dataset[real_data_dataset['timestamp'] < pd.to_datetime(max_date)] if real_data_dataset is not None else None
         my_schema = pa.schema([("code", pa.string())])
 
         # 2. Create the partitioning object WITH the flavor
