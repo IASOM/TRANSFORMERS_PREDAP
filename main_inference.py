@@ -29,8 +29,8 @@ def inference(cfg: DictConfig) -> None:
     setup_gpu_memory()
     # =================== PHASE 0: LOAD CONFIGURATION ===================
     code = cfg.model.target_code
-    lookback = cfg.model.lookback
-    forecast = cfg.model.forecast
+    lookback = [7, 14, 60, 60, 182, 182] #cfg.model.lookback
+    forecast = [7, 14, 30, 30, 182, 365] #cfg.model.forecast
     head_size = cfg.model.head_size
     num_heads = cfg.model.num_heads
     ff_dim = cfg.model.ff_dim
@@ -94,8 +94,8 @@ def inference(cfg: DictConfig) -> None:
         dates_list = [max_date] #Temporary solution to run the inference for the dates between 2025-6-30 and max_date, as the get_dates_list function is not working properly.
         final_output_df = base_pipeline.run_reconstruct_save_results_pipeline( data_path, 
                                                                             code, 
-                                                                            [lookback], 
-                                                                            [forecast], 
+                                                                            lookback, 
+                                                                            forecast, 
                                                                             final_output_predictions, 
                                                                             final_output_df,
                                                                             dates=dates_list

@@ -171,6 +171,24 @@ def load_inference_codes_list(models_dir: str) -> List[str]:
             
     # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
     return ",".join(cleaned_codes)
+
+
+def load_inference_codes_as_list(models_dir: str) -> List[str]:
+    """Load a list of codes from the quantized models directory for inference."""
+    folder_names = [
+            entry.name for entry in os.scandir(models_dir) if entry.is_dir()
+        ]
+    
+    cleaned_codes = []
+    for code in folder_names:
+        clean_str = str(code).strip()
+        
+        # Filter out invalid columns
+
+        cleaned_codes.append(f'{clean_str}')
+            
+    # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
+    return cleaned_codes
     
 def get_dates_list(start_date: str, end_date: str) -> List[str]:
     dates_list = pd.date_range(start=start_date, end=end_date, freq='D').strftime('%Y-%m-%d').tolist()
@@ -252,6 +270,35 @@ def get_codes_list(input_directory: str) -> str:
             
     # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
     return ",".join(cleaned_codes)
+
+
+def get_codes_as_list(input_directory: str) -> str:
+    """
+    Reads the input data file, extracts unique codes, and returns them
+    individually wrapped in quotes as a comma-separated string for Hydra sweeps.
+    """
+    if input_directory.endswith('.csv'):
+        df = pd.read_csv(input_directory, nrows=0)
+        codes_list = df.columns.tolist()
+    elif input_directory.endswith('.parquet'):
+        import pyarrow.parquet as pq
+        schema = pq.read_schema(input_directory)
+        codes_list = schema.names
+    else:
+        raise ValueError("Unsupported file format. Please provide a CSV or Parquet file.")
+
+    cleaned_codes = []
+    for code in codes_list:
+        clean_str = str(code).strip()
+        
+        # Filter out invalid columns
+        if clean_str and clean_str != 'timestamp' and not clean_str.startswith('__index'):
+            # CRUCIAL FIX: Wrap the code in escaped quotes so Hydra treats 
+            # "BARCELONA CIUTAT" as a single literal string item.
+            cleaned_codes.append(f'"{clean_str}"')
+            
+    # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
+    return cleaned_codes
 
 
 def compute_dynamic_batch_size(lookback, forecast):

@@ -19,7 +19,7 @@ from training.training_utils import load_diagnostic_covariates
 from utils.environment_utils import setup_gpu_memory
 from src.config.base_transformer_config import BaseTransformerConfig
 from production.model_reconstruction_pipeline import ModelPredictionPipeline
-from src.utils.experiments_utils import get_codes_list, get_dates_list, load_inference_codes_list
+from src.utils.experiments_utils import get_codes_list, get_dates_list, load_inference_codes_as_list, load_inference_codes_list, get_codes_as_list, memory_cleanup
 from src.config.config_manager import get_config
 
 # We do not import the wrapper or optimized runner here because those modules
@@ -144,12 +144,12 @@ def main_inference_pipeline(cfg: DictConfig) -> None:
     base_pipeline.delete_old_data(predictions_dataset_path=config.output_path, real_data_dataset_path=input_directory, metrics_df_path=config.metrics_df_path)
 
 
-if __name__ == "__main__":
+'''if __name__ == "__main__":
     #inference_codes_list = load_inference_codes_list("../quantized_models")
-    get_dates_list("2025-12-31")
-    main_inference_pipeline()
+    #get_dates_list("2025-12-31")
+    #main_inference_pipeline()
 
-    '''DEFAULT_CODES_LIST = ["DEMAND_demanda__TOTAL_UP_00185", "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL"]#["DEMAND_demanda_SERVEI_CODI_INF"]
+    DEFAULT_CODES_LIST = load_inference_codes_as_list('../quantized_models')#["DEMAND_demanda__TOTAL_UP_00185", "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL"]#["DEMAND_demanda_SERVEI_CODI_INF"]
     
     LOOKBACK_LIST = [7,14, 60, 60, 182,182]
     FORECAST_LIST = [7,14, 30, 60, 182,365]
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     mlp_units = [512,256]
     activation_function = "gelu"
 
-    simulation_dates = pd.date_range(start='2025-12-31', end='2026-01-31', freq='D')
+    simulation_dates = pd.date_range(start='2025-09-30', end='2026-01-31', freq='D')
     for date in simulation_dates:
         input_dir = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_input/"
         out_dir = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/"
@@ -232,8 +232,138 @@ if __name__ == "__main__":
                     data_path=input_directory, 
                     model_folder=model_folder,
                 ))
-            final_output_df = base_pipeline.run_reconstruct_save_results_pipeline(input_directory,old_input_directory, code, LOOKBACK_LIST, FORECAST_LIST, final_output_predictions, final_output_df)
+            final_output_df = base_pipeline.individual_run_reconstruct_save_results_pipeline(
+                                                                                            input_directory=old_input_directory,
+                                                                                            code=code,
+                                                                                            LOOKBACK_LIST=LOOKBACK_LIST,
+                                                                                            FORECAST_LIST=FORECAST_LIST,
+                                                                                            final_output_predictions=final_output_predictions,  # Ensure this variable is defined (or pass None)
+                                                                                            final_output_df=final_output_df,
+                                                                                            dates=[str_date]
+                                                                                            )
             base_pipeline.save_final_output_predictions(final_output_df)
-        base_pipeline.delete_old_data(predictions_dataset_path=output_path, real_data_dataset_path=input_directory, metrics_df_path=metrics_df_path)
+        #base_pipeline.delete_old_data(predictions_dataset_path=output_path, real_data_dataset_path=old_input_directory, metrics_df_path=metrics_df_path)
         print(f"\nFinal output predictions for code {code}:\n")'''
-    
+if __name__ == "__main__":
+    #inference_codes_list = load_inference_codes_list("../quantized_models")
+    #get_dates_list("2025-12-31")
+    #main_inference_pipeline()
+
+    DEFAULT_CODES_LIST = load_inference_codes_as_list('../quantized_models')
+    '''["DEMAND_DEMANDA_TOTAL", 
+                          "DIAGNOSIS_DIAG_TOTAL_UP_00185",
+                          "DEMAND_demanda__TOTAL_RS_BARCELONA CIUTAT",
+                          "DEMAND_demanda__TOTAL_RS_BARCELONA METROPOLITANA NORD",
+                          "DEMAND_demanda__TOTAL_RS_BARCELONA METROPOLITANA SUD",
+                          "DEMAND_demanda__TOTAL_RS_CAMP DE TARRAGONA",
+                          "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL",
+                          "DEMAND_demanda__TOTAL_RS_GIRONA",
+                          "DEMAND_demanda__TOTAL_RS_LLEIDA",
+                          "DEMAND_demanda__TOTAL_RS_TERRES DE L'EBRE",
+                          "DEMAND_demanda__TOTAL_UP_00185",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_BARCELONA CIUTAT",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_BARCELONA METROPOLITANA NORD",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_BARCELONA METROPOLITANA SUD",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_CAMP DE TARRAGONA",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_CATALUNYA CENTRAL",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_GIRONA",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_LLEIDA",
+                          "DIAGNOSIS_DIAG_TOTAL_RS_TERRES DE L'EBRE"
+                          ]#load_inference_codes_as_list('../quantized_models') #["DEMAND_demanda__TOTAL_UP_00185", "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL"]#["DEMAND_demanda_SERVEI_CODI_INF"]
+    '''
+    LOOKBACK_LIST = [7, 14, 60, 60, 182, 182]
+    FORECAST_LIST = [7, 14, 30, 60, 182, 365]
+    FINAL_LOOKBACK = 182
+    FINAL_FORECAST = 365
+
+    input_directory = 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/finals/demanda_diagnostics_joined.parquet'
+    old_input_directory = '../data/FINAL_DB/demand_diagnosis_joined.parquet'
+
+    output_path = f"../production_predictions/final_output_predictions"
+    metrics_df_path = "../production_predictions/production_evaluation_metrics.parquet"
+    scaler = FunctionTransformer(func=lambda x: x, inverse_func=lambda x: x)
+    max_date = '2027-09-30'
+    cutoff_date = '2008-01-01'
+    eliminate_covid_data = False
+    covid_dates = None
+    model_folder = "../quantized_models"
+    head_size = 32
+    num_heads = 8
+    ff_dim = 512
+    num_transformer_blocks = 2
+    mlp_units = [512, 256]
+    activation_function = "gelu"
+
+    simulation_dates = pd.date_range(start='2025-6-30', end='2026-01-31', freq='D')
+    for date in simulation_dates:
+        print(f"\nProcessing date: {date.strftime('%Y-%m-%d')}\n")
+        input_dir = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_input/"
+        out_dir = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/"
+        input_directory = f"AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/finals/demand_diagnosis_joined.parquet"
+        str_date = date.strftime("%Y-%m-%d")
+        custom_args = [
+            "--start", "2010-01-01",
+            "--end", str_date,
+            "--input-dir", input_dir,
+            "--output-dir", out_dir
+        ]
+
+        old_argv = sys.argv
+        sys.argv = [old_argv[0]] + custom_args
+        try:
+            create_multiyear_sample.main()
+        finally:
+            sys.argv = old_argv
+            
+        CODES_LIST = get_codes_list(input_directory)
+        CODES_LIST = [code for code in CODES_LIST if code in DEFAULT_CODES_LIST]
+        final_output_df = pd.DataFrame()
+        
+        for code in DEFAULT_CODES_LIST:
+            # -----------------------------------------------------------------
+            # BLOQUE TRY/EXCEPT: Captura errores específicos de cada código
+            # -----------------------------------------------------------------
+            try:
+                final_output_predictions = None
+                
+                base_pipeline = ModelPredictionPipeline(config=BaseTransformerConfig(
+                    code=code,
+                    head_size=head_size,
+                    num_heads=num_heads,
+                    ff_dim=ff_dim,
+                    num_transformer_blocks=num_transformer_blocks,
+                    mlp_units=mlp_units,
+                    activation_function=activation_function,
+                    dropout=0,
+                    learning_rate=0.001,
+                    epochs=50,
+                    batch_size=32,
+                    cutoff_date=cutoff_date,
+                    covid_token=True,
+                    positional_encoding=True,
+                    evaluate_model=False, 
+                    data_path=input_directory, 
+                    model_folder=model_folder,
+                ))
+                
+                final_output_df = base_pipeline.individual_run_reconstruct_save_results_pipeline(
+                    input_directory=old_input_directory,
+                    code=code,
+                    LOOKBACK_LIST=LOOKBACK_LIST,
+                    FORECAST_LIST=FORECAST_LIST,
+                    final_output_predictions=final_output_predictions,
+                    final_output_df=final_output_df,
+                    dates=[str_date]
+                )
+                base_pipeline.save_final_output_predictions(final_output_df, output_path  = f"../production_predictions_prova/final_output_predictions")
+                print(f"[OK] Predicciones completadas con éxito para el código: {code}")
+                del base_pipeline  # Elimina la instancia de base_pipeline para liberar memoria
+                memory_cleanup()
+            except Exception as e:
+                # Si ocurre un error, se muestra en terminal y continúa con el siguiente código
+                print(f"\n[ERROR] Falló el código '{code}' en la fecha {str_date}.")
+                print(f"Detalle del error: {e}\n")
+                continue  # Salta al siguiente 'code' en DEFAULT_CODES_LIST
+
+
+        print(f"\nProcesamiento terminado para la fecha: {str_date}\n")

@@ -45,7 +45,7 @@ model:
 training:
   cutoff_date: "2008-01-01"
   positional_encoding: true
-  evaluate_model: true
+  evaluate_model: false
 
 inference:
   max_date: "2025-12-31"
@@ -65,7 +65,7 @@ hydra:
   # LAUNCHER CONFIGURATION FOR PARALLELIZATION
   # =========================================================================
   launcher:
-    n_jobs: 1      # -1 uses all available CPU cores. Set to a specific int (e.g., 4) if VRAM limited.
+    n_jobs: 8      # -1 uses all available CPU cores. Set to a specific int (e.g., 4) if VRAM limited.
     backend: loky    # Robust multiprocessing backend suited for numerical stacks like NumPy/TensorFlow
   
   sweep:

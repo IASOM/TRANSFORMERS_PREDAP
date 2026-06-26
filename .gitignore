@@ -12,3 +12,4 @@ my_project_image1.tar
 /**/__pycache__
 /distilled_models
 mlflow.db
+/multirun

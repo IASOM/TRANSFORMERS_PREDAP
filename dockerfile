@@ -5,7 +5,7 @@ FROM nvcr.io/nvidia/tensorflow:25.02-tf2-py3
 #Stablish the working directory inside the container
 WORKDIR /app
 
-RUN mkdir -p /app/${MODELS_FOLDER_NAME} && mkdir -p /app/${DATA_FOLDER_NAME} && mkdir -p /app/${SAVE_DATA_FOLDER_NAME}
+#RUN mkdir -p /app/${MODELS_FOLDER_NAME} && mkdir -p /app/${DATA_FOLDER_NAME} && mkdir -p /app/${SAVE_DATA_FOLDER_NAME}
 
 # Copy requirements and install them
 COPY requirements.txt .
