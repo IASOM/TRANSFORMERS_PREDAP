@@ -19,7 +19,7 @@ from training.training_utils import load_diagnostic_covariates
 from utils.environment_utils import setup_gpu_memory
 from src.config.base_transformer_config import BaseTransformerConfig
 from production.model_reconstruction_pipeline import ModelPredictionPipeline
-from src.utils.experiments_utils import get_codes_list, get_dates_list, load_inference_codes_as_list, load_inference_codes_list, get_codes_as_list, memory_cleanup
+from src.utils.experiments_utils import get_codes_list, get_dates_list,load_inference_codes_not_done, load_inference_codes_as_list, load_inference_codes_list, get_codes_as_list, memory_cleanup
 from src.config.config_manager import get_config
 
 # We do not import the wrapper or optimized runner here because those modules
@@ -44,11 +44,60 @@ from omegaconf import DictConfig, OmegaConf
 from src.utils.experiments_utils import load_json_codes_list
 from sklearn.preprocessing import FunctionTransformer
 import pandas as pd
+import numpy as np
+import pyarrow as pa
+import pyarrow.dataset as ds
+import pyarrow.parquet as pq
+
+
+def merge_ds_files(input_base_dir: str = "../hydra_production_predictions/final_output_predictions", output_base_dir: str = "../hydra_production_predictions/merged_final_output_predictions"):
+        """
+        Merges all Parquet files in a dataset directory into a single Parquet file.
+
+        Args:
+            dataset_path (str): Path to the dataset directory containing Parquet files.
+            output_file (str): Path to the output Parquet file.
+        """
+        input_base_dir = Path(input_base_dir)
+        output_base_dir = Path(output_base_dir)
+
+        # 2. Iterate through each <code> directory
+        for code_dir in input_base_dir.iterdir():
+            # Ensure we are only looking at directories (skipping hidden files like .DS_Store)
+            if code_dir.is_dir():
+                code_name = code_dir.name
+                print(f"Merging fragments for code: {code_name}...")
+                
+                # Define and create the specific output directory for this code
+                target_dir = output_base_dir / code_name
+                target_dir.mkdir(parents=True, exist_ok=True)
+                output_file = target_dir / "part-0.parquet"
+                
+                try:
+                    # 3. Load the fragments *only* for this specific code folder
+                    dataset = ds.dataset(str(code_dir), format="parquet")
+                    scanner = dataset.scanner()
+                    
+                    # 4. Stream all batches into a single part-0.parquet file
+                    with pq.ParquetWriter(output_file, schema=dataset.schema) as writer:
+                        for batch in scanner.to_batches():
+                            writer.write_batch(batch)
+                            
+                except Exception as e:
+                    print(f"❌ Error processing {code_name}: {e}")
+
+        print("\nAll codes have been successfully merged!")
+
+
 
 OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
 OmegaConf.register_new_resolver("get_codes_list", get_codes_list)
 OmegaConf.register_new_resolver("get_dates_list", get_dates_list)
+OmegaConf
 config_name = "parallel_inference_codes.yaml" 
+
+
+
 
 def load_hydra_config():
     @hydra.main(version_base=None, config_path="../conf", config_name=config_name)
@@ -64,7 +113,7 @@ config = get_config()
 #OmegaConf.register_new_resolver("get_codes_list", get_codes_list)
 #OmegaConf.register_new_resolver("load_json_codes_list", load_json_codes_list)
 OmegaConf.register_new_resolver("load_inference_codes_list", load_inference_codes_list)  # Register a resolver for computing dynamic batch size
-
+OmegaConf.register_new_resolver("load_inference_codes_not_done", load_inference_codes_not_done)  # Register a resolver for getting dates list
 @hydra.main(version_base=None, config_path="../conf", config_name=config_name)
 def main_inference_pipeline(cfg: DictConfig) -> None:
     setup_gpu_memory()
@@ -194,12 +243,15 @@ def main_inference_pipeline(cfg: DictConfig) -> None:
         
 
         base_pipeline.save_final_output_predictions_multirun(final_output_df, output_path="../hydra_production_predictions/final_output_predictions")
+    merge_ds_files(input_base_dir="../hydra_production_predictions/final_output_predictions", output_base_dir="../hydra_production_predictions/merged_final_output_predictions")
     #base_pipeline.delete_old_data(predictions_dataset_path=config.output_path, real_data_dataset_path=input_directory, metrics_df_path=config.metrics_df_path)
     del base_pipeline  # Elimina la instancia de base_pipeline para liberar memoria
     memory_cleanup()
     
 
 if __name__ == "__main__":
+    
+    load_inference_codes_not_done(models_dir="../quantized_models", inference_dir="../hydra_production_predictions/final_output_predictions")
     max_date = "2025-12-31"  # Set a default max date
     input_data_retrieval_directory = 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_input/'
     output_data_retrieval_directory = 'AQUAS_DATA_RETRIEVAL/data/sample/multilayer_output/'

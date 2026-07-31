@@ -71,6 +71,9 @@ class BaseTransformerConfig(ABC):
     #scaler = MinMaxScaler( feature_range=(0, 1))
     #scaler = PowerTransformer()
     #scaler = QuantileTransformer()
+
+    # =================== INFERENCE PARAMETERS ====================
+    confidence_level: float = 0.95
     
     # ==================== PATHS AND DIRECTORIES ====================
     plots_dir: str = 'plots'

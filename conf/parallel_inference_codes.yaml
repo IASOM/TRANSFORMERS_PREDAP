@@ -75,7 +75,7 @@ hydra:
   sweeper:
     params:
       # Target codes to evaluate parallelly
-      model.target_code: ${load_inference_codes_list:${data.models_folder}} #DEMAND_demanda__TOTAL_UP_00185, "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL" #${get_codes_list:${data.data_path}}
+      model.target_code: ${load_inference_codes_not_done:${data.models_folder},../hydra_production_predictions/final_output_predictions} #${load_inference_codes_list:${data.models_folder}} #DEMAND_demanda__TOTAL_UP_00185, "DEMAND_demanda__TOTAL_RS_CATALUNYA CENTRAL" #${get_codes_list:${data.data_path}}
       
       # Fixed syntax for parameter sweeps (removed nested single quotes)
       experiment_setup:  '"7_7","14_14","60_30","60_60","182_182","365_182"'

@@ -1,16 +1,179 @@
 
+from mlflow import config
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import FunctionTransformer
+import config
 from typing import List, Optional, Tuple
 from data_utils import data_preparation, features
 from config.base_transformer_config import BaseTransformerConfig
 
+from data_utils.residual_data_preparation import generate_rolling_sequences_covariates, prepare_residual_data
 from utils.experiments_utils import smart_read
 
 default_config = BaseTransformerConfig()
 
 
+def prepare_production_prediction_univ_data(df: str, code: str, lookback: int, forecast: int, cutoff_date: str, max_date: str, scaler: FunctionTransformer, eliminate_covid_data: bool, covid_token: bool, covid_dates: Optional[List[str]] = None):
+    """
+    Prepare the data for univariate time series forecasting in production. This function loads the data from
+    the specified path, processes it to create time series features, and prepares the input (X) and target (Y) arrays for the model.
+    It also handles the inclusion of a COVID token feature and the elimination of COVID-affected data if specified. 
+    The function returns the prepared input and target arrays, as well as the corresponding timestamps.
+    Parameters:
+        data_path: Path to the input data file (Parquet format).
+        code: The target variable code for which the forecast is to be made.
+        lookback: The number of past time steps to include in the input features.
+        forecast: The number of future time steps to predict.
+        cutoff_date: The date to use as the cutoff for training data.
+        max_date: The maximum date to include in the data.
+        scaler: A FunctionTransformer object for scaling the features.
+        eliminate_covid_data: A boolean indicating whether to eliminate data affected by COVID-19.
+        covid_token: A boolean indicating whether to include a COVID token feature.
+        covid_dates: An optional list of date strings representing the COVID-affected periods to be eliminated if eliminate_covid_data is True.
+    Returns:
+        X_raw: A numpy array containing the input features for the model.
+        Y_raw: A numpy array containing the target values for the model.
+        df_timestamp: A pandas Series containing the timestamps corresponding to the input features and target valuesç
+    """
+    code = code.replace("#", ":")
+    # Load CSV
+    if eliminate_covid_data:
+        assert covid_dates is not None
+        df = data_preparation.eliminate_covid_dates(df, covid_dates)
+    
+    df = data_preparation.cut_dataframe(df, cutoff_date,max_date)
+    df = data_preparation.normalize_dataframe(df, target_code=code, scaler = scaler)
+    df_timestamp = df['timestamp']
+    df_dates = df_dates.drop(columns=['timestamp'])     
+
+    # univariate scenario ...................................................
+    idx_code = df.columns.get_loc(code)
+    feature_cols = df.columns[idx_code]  
+    target_col = df.columns[idx_code]  # Get the target column 
+    
+    # Convert to numpy arrays
+    X_raw = df[feature_cols].values.reshape(-1, 1)  
+    Y_raw = df[target_col].values # Target values
+    
+    if covid_token:
+        df_covid = data_preparation.add_covid_token(df)
+        covid_feature = df_covid['covid_token'].values.reshape(-1, 1)
+        X_raw = np.hstack((X_raw, covid_feature))
+
+    X_raw = X_raw[-lookback:].reshape(1, lookback, -1)
+    Y_raw = Y_raw[-forecast:].reshape(1, forecast)
+    Y_raw = np.zeros_like(Y_raw)  # Replace with zeros for production mode as we don't have true future values
+    
+    # Generate future timestamps for the forecast horizon and append to df_timestamp
+    last_date = df_timestamp.iloc[-1]
+    new_dates = pd.date_range(
+        start=last_date + pd.Timedelta(days=1), 
+        periods=forecast, 
+        freq='D'
+    )
+    df_forecast = pd.Series(new_dates)
+    #df_timestamp = df_timestamp.iloc[-lookback:].reset_index(drop=True)
+    df_timestamp = pd.concat([df_timestamp, df_forecast], ignore_index=True)
+        
+    return X_raw, Y_raw, df_timestamp
+
+
+def prepare_production_prediction_diagnostics_data(df: pd.DataFrame, code: str, lookback: int, forecast: int, cutoff_date: str, max_date: str, scaler: FunctionTransformer, covid_token: bool = False, relevant_feature_cols: List[str] = None, covid_dates: Optional[List[str]] = None, eliminate_covid_data: bool = False):
+        """
+        Prepares diagnostic data for prediction. This function loads the data, processes it to create time series features, and prepares the input (X) and target (Y) arrays for diagnostics. It also handles the inclusion of a COVID token feature and the elimination of COVID-affected data if specified. The function returns the prepared input and target arrays for diagnostics.
+        Parameters:
+            df: The input DataFrame containing the data.
+            code: The target variable code for which the diagnostics are to be made.
+            lookback: The number of past time steps to include in the input features.
+            forecast: The number of future time steps to predict.
+            cutoff_date: The date to use as the cutoff for training data.
+            max_date: The maximum date to include in the data.
+            scaler: A FunctionTransformer object for scaling the features.
+            covid_token: A boolean indicating whether to include a COVID token feature (default is False).
+            production_mode: A boolean indicating whether the function is being run in production mode (default is False).
+            covid_dates: An optional list of date strings representing the COVID-affected periods to be eliminated if eliminate_covid_data is True.
+            eliminate_covid_data: A boolean indicating whether to eliminate data affected by COVID-19 (default is False).
+        Returns:
+            X_raw: A numpy array containing the input features for diagnostics.
+            Y_raw: A numpy array containing the target values for diagnostics.
+        """
+        
+        code = code.replace("#", ":")
+        # Load CSV
+        if eliminate_covid_data:
+            assert covid_dates is not None
+            df = data_preparation.eliminate_covid_dates(df, covid_dates)
+        df = data_preparation.cut_dataframe(df, cutoff_date,max_date)
+        df = data_preparation.normalize_dataframe(df, target_code=code, scaler = scaler)
+        # multivariate scenario ..................................................
+        # Select feature columns (exclude timestamp & target)
+        idx_code = df.columns.get_loc(code)
+        df_features = df.drop(columns = ['timestamp'])
+        target_col = df.columns[idx_code]  # Target code column
+        # Convert DataFrame to numpy arrays
+        if relevant_feature_cols is not None:
+            X_raw = df_features[relevant_feature_cols].values  
+
+        else:
+            X_raw = df_features.values
+
+        Y_raw = df[target_col].values
+        if covid_token:
+            df_covid = data_preparation.add_covid_token(df)
+            covid_feature = df_covid['covid_token'].values.reshape(-1, 1)
+            X_raw = np.hstack((X_raw, covid_feature))
+
+        X_raw = X_raw[-lookback:].reshape(1, lookback, -1)
+        Y_raw = Y_raw[-forecast:].reshape(1, forecast)
+        Y_raw = np.zeros_like(Y_raw)  # Replace with zeros for production mode as we don't have true future values
+        
+        return X_raw, Y_raw
+
+def prepare_production_prediction_seasonal_data(df: pd.DataFrame, forecast: int, lookback: int, cutoff_date: str, max_date: str, predictions_train: Optional[np.ndarray], scaler: FunctionTransformer, eliminate_covid_data: bool, covid_dates: Optional[List[str]] = None, seasonal_categorical_vars: List[str] = None):
+    """
+    Prepares seasonal data for prediction. This function loads the data, processes it to create time series features, and prepares the input (X) array for seasonal covariates. The function returns the prepared input array for seasonal covariates.
+    Parameters:
+        df: The input DataFrame containing the data.
+        Y_train_univ: The univariate training targets.
+        forecast: The number of future time steps to predict.
+        lookback: The number of past time steps to include in the input features.
+        cutoff_date: The date to use as the cutoff for training data.
+        max_date: The maximum date to include in the data.
+        seasonal_categorical_vars: A list of seasonal categorical variable names to be included in the features.
+        predictions_train: An optional numpy array containing the model's predictions on the training data, which can be used to create lag features for the seasonal covariates.
+        predictions_test: An optional numpy array containing the model's predictions on the test data, which can be used to create lag features for the seasonal covariates.
+        scaler: A FunctionTransformer object for scaling the features.
+    Returns:
+        X_seasonal_covs: A numpy array containing the input features for the seasonal covariates, prepared for the specified code and forecast horizon.
+    """
+    # Prepare seasonal features for training data
+    print("Preparing seasonal features for training data...")
+    df_processed = features.prepare_time_series_features(
+        df, 
+        seasonal_categorical_vars,
+        cutoff_date=cutoff_date,
+        max_date = max_date,
+        scaler = scaler,
+        eliminate_covid_data=eliminate_covid_data, 
+        covid_dates=covid_dates,)
+    
+    X_train_seasonal = generate_rolling_sequences_covariates(
+        df_processed = df_processed,
+        lookback=lookback,
+        forecast=forecast,
+        predictions_train = predictions_train,
+
+    )
+    
+
+
+
+    #X_seasonal_covs = df_processed.drop(columns=['timestamp']).values[-forecast:].reshape(1, -1, df_processed.shape[1]-1)
+    #X_seasonal_covs = X_seasonal_covs.astype(float)
+
+
+    return X_train_seasonal
 
 class DataPreparationInProduction:
     def __init__(self, config: BaseTransformerConfig = default_config):

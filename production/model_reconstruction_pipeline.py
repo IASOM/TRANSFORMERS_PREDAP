@@ -14,7 +14,7 @@ from typing import Optional, Dict, List, Tuple, Any
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
-
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils.experiments_utils import smart_read, get_codes_as_list
@@ -28,6 +28,43 @@ np.read_csv = smart_read
 
 default_config = BaseTransformerConfig()
 
+
+def compute_predap_auxiliary_metrics(predictions: np.ndarray, true_past_data: np.ndarray, mae: np.ndarray, lookback: int, confidence_level: float=0.95) -> Dict[str, float]:
+        """
+        Computes auxiliary evaluation metrics (MAE, MSE, WAPE) for the given predictions and true values.
+
+        Args:
+            predictions (np.ndarray): The array of predicted values.
+            true_past_data (np.ndarray): The array of true past values.
+            mae (np.ndarray): The mean absolute error.
+            lookback (int): The lookback period.
+            confidence_level (float): The confidence level for the confidence interval.
+        Returns:
+            A dictionary containing the computed auxiliary metrics.
+        """
+
+        pred_series = pd.Series(predictions.flatten())
+        true_past_data = pd.Series(true_past_data.flatten())
+        full_series = pd.concat([true_past_data, pred_series], ignore_index=True)
+
+        # 4. Calculate the Laplace multiplier (k) instead of Z-score
+        k_multiplier = -np.log(2 * (1.0 - confidence_level))
+
+        # 5. Compute the final bounds centered around your current predictions
+        ci_margin = k_multiplier * mae
+
+        ci_lower = pred_series - ci_margin
+        ci_upper = pred_series + ci_margin
+
+        #compute 1st and 2nd derivatives (velocity and acceleration)
+        day_delta = 1.0
+        velocity = full_series.diff().div(day_delta)
+        acceleration = full_series.diff().div(day_delta)
+
+        velocity = velocity.iloc[-len(pred_series):]  # Keep only the velocity for the predicted points
+        acceleration = acceleration.iloc[-len(pred_series):]  # Keep only the acceleration for the predicted points
+
+        return ci_lower.values, ci_upper.values, velocity.values, acceleration.values
 
 class ModelPredictionPipeline(DataPreparationInProduction):
     def __init__(self, config: BaseTransformerConfig):
@@ -911,7 +948,7 @@ class ModelPredictionPipeline(DataPreparationInProduction):
                 pq.write_table(table, filepath)
                 print(f"[SAVED] {filepath}")
 
-    def merge_ds_files(self, dataset_path: str, output_file: str):
+    def merge_ds_files(self, input_base_dir: str = "../hydra_production_predictions/final_output_predictions", output_base_dir: str = "../hydra_production_predictions/merged_final_output_predictions"):
         """
         Merges all Parquet files in a dataset directory into a single Parquet file.
 
@@ -919,10 +956,35 @@ class ModelPredictionPipeline(DataPreparationInProduction):
             dataset_path (str): Path to the dataset directory containing Parquet files.
             output_file (str): Path to the output Parquet file.
         """
-        dataset = ds.dataset(dataset_path, format="parquet")
-        table = dataset.to_table()
-        pq.write_table(table, output_file)
-        print(f"[MERGED] {output_file}")
+        input_base_dir = Path(input_base_dir)
+        output_base_dir = Path(output_base_dir)
+
+        # 2. Iterate through each <code> directory
+        for code_dir in input_base_dir.iterdir():
+            # Ensure we are only looking at directories (skipping hidden files like .DS_Store)
+            if code_dir.is_dir():
+                code_name = code_dir.name
+                print(f"Merging fragments for code: {code_name}...")
+                
+                # Define and create the specific output directory for this code
+                target_dir = output_base_dir / code_name
+                target_dir.mkdir(parents=True, exist_ok=True)
+                output_file = target_dir / "part-0.parquet"
+                
+                try:
+                    # 3. Load the fragments *only* for this specific code folder
+                    dataset = ds.dataset(str(code_dir), format="parquet")
+                    scanner = dataset.scanner()
+                    
+                    # 4. Stream all batches into a single part-0.parquet file
+                    with pq.ParquetWriter(output_file, schema=dataset.schema) as writer:
+                        for batch in scanner.to_batches():
+                            writer.write_batch(batch)
+                            
+                except Exception as e:
+                    print(f"❌ Error processing {code_name}: {e}")
+
+        print("\nAll codes have been successfully merged!")
 
 
     def compute_code_prediction_features(

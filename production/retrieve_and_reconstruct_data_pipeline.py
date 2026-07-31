@@ -250,6 +250,7 @@ if __name__ == "__main__":
     #main_inference_pipeline()
 
     DEFAULT_CODES_LIST = load_inference_codes_as_list('../quantized_models')
+    COMPUTED_CODES_LIST = load_inference_codes_as_list('../hydra_production_predictions/final_output_predictions')
     '''["DEMAND_DEMANDA_TOTAL", 
                           "DIAGNOSIS_DIAG_TOTAL_UP_00185",
                           "DEMAND_demanda__TOTAL_RS_BARCELONA CIUTAT",

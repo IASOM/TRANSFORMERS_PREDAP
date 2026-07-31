@@ -189,7 +189,27 @@ def load_inference_codes_as_list(models_dir: str) -> List[str]:
             
     # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
     return cleaned_codes
+
+
+def load_inference_codes_not_done(models_dir: str, inference_dir: str) -> List[str]:
+    load_inference_codes = load_inference_codes_as_list(models_dir)
+    load_inference_done_codes = load_inference_codes_as_list(inference_dir)
+    codes_not_done = list(set(load_inference_codes) ^ set(load_inference_done_codes))
+
+    cleaned_codes = []
+    for code in codes_not_done:
+        clean_str = str(code).strip()
+        
+        # Filter out invalid columns
+
+        cleaned_codes.append(f'"{clean_str}"')
+            
+    # This will return: "DEMAND_DEMANDA_TOTAL","DEMAND_... BARCELONA CIUTAT","..."
+    return ",".join(cleaned_codes)
+
     
+
+
 def get_dates_list(start_date: str, end_date: str) -> List[str]:
     dates_list = pd.date_range(start=start_date, end=end_date, freq='D').strftime('%Y-%m-%d').tolist()
     return dates_list#','.join([f'"{date}"' for date in dates_list])
